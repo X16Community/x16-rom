@@ -133,10 +133,10 @@ boot_cartridge:
 	; The cartridge can also return to BASIC if it chooses to do so.
 	rts
 @trampoline:
-	lda $01
+	lda rom_bank
 	pha
-	lda #$20
-	sta $01
+	lda #32
+	sta rom_bank
 	lda $C000
 	cmp #'C'
 	bne @no
@@ -149,10 +149,10 @@ boot_cartridge:
 	lda $C003
 	cmp #'6'
 	bne @no
-	sec
+	; implicit sec - carry is set cmp is equal
 @return:
 	pla
-	sta $01
+	sta rom_bank
 	rts
 @no:
 	clc
