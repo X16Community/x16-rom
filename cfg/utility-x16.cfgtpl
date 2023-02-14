@@ -1,0 +1,9 @@
+MEMORY {
+	#include "x16.cfginc"
+
+	UTILITY:      start = $C000, size = $3FFE, fill=yes, fillval=$AA;
+}
+
+SEGMENTS {
+    CODE:        load = UTILITY,    type = ro;
+}

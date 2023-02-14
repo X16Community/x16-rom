@@ -133,6 +133,7 @@ stmdsp2	; statements
 	.word i2cpoke-1
 	.word sleep-1
 	.word cbsave-1
+	.word fdisk-1
 
 	; functions
 ptrfunc	.word vpeek

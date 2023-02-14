@@ -50,6 +50,13 @@ VERA_PALETTE_BASE = $1FA00
 VERA_SPRITES_BASE = $1FC00
 
 ;***************
+fdisk:
+	jsr bjsrfar
+	.word $C000
+	.byte BANK_UTILITY
+	rts
+
+;***************
 monitor:
 	jsr bjsrfar
 	.word $c000

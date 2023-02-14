@@ -10,6 +10,7 @@ BANK_CODEX   = $07
 BANK_GRAPH   = $08
 BANK_DEMO    = $09
 BANK_AUDIO   = $0A
+BANK_UTILITY = $0B
 
 ; XXX these constant RAM addresses are KERNAL
 ; XXX implementation details and need to go away!
