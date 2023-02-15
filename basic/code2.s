@@ -124,8 +124,7 @@ rescon3	lda bufofs,x
 	sbc reslst3,y
 	beq reser3
 	cmp #128
-	bne nthis3
-	bra resfnd
+	beq resfnd
 
 nthis3	ldx txtptr
 	inc count
