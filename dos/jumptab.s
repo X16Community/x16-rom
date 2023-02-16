@@ -9,6 +9,8 @@
 
 .import dos_init, dos_set_time
 
+.import select, deselect, spi_read, spi_write, send_cmd, sdcard_read_sector, sdcard_write_sector, sdcard_check
+
 .segment "dos_jmptab"
 ; $C000
 
@@ -36,3 +38,13 @@
 	jmp dos_set_time          ; 16
 
 	jmp dos_macptr            ; 17
+
+; SD card
+	jmp select                ; 18
+	jmp deselect              ; 19
+	jmp spi_read              ; 20
+	jmp spi_write             ; 21
+	jmp send_cmd              ; 22
+	jmp sdcard_read_sector    ; 23
+	jmp sdcard_write_sector   ; 24
+	jmp sdcard_check          ; 25

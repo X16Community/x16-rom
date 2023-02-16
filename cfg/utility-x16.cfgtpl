@@ -1,9 +1,20 @@
 MEMORY {
 	#include "x16.cfginc"
 
-	UTILITY:      start = $C000, size = $3FFE, fill=yes, fillval=$AA;
+	UTILITY: start = $C000, size = $3B00, fill=yes, fillval=$AA;
+	KSUP_CODE11: start = $FB00, size = $03A8, fill=yes, fillval=$AA;
+	KSUP_VEC11:  start = $FEA8, size = $0158, fill=yes, fillval=$AA;
+
 }
 
 SEGMENTS {
-    CODE:        load = UTILITY,    type = ro;
+	ZPKERNAL: load = ZPKERNAL, type = zp;
+	ZPUTIL:   load = ZPUTIL, type = zp;
+	UTILTBL: load = UTILITY, type = ro;
+    CODE: load = UTILITY, type = ro;
+	UTILCMD: load = UTILITY, type = ro, align = $0100;
+	KSUP_CODE11: load = KSUP_CODE11, type = ro;
+	KSUP_VEC11:  load = KSUP_VEC11,  type = ro;
+	DATA: load = UTILITY, type = ro;
+	BSS: load = UTILDAT, type = bss;
 }

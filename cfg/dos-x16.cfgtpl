@@ -12,5 +12,7 @@ SEGMENTS {
 	CODE:         load = DOS,      type = ro;
 	IRQB:         load = IRQB,     type = ro;
 
+
+	DOSCARD:      load = DOSCARD,  type = bss;
 	BSS:          load = DOSDAT,   type = bss;
 }

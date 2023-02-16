@@ -153,7 +153,10 @@ DOS_SOURCES = \
 	dos/geos.s
 
 UTILITY_SOURCES = \
-	utility/fdisk.s
+	kernsup/kernsup_utility.s \
+	utility/commands.s \
+	utility/fdisk.s \
+	utility/jumptab.s
 
 GEOS_SOURCES= \
 	geos/kernal/bitmask/bitmask2.s \
@@ -333,7 +336,8 @@ UTILITY_DEPS = \
 	dos/fat32/lib.inc \
 	dos/fat32/regs.inc \
 	dos/fat32/sdcard.inc \
-	dos/fat32/text_input.inc
+	dos/fat32/text_input.inc \
+	utility/macros.inc
 
 GEOS_DEPS= \
 	$(GENERIC_DEPS) \

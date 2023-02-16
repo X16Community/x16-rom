@@ -35,6 +35,7 @@
 ; jumptab.s
 .export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr
 .export dos_set_time
+.export sdcard_check
 
 .include "banks.inc"
 

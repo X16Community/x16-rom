@@ -7,8 +7,9 @@
 	.include "sdcard.inc"
 
 	.export sector_buffer, sector_buffer_end, sector_lba
+	.export select, deselect, spi_read, spi_write, send_cmd, sdcard_read_sector, sdcard_write_sector
 
-	.bss
+	.segment "DOSCARD"
 cmd_idx = sdcard_param
 cmd_arg = sdcard_param + 1
 cmd_crc = sdcard_param + 5
