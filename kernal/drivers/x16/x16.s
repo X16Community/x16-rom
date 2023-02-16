@@ -113,9 +113,9 @@ call_audio_init:
 ;---------------------------------------------------------------
 ; Check for cartridge in ROM bank 32
 ;
-; This copies code into early ZP that checks bank 32 for
-; the PETSCII sequence 'C', 'X', '1', '6' at address $C000
-; if it exists, it jumps to its entry point at $C004.
+; This routine checks bank 32 for the PETSCII sequence
+; 'C', 'X', '1', '6' at address $C000
+; if it exists, it jumps to the cartridge entry point at $C004.
 ;---------------------------------------------------------------
 boot_cartridge:
 	lda #tmp2
