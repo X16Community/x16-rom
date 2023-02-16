@@ -22,7 +22,7 @@ nmi	pha
 	jmp (nminv)
 
 ; warm reset, ctrl+alt+restore, default value for (nminv)
-nnmi jsr ioinit           ;go initilize i/o devices
+nnmi	jsr ioinit           ;go initilize i/o devices
 	jsr restor           ;go set up os vectors
 ;
 	jsr cint             ;go initilize screen
