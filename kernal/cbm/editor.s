@@ -230,7 +230,7 @@ stok	jsr screen_set_position
 ;
 	lda llen
 .ifp02
-	clc ; XXX is this correct?? (not reached because X16 is 65C02)
+	sec
 	sbc #1
 .else
 	dec
@@ -905,7 +905,7 @@ back	dec tblx
 chkdwn	ldx #nwrap
 	lda llen
 .ifp02
-	clc ; XXX is this correct?? (not reached because X16 is 65C02)
+	sec
 	sbc #1
 .else
 	dec
