@@ -891,8 +891,10 @@ chklup	cmp pntr
 	beq back
 	clc
 	adc llen
+	bcs :+ ; abort check if column overflowed
 	dex
 	bne chklup
+:
 	rts
 ;
 back	dec tblx
@@ -912,8 +914,10 @@ dwnchk	cmp pntr
 	beq dnline
 	clc
 	adc llen
+	bcs :+ ; abort check if column overflowed
 	dex
 	bne dwnchk
+:
 	rts
 ;
 dnline	ldx tblx
