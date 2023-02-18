@@ -20,7 +20,7 @@
 ;screen editor constants
 ;
 maxchr=80
-nwrap=2 ;max number of physical lines per logical line
+nwrap=4 ;max number of physical lines per logical line
 
 .export plot   ; set cursor position
 .export scrorg ; return screen size
@@ -230,7 +230,7 @@ stok	jsr screen_set_position
 ;
 	lda llen
 .ifp02
-	clc
+	clc ; XXX is this correct?? (not reached because X16 is 65C02)
 	sbc #1
 .else
 	dec
@@ -903,7 +903,7 @@ back	dec tblx
 chkdwn	ldx #nwrap
 	lda llen
 .ifp02
-	clc
+	clc ; XXX is this correct?? (not reached because X16 is 65C02)
 	sbc #1
 .else
 	dec
@@ -924,18 +924,18 @@ dnline	ldx tblx
 dwnbye	rts
 
 chkcol
-        cmp #1          ;check ctrl-a for invert.
-        bne ntinv
-        lda color       ;get current text color.
-        asl a           ;swap msn/lsn.
-        adc #$80
-        rol a
-        asl a
-        adc #$80
-        rol a
-        sta color       ;stash back.
-        lda #1          ;restore .a
-        rts
+	cmp #1          ;check ctrl-a for invert.
+	bne ntinv
+	lda color       ;get current text color.
+	asl a           ;swap msn/lsn.  ; c 11010000 -> 1 10100000
+	adc #$80        ; example ->    ; 1 10100000 -> 1 00100001
+	rol a           ;               ; 1 00100001 -> 0 01000011
+	asl a           ; clever        ; c 01000011 -> 0 10000110
+	adc #$80        ;  approach!    ; 0 10000110 -> 1 00000110
+	rol a                           ; 1 00000110 -> 0 00001101
+	sta color       ;stash back.
+	lda #1          ;restore .a
+	rts
 ntinv
 	ldx #15         ;there's 15 colors
 chk1a	cmp coltab,x

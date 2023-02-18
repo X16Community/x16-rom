@@ -310,11 +310,15 @@ screen_set_position:
 ;   Out:  .a       PETSCII/ISO
 ;---------------------------------------------------------------
 screen_get_color:
+	phx ; preserve X (restored after branch)
+	ldx #0
 	tya
+:
 	cmp llen
 	bcc :+
-	sec
-	sbc llen
+	sbc llen ; C=1
+	inx
+	bra :-
 :
 	sec
 	rol
@@ -328,22 +332,27 @@ screen_get_color:
 ;   Out:  .a       PETSCII/ISO
 ;---------------------------------------------------------------
 screen_get_char:
+	phx ; preserve X
+	ldx #0
 	tya
+ldapnt0:
 	cmp llen
 	bcc ldapnt1
-	sec
-	sbc llen
-	asl
-	sta VERA_ADDR_L
-	lda pnt+1
-	adc #1 ; C=0
-	bne ldapnt3
+	sbc llen ; C=1
+	inx
+	bra ldapnt0
 ldapnt1:
 	asl
 ldapnt2:
 	sta VERA_ADDR_L
 	lda pnt+1
+:
+	dex
+	bmi ldapnt3
+	inc
+	bra :-
 ldapnt3:
+	plx ; restore X
 	clc
 	adc #<(>screen_addr)
 	sta VERA_ADDR_M
@@ -363,11 +372,15 @@ ldapnt3:
 ;---------------------------------------------------------------
 screen_set_color:
 	pha
+	phx ; preserve X (restored after branch)
+	ldx #0
 	tya
+:
 	cmp llen
 	bcc :+
-	sec
-	sbc llen
+	sbc llen ; C=1
+	inx
+	bra :-
 :
 	sec
 	rol
@@ -383,22 +396,27 @@ screen_set_color:
 ;---------------------------------------------------------------
 screen_set_char:
 	pha
+	phx ; preserve X
+	ldx #0
 	tya
+stapnt0:
 	cmp llen
 	bcc stapnt1
-	sec
-	sbc llen
-	asl
-	sta VERA_ADDR_L
-	lda pnt+1
-	adc #1 ; C=0
-	bne stapnt3
+	sbc llen ; C=1
+	inx
+	bra stapnt0
 stapnt1:
 	asl
 stapnt2:
 	sta VERA_ADDR_L
 	lda pnt+1
+:
+	dex
+	bmi stapnt3
+	inc
+	bra :-
 stapnt3:
+	plx ; restore X
 	clc
 	adc #<(>screen_addr)
 	sta VERA_ADDR_M
