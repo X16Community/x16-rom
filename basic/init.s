@@ -168,6 +168,7 @@ fremes
 	.byt $9a, $12, $b4, $df, $92, "   ", $12, $a9, $a7, $92
 	.byt 5, " **** COMMANDER X16 BASIC V2 ****"
 	.byt $0d
+	.byt $13, $11, $11
 	; line 2
 	.byt $9f, $12, $b5, " ", $df, $92, " ", $12, $a9, " ", $b6
 	.byt $0d

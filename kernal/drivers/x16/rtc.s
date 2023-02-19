@@ -6,11 +6,17 @@
 .include "regs.inc"
 
 .import i2c_read_byte, i2c_write_byte
+.importzp tmp2
+
 .export rtc_get_date_time, rtc_set_date_time
+.export rtc_get_nvram, rtc_set_nvram, rtc_check_nvram_checksum
 
 .segment "RTC"
 
-rtc_address = $6f
+rtc_address            = $6f
+
+nvram_base             = $20
+screen_mode_cksum_addr = nvram_base + $15
 
 ;---------------------------------------------------------------
 ; rtc_set_date_time
@@ -155,4 +161,68 @@ bin_to_bcd:
 	bra @loop
 @end:	cld
 	ply
+	rts
+
+; Inputs: 
+; Y = nvram offset
+; A = byte value (for write)
+;
+; Outputs:
+; A = byte value (for read)
+; C = 0: success
+; C = 1: failure
+;
+; clobbers X
+rtc_get_nvram:
+	clc
+	bra rtc_nvram
+rtc_set_nvram:
+	sec
+rtc_nvram:
+	php
+	pha
+
+	tya
+	and #$3f
+	clc
+	adc #nvram_base
+	tay
+	pla
+	ldx #rtc_address
+	plp
+	bcs @write
+	jmp i2c_read_byte
+@write:
+    jsr i2c_write_byte
+	bcs @exit
+	cpy #screen_mode_cksum_addr
+	bcc @checksum
+@good:
+	clc
+@exit:
+	rts
+@checksum:
+	jsr rtc_check_nvram_checksum
+	bcs @exit
+	lda tmp2
+	jmp i2c_write_byte ; commit the new checksum
+
+; sets Z if equal, C on i2c error
+rtc_check_nvram_checksum:
+	ldx #rtc_address
+	ldy #nvram_base
+	stz tmp2
+@cksumloop:
+	jsr i2c_read_byte
+	bcs @exit
+	adc tmp2
+	sta tmp2
+	iny
+	cpy #screen_mode_cksum_addr
+	bcc @cksumloop
+	jsr i2c_read_byte
+	bcs @exit
+	cmp tmp2
+	clc
+@exit:
 	rts

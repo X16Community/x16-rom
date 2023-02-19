@@ -30,6 +30,8 @@ nwrap=4 ;max number of physical lines per logical line
 
 .importzp mhz  ; constant
 
+.importzp tmp2
+
 .import dfltn, dflto ; XXX
 
 .import iokeys
@@ -38,6 +40,7 @@ nwrap=4 ;max number of physical lines per logical line
 .import shflag
 SCREEN_MODE_4030 = 3
 MODIFIER_4080 = 32
+MODIFIER_SHIFT = 1
 
 .include "io.inc"
 
@@ -67,6 +70,7 @@ MODIFIER_4080 = 32
 .import screen_clear_line
 .import screen_save_state
 .import screen_restore_state
+.import screen_toggle_default_nvram
 .export llen
 .export scnsiz
 .export color
@@ -261,13 +265,33 @@ loop3
 	and #(255-MODIFIER_4080)
 	sta shflag
 	
-	sec             ;Get current screen mode
-	jsr screen_mode
+;	sec             ;Get current screen mode
+;	jsr screen_mode
+;
+;	eor #SCREEN_MODE_4030
+;	clc
+;:	jsr screen_mode ;Set new screen mode, will clear screen
+	and #MODIFIER_SHIFT
+	bne scrpnc
+	jsr screen_toggle_default_nvram
+	bra doredy
+scrpnc
+	; screen panic, toggle between VGA/composite mode
+	stz VERA_CTRL
+	lda VERA_DC_VIDEO
+	and #3
+	dec
+	and #1
+	eor #1
+	inc
+	sta tmp2
+	lda VERA_DC_VIDEO
+	and #$70
+	ora tmp2
+	sta VERA_DC_VIDEO
+	bra loop3b
 
-	eor #SCREEN_MODE_4030
-	clc
-:	jsr screen_mode ;Set new screen mode, will clear screen
-
+doredy
 	ldx #0          ;Print READY.
 :	lda redy,x
 	beq loop3b
@@ -313,7 +337,7 @@ lp21	plp             ;restore I
 	inx
 	cpx #runtb_end-runtb
 	bne :-
-	bra loop3
+	jmp loop3
 
 lp22	pha
 	sec
