@@ -211,7 +211,7 @@ ld47	cmp (eal),y     ;verify it
 	beq ld60        ;o.k....
 	lda #16         ;no good...verify error (sperr)
 	jsr udst        ;update status
-	bra ld60
+	bra ld70
 ;
 ld50	ldy #0
 	sta (eal),y
