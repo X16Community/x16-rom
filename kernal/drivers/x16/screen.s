@@ -714,6 +714,9 @@ screen_set_mode_from_nvram:
 	sta VERA_DC_VIDEO
 	and #3
 	beq @panic ; load defaults if DC_VIDEO specifies no outputs
+	lda VERA_DC_VIDEO
+	and #$20
+	beq @panic ; load defaults if DC_VIDEO does not configure layer 1
 	jsr @incandfetch
 	beq @panic ; load defaults if DC_HSCALE is 0
 	sta VERA_DC_HSCALE
