@@ -745,7 +745,7 @@ validate_char:
 	beq @not_ok
 	cmp #'?'
 	beq @not_ok
-	cmp #'\'
+	cmp #'\' ; ' ; faked close-quote to make IDEs happy
 	beq @not_ok
 	cmp #'|'
 	beq @not_ok
@@ -2158,24 +2158,37 @@ fat32_rename:
 	; Save first argument
 	set16 tmp_buf, fat32_ptr
 
-	; Make sure target name doesn't exist
+	; Do target check
 	set16 fat32_ptr, fat32_ptr2
+	; Check target filename for slashes
+	jsr @noslash
+	bcs @6
+	; Error, file has a slash in it
+	lda #ERRNO_ILLEGAL_FILENAME
+	jmp set_errno
+@6:
+	; Make sure target name doesn't exist
 	lda #0 ; allow files and directories
 	jsr find_dirent
 	bcc @1
 	; Error, file exists
 	lda #ERRNO_FILE_EXISTS
 	jmp set_errno
-
 @1:
-	; Find file to rename
 	set16 fat32_ptr, tmp_buf
+	; Check source filename for slashes
+	jsr @noslash
+	bcs @7
+	; Error, file has a slash in it
+	lda #ERRNO_ILLEGAL_FILENAME
+	jmp set_errno
+@7:
+	; Find file to rename
 	lda #0 ; allow files and directories
 	jsr find_dirent
 	bcs @3
 	lda #ERRNO_FILE_NOT_FOUND
 	jmp set_errno
-
 @3:
 	; rescue shortname entry
 	set16 fat32_bufptr, cur_context + context::dirent_bufptr
@@ -2226,7 +2239,20 @@ fat32_rename:
 
 	; Write sector buffer to disk
 	jmp save_sector_buffer
-
+@noslash:
+	ldy #0
+@n1:
+	lda (fat32_ptr),y
+	beq @ns
+	iny
+	cmp #'/'
+	bne @n1
+@ne:
+	clc
+	rts
+@ns:
+	sec
+	rts
 ;-----------------------------------------------------------------------------
 ; fat32_set_attribute
 ;
