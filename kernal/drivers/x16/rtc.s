@@ -16,6 +16,7 @@
 rtc_address            = $6f
 
 nvram_base             = $20
+nvram_size             = $40
 screen_mode_cksum_addr = nvram_base + $15
 
 ;---------------------------------------------------------------
@@ -180,10 +181,15 @@ rtc_set_nvram:
 	sec
 rtc_nvram:
 	php
+	cpy #(nvram_base + nvram_size)
+	bcc :+
+	plp
+	sec
+	bra @exit	
+:
 	pha
 
 	tya
-	and #$3f
 	clc
 	adc #nvram_base
 	tay

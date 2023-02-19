@@ -265,25 +265,19 @@ loop3
 	and #(255-MODIFIER_4080)
 	sta shflag
 	
-;	sec             ;Get current screen mode
-;	jsr screen_mode
-;
-;	eor #SCREEN_MODE_4030
-;	clc
-;:	jsr screen_mode ;Set new screen mode, will clear screen
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
 	bra doredy
 scrpnc
-	; screen panic, toggle between VGA/composite mode
+	; screen panic, cycle through VGA/composite/RGB modes
 	stz VERA_CTRL
 	lda VERA_DC_VIDEO
-	and #3
-	dec
-	and #1
-	eor #1
 	inc
+	and #3
+	bne :+
+	inc
+:
 	sta tmp2
 	lda VERA_DC_VIDEO
 	and #$70
