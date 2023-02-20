@@ -50,6 +50,7 @@ fdisk_commands:
 	.word 0 ; 'z'
 
 fdisk_categories:
+	.word category_dos
 	.word category_generic
 	.word category_misc
 	.word category_save
@@ -57,6 +58,12 @@ fdisk_categories:
 	.word 0
 
 .data
+category_dos:
+	.asciiz "DOS (MBR)"
+	.byte 'a'
+	.asciiz "toggle a bootable flag"
+	.byte $00
+
 category_generic:
 	.asciiz "Generic"
 	.byte 'n'
