@@ -94,15 +94,16 @@ category_label:
 ; C = error
 .proc select_partition
 	sta r1L
-	stz r1H
+	lda #$FF
+	sta r1H
 	ldx #00
 
 find_matching:
 	jsr check_partition
 	bcs :+
 
-	ldy r1H
-	bne :+
+	lda r1H
+	bpl :+
 	stx r1H
 
 :	inx
@@ -110,7 +111,7 @@ find_matching:
 	bne find_matching
 
 	lda r1H
-	bne print_loop
+	bpl print_loop
 
 none:
 	lda r1L
