@@ -238,6 +238,31 @@ failure:
 :	rts
 .endproc
 
+; r1L: type
+.proc print_partition_type
+	sta r1L
+	ldx #00
+:   lda partition_types,x
+	beq no_type
+	inx
+	cmp r1L
+	beq :+
+	inx
+	inx
+	bra :-
+
+:   lda partition_types,x
+	sta putstr_ptr
+	lda partition_types + 1,x
+	sta putstr_ptr + 1
+
+	jmp putstr
+
+no_type:
+	lda r1L
+	jmp print_u8_hex
+.endproc
+
 .proc set_bootable
 	lda #$FF
 	jsr select_partition
@@ -703,30 +728,9 @@ sector_count:
 
 	print new_partition_created_2
 
-	ldx #00
-:   lda partition_types,x
-	beq @no_type
-	inx
-	cmp r4L
-	beq :+
-	inx
-	inx
-	bra :-
-
-:   lda partition_types,x
-	sta putstr_ptr
-	lda partition_types + 1,x
-	sta putstr_ptr + 1
-
-	jsr putstr
-
-	bra @size
-
-@no_type:
 	lda r4L
-	jsr print_u8_hex
+	jsr print_partition_type
 
-@size:
 	print new_partition_created_3
 
 	set16_val r0, new_partition_last_sector_maximum
