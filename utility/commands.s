@@ -25,7 +25,7 @@ fdisk_commands:
 	.word set_bootable-1 ; 'a'
 	.word 0 ; 'b'
 	.word 0 ; 'c'
-	.word 0 ; 'd'
+	.word delete_partition-1 ; 'd'
 	.word 0 ; 'e'
 	.word 0 ; 'f'
 	.word 0 ; 'g'
@@ -33,7 +33,7 @@ fdisk_commands:
 	.word 0 ; 'i'
 	.word 0 ; 'j'
 	.word 0 ; 'k'
-	.word 0 ; 'l'
+	.word list_partition_types-1 ; 'l'
 	.word help-1 ; 'm'
 	.word new_partition-1 ; 'n'
 	.word create_empty_mbr-1 ; 'o'
@@ -41,7 +41,7 @@ fdisk_commands:
 	.word quit-1 ; 'q'
 	.word 0 ; 'r'
 	.word 0 ; 's'
-	.word 0 ; 't'
+	.word change_type-1 ; 't'
 	.word 0 ; 'u'
 	.word 0 ; 'v'
 	.word write-1 ; 'w'
@@ -66,10 +66,16 @@ category_dos:
 
 category_generic:
 	.asciiz "Generic"
+	.byte 'd'
+	.asciiz "delete a partition"
+	.byte 'l'
+	.asciiz "list known partition types"
 	.byte 'n'
 	.asciiz "add a new partition"
 	.byte 'p'
 	.asciiz "print the partition table"
+	.byte 't'
+	.asciiz "change a partition type"
 	.byte $00
 
 category_misc:
@@ -308,6 +314,34 @@ end:
 	rts
 .endproc
 
+.proc delete_partition
+	lda #$FF
+	jsr select_partition
+	bvs end
+	bcs end
+
+	tax
+	adc #01
+	sta r1L
+
+	jsr load_partition_table_entry
+	ldy #partition_table_entry::sector_count + 3
+	lda #00
+
+:	sta (r0),y
+	dey
+	bpl :-
+
+	print delete_partition_1
+	lda r1L
+	jsr print_u8_hex
+
+	print delete_partition_2
+
+end:
+	rts
+.endproc
+
 ; *********************************************************************
 ; * Display all commands
 ; *********************************************************************
@@ -376,6 +410,35 @@ print_description:
 end:
 	rts
 .endproc
+.endproc
+
+.proc list_partition_types
+	ldx #00
+:   lda partition_types,x
+	bne :+
+	rts
+
+:	phx
+	jsr print_u8_hex
+	print list_partition_types_1
+	plx
+
+	inx
+	lda partition_types,x
+	sta putstr_ptr
+	inx
+	lda partition_types,x
+	sta putstr_ptr + 1
+
+	jsr putstr
+
+	lda #$0A
+	jsr bsout
+	lda #$0D
+	jsr bsout
+
+	inx
+	bra :--
 .endproc
 
 ; r2L: primary partition counter, selected partition number
@@ -889,6 +952,62 @@ end:
 .endproc
 .endproc
 
+.proc change_type
+	lda #$FF
+	jsr select_partition
+	bvs end
+	bcs end
+
+	sta r1L
+
+hex_code:
+	print change_type_1
+	jsr read_line
+	bvs end
+
+	cpx #00
+	beq hex_code
+
+	lda line_buffer
+	cmp #'L'
+
+	bne :+
+	jsr list_partition_types
+	bra hex_code
+
+:	ldx #00
+	jsr parse_u8_hex
+	bcs error
+	beq error ; FIXME: Deal with partition type 00
+
+	sta r1H
+
+	print change_type_2
+
+	ldx r1L
+	jsr load_partition_table_entry
+	ldy #partition_table_entry::partition_type
+	lda (r0),y
+	jsr print_partition_type
+
+	print change_type_3
+
+	lda r1H
+	jsr print_partition_type
+
+	print change_type_4
+
+	ldy #partition_table_entry::partition_type
+	lda r1H
+	sta (r0),y
+end:
+	rts
+
+error:
+	print value_out_of_range
+	bra hex_code
+.endproc
+
 .proc write
 	jsr write_mbr_sector
 	bcc :+
@@ -948,6 +1067,9 @@ set_bootable_success_3_disabled:
 
 set_bootable_success_4:
 	.byte " now.", $0A, $0D, $00
+
+delete_partition_2:
+	.byte " has been deleted.", $0A, $0D, $00
 
 new_partition_no_free_partition:
 	.byte "To create more partitions, first replace a primary with an extended partition.", $0A, $0D, $00
@@ -1042,7 +1164,9 @@ partition_info_12:
 	.byte " bytes", $0A, $0D, "Disk identifier: 0x", $00
 
 partition_info_13:
-	.byte $0A, $0D, $0A, $0D, $01, "Partition ", $00
+	.byte $0A, $0D, $0A, $0D, $01
+delete_partition_1:
+	.asciiz "Partition "
 
 partition_info_14:
 	.byte $01, $0D, $0A, "Bootable: ", $00
@@ -1063,6 +1187,7 @@ partition_info_17:
 	.byte $0A, $0D, "Partition type: ", $00
 
 partition_info_18:
+list_partition_types_1:
 	.asciiz " - "
 
 partition_types:
@@ -1087,6 +1212,18 @@ partition_type_ntfs:
 
 partition_type_hidden_ntfs:
 	.asciiz "Hidden HPFS/NTFS/exFAT"
+
+change_type_1:
+	.asciiz "Hex code or alias (type L to list all): "
+
+change_type_2:
+	.asciiz "Changed type of partition '"
+
+change_type_3:
+	.asciiz "' to '"
+
+change_type_4:
+	.asciiz "'."
 
 write_success:
 	.byte "The partition table has been altered.", $0A, $0D, "Syncing disks.", $0A, $0D, $00
