@@ -6,8 +6,8 @@
 .include "../dos/fat32/lib.inc"
 
 .export fdisk, read_mbr_sector, write_mbr_sector, create_empty_mbr
-.export parse_u32_hex, parse_u8_hex, print_u8_hex
-.export putstr_ptr, putstr, tmp2, util_tmp
+.export parse_u32_hex, parse_u8_hex, print_u32_hex, print_u8_hex, read_line, read_character
+.export line_buffer, putstr_ptr, putstr, tmp2, util_tmp, sector_size
 .import fdisk_commands
 
 .segment "ZPKERNAL" : zeropage
@@ -24,6 +24,9 @@ line_buffer:
 	.res 255
 
 line_number:
+	.res 4
+
+sector_size:
 	.res 4
 
 .code
@@ -44,6 +47,8 @@ line_number:
 
 	printc $0F ; ISO mode
 	print welcome
+
+	set32_val sector_size, 2048 ; FIXME: Query from SD card
 
 	jsr read_mbr_sector
 	bcs :+
@@ -68,13 +73,13 @@ command_loop:
 	beq command_loop
 
 	cmp #$03 ; RUN/STOP
-	beq command_loop_exit
+	bvs command_loop_exit
 
 	tay
 
 	cmp #'a'
 	bcc @error
-	
+
 	cmp #'z' + 1
 	bcs @error
 
@@ -159,12 +164,11 @@ command_loop_exit:
 
 :   clc
 	set32_val sector_lba, 0
-	.byte $DB
 
 	jsr jsrfar
 	.word sdcard_write_sector
 	.byte BANK_CBDOS
-	
+
 	rts
 .endproc
 
@@ -212,6 +216,7 @@ command_loop_exit:
 ; *********************************************************************
 ; Reads a line from stdin.
 ; Returns the number of characters read in X.
+; Sets V = 1 if RUN/STOP is pressed.
 ; Clobbers: A, X, Y
 ; *********************************************************************
 
@@ -246,28 +251,37 @@ key_backspace:
 
 	jsr bsout
 	dex
-	bra read_line
+	bra :-
 
 key_enter:
-	jsr bsout
+	clv
+	jmp bsout
 key_runstop:
+	php
+	pla
+	ora #%01000000
+	pha
+	plp
 	rts
 .endproc
 
 
 ; *********************************************************************
 ; Reads a character from stdin and stores it in A.
-; Does not touch A if no character was read.
+; Returns 0 if no character was read.
+; Flags are set from loading the character.
 ; Output: A
 ; Clobbers: A, X, Y
 ; *********************************************************************
 
 .proc read_character
 	jsr read_line
-	cpy #$00
+	cpx #$00
 	beq :+
 	lda line_buffer
-:   rts
+	rts
+:   lda #$00
+	rts
 .endproc
 
 ; *********************************************************************
@@ -278,7 +292,7 @@ key_runstop:
 ; *********************************************************************
 
 .proc parse_u32_hex
-	ldy #08
+	ldy #03
 
 :   jsr parse_u8_hex
 	bcs error
@@ -286,7 +300,7 @@ key_runstop:
 	inx
 	inx
 	dey
-	bne :-
+	bpl :-
 
 error:
 	rts
@@ -340,6 +354,7 @@ error:
 	bcs hex
 	sec
 	sbc #'0'
+	clc
 	rts
 
 hex:
@@ -351,15 +366,28 @@ hex:
 	adc #10
 	sec
 	sbc #'A'
+	clc
 	rts
 
 lowercase:
 	sec
 	sbc #('a' - 'A')
+	clc
 	bra hex
 
 error:
 	sec
+	rts
+.endproc
+
+; Prints the number pointed to by r0 as a 32 bit hex value.
+; Clobbers: A, X, Y
+.proc print_u32_hex
+	ldy #3
+:   lda (r0),y
+	jsr print_u8_hex
+	dey
+	bpl :-
 	rts
 .endproc
 
