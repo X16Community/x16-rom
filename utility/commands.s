@@ -186,8 +186,8 @@ print_loop:
 
 	sta r2L
 
-:	ldx r1H
-	jsr check_partition
+	ldx r1H
+:	jsr check_partition
 	bcs :+
 
 	cpx r2L
