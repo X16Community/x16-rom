@@ -198,8 +198,7 @@ print_loop:
 	bra :--
 
 @error:
-	clc
-	print new_partition_out_of_range
+	print value_out_of_range
 	jmp print_loop
 
 @success:
@@ -422,7 +421,7 @@ partition_type_loop:
 	cmp #'e'
 	beq @extended
 
-	print new_partition_out_of_range
+	print value_out_of_range
 	bra partition_type_loop
 
 @default:
@@ -558,8 +557,7 @@ first_sector:
 	bpl :--
 
 @error:
-	clc
-	print new_partition_out_of_range
+	print value_out_of_range
 	jmp first_sector
 
 
@@ -646,8 +644,7 @@ sector_count:
 	bpl :--
 
 @error:
-	clc
-	print new_partition_out_of_range
+	print value_out_of_range
 	jmp sector_count
 
 @success:
@@ -918,6 +915,9 @@ three_spaces_with_newline:
 two_spaces_with_newline:
 	.byte $0A, $0D, $0A, $0D, ' ', ' ', $00
 
+value_out_of_range:
+	.byte $1C, "Value type out of range.", $05, $0A, $0D, $00
+
 select_used_partition_no_used_partition:
 	.byte $1C, "No partition is defined yet!", $05, $0A, $0D, $00
 
@@ -962,9 +962,6 @@ new_partition_type_4:
 
 new_partition_type_5:
 	.byte " free)", $0A, $0D, "   e  extended (container for logical partitions)", $0A, $0D, "Select (default p): ", $00
-
-new_partition_out_of_range:
-	.byte $1C, "Value type out of range.", $05, $0A, $0D, $00
 
 new_partition_type_default:
 	.byte "Using default response p.", $0A, $0D, $00
