@@ -24,6 +24,7 @@
 .export screen_restore_state
 .export screen_set_defaults_from_nvram
 .export screen_toggle_default_nvram
+.export screen_default_color_from_nvram
 
 ; kernal var
 .importzp sal, sah ; reused temps from load/save
@@ -213,7 +214,7 @@ screen_mode:
 	lda VERA_DC_VIDEO
 	and #$ef
 	sta VERA_DC_VIDEO
-	lda #6 << 4 | 1 ; blue on white
+	jsr screen_default_color_from_nvram ; was $61, blue on white
 	bra @cont
 
 @graph:	; graphics mode
@@ -705,8 +706,16 @@ screen_set_mode_from_nvram:
 
 	phy
 	jsr rtc_get_nvram
+	tay
+	lda cscrmd
+	ora #$80   ; force setting color
+	sta cscrmd
+	tya
 	clc
+	php
+	sei ; prevent cursor blink during mode change
 	jsr screen_mode
+	plp
 	ply
 
 	stz VERA_CTRL
@@ -739,17 +748,6 @@ screen_set_mode_from_nvram:
 	sta VERA_DC_VSTOP
 	stz VERA_CTRL
 	jsr @incandfetch
-	sta color
-
-	; swap nibbles
-	asl
-	adc #$80
-	rol
-	asl
-	adc #$80
-	rol
-	cmp color
-	beq @panic ; load defaults if default text fg/bg are equal
 
 	clc
 	rts
@@ -761,6 +759,45 @@ screen_set_mode_from_nvram:
 	jsr rtc_get_nvram
 	ply
 	ora #0
+	rts
+
+
+screen_default_color_from_nvram:
+	ldy #0
+	jsr rtc_get_nvram
+
+	and #1
+	beq :+
+	clc
+	adc #9 ; second profile (plus the #1 from above) = 10
+:
+	clc
+	adc #10 ; color offset
+	tay
+	jsr rtc_get_nvram
+
+	sta tmp2
+
+	; swap nibbles
+	asl
+	adc #$80
+	rol
+	asl
+	adc #$80
+	rol
+	cmp tmp2
+	lda tmp2
+	bne :+
+	tay
+	; increment fg color to make it visible if it's the same as bg
+	and #$f0
+	sta tmp2
+	tya
+	inc
+	and #$0f
+	ora tmp2
+:
+	clc
 	rts
 
 screen_set_default_nvram:

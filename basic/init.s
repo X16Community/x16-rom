@@ -147,6 +147,7 @@ initm3	jsr linprt
 	lda #<words
 	ldy #>words
 	jsr strout
+	jsr screen_default_color_from_nvram
 	jmp scrtch
 
 bvtrs	.word nerror,nmain,ncrnch,nqplop,ngone,neval
