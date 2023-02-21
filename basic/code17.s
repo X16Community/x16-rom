@@ -85,7 +85,7 @@ pokefr2	stz ram_bank
 	ldy crambank
 	sty ram_bank
 	bra pokefr3
-pokefr ldy #poker
+pokefr	ldy #poker
 	sty stavec
 	cmp #$c0
 	bcs pokefr2
