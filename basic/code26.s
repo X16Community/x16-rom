@@ -93,6 +93,8 @@ csysrz	=*-1            ;return to here
 	sta sareg       ;save 6502 regs
 	stx sxreg
 	sty syreg
+	lda crambank
+	sta ram_bank
 	pla             ;get status reg
 	sta spreg
 	rts             ;return to system

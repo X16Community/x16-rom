@@ -625,6 +625,8 @@ setbank:
 	stz ram_bank
 	stx crombank
 @done:
+	lda crambank
+	sta ram_bank
 	rts
 
 ;***************
@@ -637,6 +639,8 @@ clear_4080_flag:
 	lda shflag
 	and #255-32
 	sta shflag
+	lda crambank
+	sta ram_bank
 	rts
 
 ;***************

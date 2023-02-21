@@ -51,12 +51,14 @@ peek	lda poker+1
 	jsr getadr0
 	ldy #0
 	lda poker+1
-	cmp #$a0
-	bcs peek1
+	cmp #$a0        ;We don't disturb $00 (ram_bank) here for a low RAM
+	bcs peek1       ;read so that it is possible to read $00 after BLOAD
 	lda (poker),y   ;Low RAM
 	jmp peek2
 peek3	stz ram_bank
 	ldx crombank
+	lda crambank
+	sta ram_bank
 	bra peek4
 peek1	cmp #$c0
 	bcs peek3
@@ -80,6 +82,8 @@ poke	jsr getnum
 pokefr2	stz ram_bank
 	txa
 	ldx crombank
+	ldy crambank
+	sty ram_bank
 	bra pokefr3
 pokefr ldy #poker
 	sty stavec
