@@ -86,6 +86,10 @@ csysfr2	pha             ;Far jump; extra byte on stack for return bank
 	plx
 
 	lda crombank    ;Fetch target bank, and go far!
+	pha
+	lda crambank
+	sta ram_bank
+	pla
 	jmp jsrfar3
 
 csysrz	=*-1            ;return to here
