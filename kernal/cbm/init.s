@@ -6,7 +6,7 @@
 
 .feature labels_without_colons
 
-.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge
+.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, screen_set_defaults_from_nvram
 
 .export start
 
@@ -23,6 +23,7 @@ start	ldx #$ff
 ;
 	jsr cint             ;go initilize screen
 	jsr call_audio_init  ;initialize audio API and HW.
+	jsr screen_set_defaults_from_nvram
 	jsr boot_cartridge   ;if a cart ROM in bank 32, jump into its start location
 	cli                  ;interrupts okay now
 

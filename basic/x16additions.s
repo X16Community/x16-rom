@@ -688,6 +688,49 @@ test:
 	jmp $0400
 @copy_end:
 
+rtc_address            = $6f
+nvram_base             = $20
+
+; This is a mirror of the internal kernal routine by the same name
+; but it only sets the fg color
+screen_default_color_from_nvram:
+	ldy #nvram_base+0
+	ldx #rtc_address
+	jsr i2c_read_byte
+
+	and #1
+	beq :+
+	clc
+	adc #9 ; second profile (plus the #1 from above) = 10
+:
+	clc
+	adc #nvram_base+10 ; color offset
+	tay
+	ldx #rtc_address
+	jsr i2c_read_byte
+
+	sta facho ; tmp variable
+
+	; swap nibbles
+	asl
+	adc #$80
+	rol
+	asl
+	adc #$80
+	rol
+	cmp facho
+	lda facho
+	bne :+
+	; increment fg color to make it visible if it's the same as bg
+	inc
+:
+	and #$0f
+	tax
+	lda coltab,x
+	jsr bsout
+	clc
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 ram_bank = 0

@@ -22,6 +22,9 @@
 .export screen_clear_line
 .export screen_save_state
 .export screen_restore_state
+.export screen_set_defaults_from_nvram
+.export screen_toggle_default_nvram
+.export screen_default_color_from_nvram
 
 ; kernal var
 .importzp sal, sah ; reused temps from load/save
@@ -37,6 +40,11 @@
 .import fetch, fetvec; [routines]
 
 .import GRAPH_init
+
+; RTC
+.import rtc_set_nvram
+.import rtc_get_nvram
+.import rtc_check_nvram_checksum
 
 .segment "KVAR"
 
@@ -206,7 +214,7 @@ screen_mode:
 	lda VERA_DC_VIDEO
 	and #$ef
 	sta VERA_DC_VIDEO
-	lda #6 << 4 | 1 ; blue on white
+	jsr screen_default_color_from_nvram ; was $61, blue on white
 	bra @cont
 
 @graph:	; graphics mode
@@ -665,3 +673,177 @@ inicpy:
 	stz data
 	stz tmp2
 	rts
+
+screen_toggle_default_nvram:
+	ldy #0
+	jsr rtc_get_nvram
+	and #1
+	eor #1
+	ldy #0
+	jsr rtc_set_nvram
+
+screen_set_defaults_from_nvram:
+	ldy #0
+	jsr rtc_get_nvram
+
+	
+screen_set_mode_from_nvram:
+	and #1
+	pha
+	; first check the nvram checksum
+	jsr rtc_check_nvram_checksum
+	beq :+
+	pla
+	jmp screen_set_default_nvram
+:
+	pla
+	beq :+
+	clc
+	adc #9
+:
+	inc
+	tay
+
+	phy
+	jsr rtc_get_nvram
+	tay
+	lda cscrmd
+	ora #$80   ; force setting color
+	sta cscrmd
+	tya
+	clc
+	php
+	sei ; prevent cursor blink during mode change
+	jsr screen_mode
+	plp
+	ply
+
+	stz VERA_CTRL
+	jsr @incandfetch
+	sta VERA_DC_VIDEO
+	and #3
+	beq @panic ; load defaults if DC_VIDEO specifies no outputs
+	lda VERA_DC_VIDEO
+	and #$20
+	beq @panic ; load defaults if DC_VIDEO does not configure layer 1
+	jsr @incandfetch
+	beq @panic ; load defaults if DC_HSCALE is 0
+	sta VERA_DC_HSCALE
+	jsr @incandfetch
+	beq @panic ; load defaults if DC_VSCALE is 0
+	sta VERA_DC_VSCALE
+	jsr @incandfetch
+	sta VERA_DC_BORDER
+	lda #2
+	sta VERA_CTRL
+	jsr @incandfetch
+	sta VERA_DC_HSTART
+	jsr @incandfetch
+	beq @panic ; load defaults if DC_HSTOP is 0
+	sta VERA_DC_HSTOP
+	jsr @incandfetch
+	sta VERA_DC_VSTART
+	jsr @incandfetch
+	beq @panic ; load defaults if DC_VSTOP is 0
+	sta VERA_DC_VSTOP
+	stz VERA_CTRL
+	jsr @incandfetch
+
+	clc
+	rts
+@panic:
+	jmp screen_set_default_nvram
+@incandfetch:
+	iny
+	phy
+	jsr rtc_get_nvram
+	ply
+	ora #0
+	rts
+
+
+screen_default_color_from_nvram:
+	ldy #0
+	jsr rtc_get_nvram
+
+	and #1
+	beq :+
+	clc
+	adc #9 ; second profile (plus the #1 from above) = 10
+:
+	clc
+	adc #10 ; color offset
+	tay
+	jsr rtc_get_nvram
+
+	sta tmp2
+
+	; swap nibbles
+	asl
+	adc #$80
+	rol
+	asl
+	adc #$80
+	rol
+	cmp tmp2
+	lda tmp2
+	bne :+
+	tay
+	; increment fg color to make it visible if it's the same as bg
+	and #$f0
+	sta tmp2
+	tya
+	inc
+	and #$0f
+	ora tmp2
+:
+	clc
+	rts
+
+screen_set_default_nvram:
+	ldy #0
+@loop:
+	phy
+	lda @defaults, y
+	jsr rtc_set_nvram
+	ply
+	bcs @set_default
+	iny
+	cpy #$15
+	bcc @loop
+@set_default:
+	lda @defaults+1
+	clc
+	jsr screen_mode
+
+	; Just in case the RTC is failing to hold values properly at all,
+	; we apply the the defaults of the first profile rather than jumping
+	; back to read the values out of the RTC
+	stz VERA_CTRL
+	lda @defaults+2
+	sta VERA_DC_VIDEO
+	lda @defaults+3
+	sta VERA_DC_HSCALE
+	lda @defaults+4
+	sta VERA_DC_VSCALE
+	lda @defaults+5
+	sta VERA_DC_BORDER
+	lda #2
+	sta VERA_CTRL
+	lda @defaults+6
+	sta VERA_DC_HSTART
+	lda @defaults+7
+	sta VERA_DC_HSTOP
+	lda @defaults+8
+	sta VERA_DC_VSTART
+	lda @defaults+9
+	sta VERA_DC_VSTOP
+	stz VERA_CTRL
+	lda @defaults+10
+	sta color
+	rts
+
+@defaults:
+	.byte $00
+	.byte $00,$21,$80,$80,$00,$00,$A0,$00,$F0,$61
+	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61
