@@ -55,8 +55,13 @@ peek	lda poker+1
 	bcs peek1
 	lda (poker),y   ;Low RAM
 	jmp peek2
-peek1	lda #poker	;High RAM or ROM
-	ldx curbank
+peek3	stz ram_bank
+	ldx crombank
+	bra peek4
+peek1	cmp #$c0
+	bcs peek3
+	ldx crambank
+peek4	lda #poker	;High RAM or ROM
 	jsr fetch
 peek2	tay
 dosgfl	pla
@@ -72,11 +77,17 @@ poke	jsr getnum
 	ldy #0
 	sta (poker),y
 	rts
-pokefr	lda #poker
-	sta stavec
+pokefr2	stz ram_bank
 	txa
-	ldx curbank
-	ldy #0
+	ldx crombank
+	bra pokefr3
+pokefr ldy #poker
+	sty stavec
+	cmp #$c0
+	bcs pokefr2
+	txa
+	ldx crambank
+pokefr3	ldy #0
 	jmp stash
 fnwait	jsr getnum
 	stx andmsk

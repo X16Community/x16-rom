@@ -43,8 +43,12 @@ plot	=$fff0
 
 csys	jsr frmadr      ;get int. addr
 	lda linnum+1
-	cmp #$a0
+	cmp #$c0
 	bcs csysfar
+
+	lda crambank
+	sta ram_bank
+
 	lda #>csysrz    ;push return address
 	pha
 	lda #<csysrz
@@ -57,7 +61,8 @@ csys	jsr frmadr      ;get int. addr
 	plp             ;load 6502 status reg
 	jmp (linnum)    ;go do it
 
-csysfar	jsr csysfr2
+csysfar	stz ram_bank ; for fetching crombank
+	jsr csysfr2
 	bra csysrz+1
 
 csysfr2	pha             ;Far jump; extra byte on stack for return bank
@@ -80,7 +85,7 @@ csysfr2	pha             ;Far jump; extra byte on stack for return bank
 	sta $0104,x
 	plx
 
-	lda curbank     ;Fetch target bank, and go far!
+	lda crombank    ;Fetch target bank, and go far!
 	jmp jsrfar3
 
 csysrz	=*-1            ;return to here

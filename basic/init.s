@@ -14,7 +14,10 @@ nready	jmp readyx
 init	jsr initv       ;go init vectors
 	jsr initcz      ;go init charget & z-page
 	jsr initms      ;go print initilization messages
-	stz curbank     ;set default value for BANK statement
+	ldx #1
+	stx crambank     ;set default value for BANK statement (RAM)
+	stz ram_bank
+	stz crombank     ;set default value for BANK statement (ROM)
 init2	ldx #stkend-256 ;set up end of stack
 	txs
 boot	lda #0

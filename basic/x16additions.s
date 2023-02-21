@@ -607,15 +607,24 @@ ckeymap:
 @fcerr:	jmp fcerr
 
 ;***************
-.export curbank
+.export crambank, crombank
 .segment "BVARS"
-	curbank: .res 1
+	crambank: .res 1
+.segment "BVARSB0"
+	crombank: .res 1
 
 .segment "BASIC"
 .export setbank
 setbank:
 	jsr getbyt
-	stx curbank
+	stx crambank
+	jsr chrgot
+	beq @done
+	jsr chkcom
+	jsr getbyt
+	stz ram_bank
+	stx crombank
+@done:
 	rts
 
 ;***************
@@ -624,15 +633,10 @@ setbank:
 ;to the BASIC editor to prevent 40/80 key
 ;presses during program execution to take effect
 clear_4080_flag:
-	lda ram_bank
-	pha
-	lda #BANK_KERNAL
-	sta ram_bank
+	stz ram_bank
 	lda shflag
 	and #255-32
 	sta shflag
-	pla
-	sta ram_bank
 	rts
 
 ;***************
