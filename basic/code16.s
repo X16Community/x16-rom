@@ -153,11 +153,11 @@ len1	jsr frestr
 	tay
 	rts
 asc	jsr len1
-	beq gofuc
+	beq asces
 	ldy #0
 	lda (index1),y
 	tay
-	jmp sngflt
+asces	jmp sngflt
 gofuc	jmp fcerr
 gtbytc	jsr chrget
 
