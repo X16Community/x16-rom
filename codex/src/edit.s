@@ -128,23 +128,29 @@ edit_delete
 	bcc      :+
 	inc      r0H                           ; r0 = src = dst + size
 :  
-	lda      meta_rgn_end
-	clc												; size needs +1, e.g. size = end - start + 1
+	lda      meta_rgn_end				   ; size = end - start + 1
+	sec				       
 	sbc      r1L
 	sta      r2L
 	lda      meta_rgn_end+1
 	sbc      r1H
 	sta      r2H                           ; r2 = size
+	
+	clc									   ; Increase size by 1
+	lda		 r2L
+	adc	     #1
+	sta	     r2L
+	lda	     r2H
+	adc	     #0
+	sta	     r2H
 
-;	IncW     r2 - accomplished by the clc before the first sbc in the most recent block of code
-	         
+;	IncW     r2 - accomplished by the clc before the first sbc in the most recent block of code         
 	popBank
 	kerjsr   MEMCOPY
 	PopW     r2                            ; Put r1 into r2
 
 	;; Relocate expressions
 	jsr        meta_relocate_expr
-
 	pushBankVar bank_meta_l
 	         
 	;; Decrement region end by the byte count
@@ -156,7 +162,6 @@ edit_delete
 	dec      meta_rgn_end+1
 :  
 	popBank
-	         
 	rts
 
 ;;
