@@ -135,13 +135,9 @@ edit_delete
 	lda      meta_rgn_end+1
 	sbc      r1H
 	sta      r2H                           ; r2 = size
-	
-	inc		 r2L						   ; Increase size by 1
-	bne      :+
-	inc	     r2H
+ 	IncW     r2							   ; Finally, increase size by 1
 
-;	IncW     r2 - accomplished by the clc before the first sbc in the most recent block of code         
-:	popBank
+	popBank
 	kerjsr   MEMCOPY
 	PopW     r2                            ; Put r1 into r2
 
