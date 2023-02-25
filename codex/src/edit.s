@@ -136,16 +136,12 @@ edit_delete
 	sbc      r1H
 	sta      r2H                           ; r2 = size
 	
-	clc									   ; Increase size by 1
-	lda		 r2L
-	adc	     #1
-	sta	     r2L
-	lda	     r2H
-	adc	     #0
-	sta	     r2H
+	inc		 r2L						   ; Increase size by 1
+	bne      :+
+	inc	     r2H
 
 ;	IncW     r2 - accomplished by the clc before the first sbc in the most recent block of code         
-	popBank
+:	popBank
 	kerjsr   MEMCOPY
 	PopW     r2                            ; Put r1 into r2
 
