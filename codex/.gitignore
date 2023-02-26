@@ -1,6 +1,7 @@
 cx
 cx-dc
 cx-mii
+cx-sym
 utest
 *.map
 *.sym
