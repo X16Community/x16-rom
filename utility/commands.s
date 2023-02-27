@@ -1033,25 +1033,25 @@ help_text:
 	.asciiz "Help:"
 
 three_spaces_with_newline:
-	.byte $0A, $0D, ' ', ' ', ' ', $00
+	.byte $0D, ' ', ' ', ' ', $00
 
 two_spaces_with_newline:
-	.byte $0A, $0D, $0A, $0D, ' ', ' ', $00
+	.byte $0D, $0D, ' ', ' ', $00
 
 value_out_of_range:
-	.byte $1C, "Value type out of range.", $05, $0A, $0D, $00
+	.byte $1C, "Value type out of range.", $05, $0D, $00
 
 select_used_partition_no_used_partition:
-	.byte $1C, "No partition is defined yet!", $05, $0A, $0D, $00
+	.byte $1C, "No partition is defined yet!", $05, $0D, $00
 
 select_used_partition_no_free_partition:
-	.byte $1C, "All space for primary partitions is in use.", $05, $0A, $0D, $00
+	.byte $1C, "All space for primary partitions is in use.", $05, $0D, $00
 
 set_bootable_extended_1:
 	.byte $1C, "Partition "
 
 set_bootable_extended_2:
-	.byte "is an extended partition.", $05, $0A, $0D, $00
+	.byte "is an extended partition.", $05, $0D, $00
 
 set_bootable_success_1:
 	.asciiz "The bootable flag on partition "
@@ -1066,19 +1066,19 @@ set_bootable_success_3_disabled:
 	.asciiz "disabled"
 
 set_bootable_success_4:
-	.byte " now.", $0A, $0D, $00
+	.byte " now.", $0D, $00
 
 delete_partition_2:
-	.byte " has been deleted.", $0A, $0D, $00
+	.byte " has been deleted.", $0D, $00
 
 new_partition_no_free_partition:
-	.byte "To create more partitions, first replace a primary with an extended partition.", $0A, $0D, $00
+	.byte "To create more partitions, first replace a primary with an extended partition.", $0D, $00
 
 new_partition_type_1:
 	.asciiz "Partition type"
 
 new_partition_type_2:
-	.byte $0A, $0D, "   p  primary (", $00
+	.byte $0D, "   p  primary (", $00
 
 new_partition_type_3:
 	.asciiz " primary, "
@@ -1087,10 +1087,10 @@ new_partition_type_4:
 	.asciiz " extended, "
 
 new_partition_type_5:
-	.byte " free)", $0A, $0D, "   e  extended (container for logical partitions)", $0A, $0D, "Select (default p): ", $00
+	.byte " free)", $0D, "   e  extended (container for logical partitions)", $0D, "Select (default p): ", $00
 
 new_partition_type_default:
-	.byte "Using default response p.", $0A, $0D, $00
+	.byte "Using default response p.", $0D, $00
 
 new_partition_type_primary = $0C ; FAT32
 new_partition_type_extended = $05
@@ -1125,7 +1125,7 @@ new_partition_created_3:
 	.asciiz " and of size "
 
 new_partition_created_4:
-	.byte " sectors.", $0A, $0D, $00
+	.byte " sectors.", $0D, $00
 
 partition_info_1:
 	.byte $01
@@ -1141,7 +1141,7 @@ partition_info_4:
 	.asciiz " bytes, "
 
 partition_info_5:
-	.byte " sectors", $01, $0A, $0D
+	.byte " sectors", $01, $0D
 	.asciiz "Units: sectors of "
 
 partition_info_6:
@@ -1151,20 +1151,20 @@ partition_info_7:
 	.asciiz " = "
 
 partition_info_8:
-	.byte " bytes", $0A, $0D, "Sector size (logical/physical): ", $00
+	.byte " bytes", $0D, "Sector size (logical/physical): ", $00
 
 partition_info_9:
 partition_info_11:
 	.asciiz " bytes / "
 
 partition_info_10:
-	.byte " bytes", $0A, $0D, "I/O size (minimum/optimal): ", $00
+	.byte " bytes", $0D, "I/O size (minimum/optimal): ", $00
 
 partition_info_12:
-	.byte " bytes", $0A, $0D, "Disk identifier: 0x", $00
+	.byte " bytes", $0D, "Disk identifier: 0x", $00
 
 partition_info_13:
-	.byte $0A, $0D, $0A, $0D, $01
+	.byte $0D, $0D, $01
 delete_partition_1:
 	.asciiz "Partition "
 
@@ -1178,13 +1178,13 @@ partition_info_bootable_no:
 	.asciiz "no"
 
 partition_info_15:
-	.byte $0A, $0D, "First sector LBA: ", $00
+	.byte $0D, "First sector LBA: ", $00
 
 partition_info_16:
-	.byte $0A, $0D, "Sector count: ", $00
+	.byte $0D, "Sector count: ", $00
 
 partition_info_17:
-	.byte $0A, $0D, "Partition type: ", $00
+	.byte $0D, "Partition type: ", $00
 
 partition_info_18:
 list_partition_types_1:
@@ -1226,7 +1226,7 @@ change_type_4:
 	.asciiz "'."
 
 write_success:
-	.byte "The partition table has been altered.", $0A, $0D, "Syncing disks.", $0A, $0D, $00
+	.byte "The partition table has been altered.", $0D, "Syncing disks.", $0D, $00
 
 write_error:
 	.asciiz "Error writing partition table to disk."

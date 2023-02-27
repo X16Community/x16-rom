@@ -421,21 +421,21 @@ letter:
 .data
 
 welcome:
-	.byte "Welcome to fdisk.", $0A, $0D
-	.byte "Changes will remain in memory only, until you decide to write them.", $0A, $0D
-	.byte "Be careful using the write command.", $0A, $0D, $00
+	.byte "Welcome to fdisk.", $0D
+	.byte "Changes will remain in memory only, until you decide to write them.", $0D
+	.byte "Be careful using the write command.", $0D, $00
 
 sdcard_read_error:
-	.byte "Failed to read from SD card.", $0A, $0D, $00
+	.byte "Failed to read from SD card.", $0D, $00
 
 invalid_mbr_error:
-	.byte "Device does not contain a recognized partition table.", $0A, $0D, $00
+	.byte "Device does not contain a recognized partition table.", $0D, $00
 
 empty_mbr_created:
 	.asciiz "Created a new DOS disklabel with disk identifier 0x"
 
 command_prompt:
-	.byte $0A, $0D, $0A, $0D
+	.byte $0D, $0D
 	.asciiz "Command (m for help): "
 
 invalid_command:
