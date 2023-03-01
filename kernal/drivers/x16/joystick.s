@@ -76,6 +76,30 @@ l1:	lda nes_data
 	cpx #3
 	bne l2
 
+	; force present if controller ID (bits 8-11) is not 15
+	; ldy #0
+	lda joy1+1
+	and #%00001111
+	cmp #15
+	bne :+
+	sty joy1+2
+:	lda joy2+1
+	and #%00001111
+	cmp #15
+	bne :+
+	sty joy2+2
+:	lda joy3+1
+	and #%00001111
+	cmp #15
+	bne :+
+	sty joy3+2
+:	lda joy4+1
+	and #%00001111
+	cmp #15
+	bne :+
+	sty joy4+2
+:
+
 	KVARS_END_TRASH_A_NZ
 	rts
 
