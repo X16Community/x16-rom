@@ -30,6 +30,16 @@
 mmbot	=$0800
 mmtop   =$9f00
 
+; User program parameter passing region
+; Set to $BF00-$BFFF in bank 0
+; Kernal will zero out this region in ramtas
+; but will not otherwise touch it.
+;
+; https://github.com/X16Community/x16-rom/issues/34
+.segment "USERPARM"
+userparm:
+	.res 256
+
 .segment "MEMDRV"
 
 ;---------------------------------------------------------------
@@ -50,6 +60,7 @@ ramtas:
 :	stz $0000,x     ;zero page
 	stz $0200,x     ;user buffers and vars
 	stz $0300,x     ;system space and user space
+	stz userparm,x  ;user param space in B0
 	inx
 	bne :-
 
