@@ -128,6 +128,10 @@ stmdsp2	; statements
 	.word psgpan-1
 	.word psgplay-1
 	.word psgchord-1
+	.word reboot-1
+	.word poweroff-1
+	.word i2cpoke-1
+	.word sleep-1
 
 	; functions
 ptrfunc	.word vpeek
@@ -137,6 +141,7 @@ ptrfunc	.word vpeek
 	.word joy
 	.word hexd
 	.word bind
+	.word i2cpeek
 ptrend
 num_esc_statements = (ptrfunc - stmdsp2) / 2
 num_esc_functions = (ptrend - ptrfunc) / 2
