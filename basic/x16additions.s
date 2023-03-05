@@ -588,7 +588,7 @@ locate:
 ;***************
 ckeymap:
 	jsr frmstr
-	cmp #6
+	cmp #10
 	bcs @fcerr
 	tay
 	lda #0
