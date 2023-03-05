@@ -40,6 +40,8 @@ mmtop   =$9f00
 userparm:
 	.res 256
 
+.assert userparm = $BF00, error, "User parameter space must be located at $BF00"
+
 .segment "MEMDRV"
 
 ;---------------------------------------------------------------
