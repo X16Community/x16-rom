@@ -42,7 +42,7 @@ Or the core feature set, these are the supported functions:
 |---------------------------|-------------------------------|-----------|---------|
 | Reading                   | `,?,R`                        | yes       |         |
 | Writing                   | `,?,W`                        | yes       |         |
-| Appending                 | `,?,A`                        | not yet   |         |
+| Appending                 | `,?,A`                        | yes   |         |
 | Recovery                  | `,?,M`                        | no        | not useful on FAT32 |
 | Types                     | `,S`/`,P`/`,U`/`,L`           | yes       | ignored on FAT32 |
 | Overwriting               | `@:`                          | yes       |         |

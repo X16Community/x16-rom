@@ -100,12 +100,19 @@ reslst2	.byt "MO", 'N' + $80
 	.byt "PSGFRE", 'Q' + $80
 	.byt "PSGPA", 'N' + $80
 	.byt "PSGPLA", 'Y' + $80
+	.byt "PSGCHOR", 'D' + $80
 	.byt 0 ; keep this last
 	; The division between reslst2 and reslst3 is arbitrary, but the order
 	; must be maintained. Parser will check all of reslst2 and then
 	; continue onward with checking entries in reslst3.
-reslst3	.byt "PSGCHOR", 'D' + $80
-
+	; realst2 is very close to max length.
+reslst3	
+	.byt "REBOO", 'T' + $80
+	.byt "POWEROF", 'F' + $80
+	.byt "I2CPOK", 'E' + $80
+	.byt "SLEE", 'P' + $80
+	.byt "BSAV", 'E' + $80
+	
 	; add new statements before this line
 
 	; functions start here
@@ -116,6 +123,7 @@ reslst3	.byt "PSGCHOR", 'D' + $80
 	.byt "JO", 'Y' + $80
 	.byt "HEX", $a4
 	.byt "BIN", $a4
+	.byt "I2CPEE", 'K' + $80
 
 	; add new functions before this line
 	.byt 0
@@ -127,7 +135,9 @@ err01	.byt "TOO MANY FILE",$d3
 err02	.byt "FILE OPE",$ce
 err03	.byt "FILE NOT OPE",$ce
 err04	.byt "FILE NOT FOUN",$c4
+errfnf  = 4
 err05	.byt "DEVICE NOT PRESEN",$d4
+errnp	=5
 err06	.byt "NOT INPUT FIL",$c5
 err07	.byt "NOT OUTPUT FIL",$c5
 err08	.byt "MISSING FILE NAM",$c5

@@ -739,6 +739,119 @@ screen_default_color_from_nvram:
 	clc
 	rts
 
+uc_address = $42
+
+; reboot/poweroff: trigger system reboot/poweroff via i2c to smc
+reboot:
+	ldy #2
+	bra :+
+poweroff:
+	ldy #1
+:
+	lda #0
+	ldx #uc_address
+	jmp i2c_write_byte
+
+; I2CPOKE <address>,<register>,<value>
+i2cpoke:
+	jsr getbyt
+	phx
+	jsr chkcom
+	jsr getbyt
+	phx
+	jsr chkcom
+	jsr getbyt
+	txa
+	ply
+	plx
+	jsr i2c_write_byte
+	bcc :+
+i2cerr:
+	ldx #errnp ; not present
+	jmp error
+:
+	rts
+
+; I2CPEEK(address,register)
+i2cpeek:
+	jsr chrget
+	jsr chkopn ; open paren
+	jsr getbyt ; byte: device/address
+	phx
+	jsr chkcom
+	jsr getbyt ; byte: register number
+	phx
+	jsr chkcls ; close paren
+	ply
+	plx
+	jsr i2c_read_byte
+	bcs i2cerr
+	tay
+	jmp sngflt
+
+; SLEEP <jiffies>
+sleep:
+	bne @val
+	ldy #0
+	ldx #0
+	bra @slp
+@val:
+	jsr frmadr
+	ldy poker
+	ldx poker+1
+@slp:
+	.byte $cb ; wai
+	phx
+	phy
+	jsr stop
+	beq @pend
+	ply
+	plx
+	cpy #0
+	bne @decit
+	cpx #0
+	beq @end
+	dex
+@decit:
+	dey
+	bra @slp
+@pend:
+	ply
+	plx
+@end:
+	rts
+
+; BSAVE "FILENAME",<device>,<bank>,<start address>,<end address>
+cbsave:
+	jsr plsvbin     ;parse file-related parms up to and including start address
+	bcs @error      ;require bank/address parms
+	; Preserve the start address
+	ldx poker
+	phx
+	ldy poker+1
+	phy
+	jsr chkcom
+	jsr frmadr
+	ldx andmsk      ;switch to the requested bank
+	stx ram_bank
+	ldx poker
+	ldy poker+1
+	pla
+	sta poker+1
+	pla
+	sta poker
+	lda #<poker
+	jsr bsave       ;save it headerless
+	bcc :+
+	ldx #errfnf
+	jmp error
+@error:
+	ldx #errsn
+	jmp error
+:	rts
+
+
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 ram_bank = 0

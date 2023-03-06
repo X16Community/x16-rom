@@ -4,7 +4,7 @@
 .byte 0,0,0                       ; $FEB1
 .byte 0,0,0                       ; $FEB4
 .byte 0,0,0                       ; $FEB7
-.byte 0,0,0                       ; $FEBA
+bridge bsave                      ; $FEBA
 
 bridge kbdbuf_peek                ; $FEBD
 bridge kbdbuf_get_modifiers       ; $FEC0

@@ -14,8 +14,13 @@
 ;*start of save is indirect at .a  *
 ;*end of save is .x,.y             *
 ;***********************************
-
-savesp	stx eal
+savehl	pha ; headerless
+	lda #1
+	sta verck
+	pla
+	bra :+
+savesp	stz verck   ; verck is 0 for a normal headered save
+:	stx eal
 	sty eah
 	tax             ;set up start
 	lda $00,x
@@ -47,6 +52,8 @@ sv25	jsr openi
 	jsr secnd
 	ldy #0
 	jsr rd300
+	lda verck
+	bne sv30      ; check for headerless
 	lda sal
 	jsr ciout
 	lda sah

@@ -97,8 +97,13 @@ file_open:
 	lda channel
 	beq @open_read
 	cmp #1
-	beq @open_write
-
+	bne @check_mode
+	; allow append w/ channel 1 (needed for stacking BSAVEs)
+	lda file_mode
+	cmp #'A'
+	beq @open_append
+	bra @open_write
+@check_mode:
 	; otherwise check the mode
 	lda file_mode
 	cmp #'W'
