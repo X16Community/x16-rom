@@ -70,7 +70,22 @@ snerrx	cmp #gotk-endtk
 	lda #totk
 	jsr synchr
 	jmp goto
-restor	sec
+restor	beq restor2 ; no argument, do BASIC 2 behavior
+	jsr linget ; otherwise get line number argument
+	jsr fndlin ; search for its address (slow, always from the beginning)
+	bcc resterr ; couldn't find?
+	lda lowtr ; set the data ptr to the byte before the found line
+	sbc #1
+	sta datptr
+	lda lowtr+1
+	sbc #0
+	sta datptr+1
+	rts
+resterr
+	ldx #errus
+	jmp error
+restor2
+	sec
 	lda txttab
 	sbc #1
 	ldy txttab+1

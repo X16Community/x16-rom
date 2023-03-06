@@ -205,7 +205,7 @@ cleart	lda memsiz      ;entry for open & close memsiz changes
 	sty arytab+1
 	sta strend
 	sty strend+1
-fload	jsr restor
+fload	jsr restor2     ;ARGless BASIC 2 restore
 stkini	ldx #tempst
 	stx temppt
 	pla 
