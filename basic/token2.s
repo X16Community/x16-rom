@@ -111,6 +111,7 @@ reslst3
 	.byt "POWEROF", 'F' + $80
 	.byt "I2CPOK", 'E' + $80
 	.byt "SLEE", 'P' + $80
+	.byt "BSAV", 'E' + $80
 	
 	; add new statements before this line
 
@@ -134,6 +135,7 @@ err01	.byt "TOO MANY FILE",$d3
 err02	.byt "FILE OPE",$ce
 err03	.byt "FILE NOT OPE",$ce
 err04	.byt "FILE NOT FOUN",$c4
+errfnf  = 4
 err05	.byt "DEVICE NOT PRESEN",$d4
 errnp	=5
 err06	.byt "NOT INPUT FIL",$c5

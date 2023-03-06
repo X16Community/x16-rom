@@ -136,3 +136,5 @@ i2c_write_byte               = $fec9
 kbdbuf_peek                  = $febd
 kbdbuf_get_modifiers         = $fec0
 kbdbuf_put                   = $fec3
+
+bsave                        = $feba

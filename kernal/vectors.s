@@ -29,6 +29,8 @@
 
 .import restor, memtop, membot, vector, puls, start, nmi, iobase, primm
 
+.import savehl
+
 	.segment "JMPTBL"
 
 ; *** this is space for new X16 KERNAL vectors ***
@@ -41,7 +43,7 @@
 	.byte 0,0,0                    ; $FEB1
 	.byte 0,0,0                    ; $FEB4
 	.byte 0,0,0                    ; $FEB7
-	.byte 0,0,0                    ; $FEBA
+	jmp savehl                     ; $FEBA
 
 	jmp kbdbuf_peek                ; $FEBD
 	jmp kbdbuf_get_modifiers       ; $FEC0

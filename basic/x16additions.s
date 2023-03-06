@@ -821,6 +821,37 @@ sleep:
 @end:
 	rts
 
+; BSAVE "FILENAME",<device>,<bank>,<start address>,<end address>
+cbsave:
+	jsr plsvbin     ;parse file-related parms up to and including start address
+	bcs @error      ;require bank/address parms
+	; Preserve the start address
+	ldx poker
+	phx
+	ldy poker+1
+	phy
+	jsr chkcom
+	jsr frmadr
+	ldx andmsk      ;switch to the requested bank
+	stx ram_bank
+	ldx poker
+	ldy poker+1
+	pla
+	sta poker+1
+	pla
+	sta poker
+	lda #<poker
+	jsr bsave       ;save it headerless
+	bcc :+
+	ldx #errfnf
+	jmp error
+@error:
+	ldx #errsn
+	jmp error
+:	rts
+
+
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 ram_bank = 0
