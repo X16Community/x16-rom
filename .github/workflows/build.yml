@@ -16,7 +16,6 @@ jobs:
           sudo apt-get install -y make build-essential
           git clone https://github.com/cc65/cc65.git
           cd cc65
-          git checkout c097401f8bd907b3994b68e7e8b47d50b4a1864c
           make -j4
           sudo make install
       - name: Build ROM
