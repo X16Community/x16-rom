@@ -24,7 +24,10 @@ This is the Commander X16 ROM containing BASIC, KERNAL, DOS and GEOS. BASIC and 
 Releases and Building
 ---------------------
 
-<a href="https://travis-ci.org/commanderx16/x16-emulator"><img alt="Travis (.org)" src="https://img.shields.io/travis/commanderx16/x16-rom.svg?label=CI&logo=travis&logoColor=white&style=for-the-badge"></a>
+[![Build Status](https://github.com/x16community/x16-rom/actions/workflows/build.yml/badge.svg)](https://github.com/x16community/x16-rom/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/x16community/x16-rom)](https://github.com/x16Community/x16-rom/releases)
+[![License: Mixed](https://img.shields.io/github/license/x16community/x16-rom)](./LICENSE.md)
+[![Contributors](https://img.shields.io/github/contributors/x16community/x16-rom.svg)](https://github.com/x16community/x16-rom/graphs/contributors)
 
 Each [release of the X16 emulator][emu-releases] includes a compatible build of `rom.bin`. If you wish to build this yourself (perhaps because you're also building the emulator) see below.
 
@@ -81,6 +84,83 @@ See [LICENSE.md](LICENSE.md)
 Release Notes
 -------------
 
+This is the first release of x16-rom by the X16Community team
+### Release 42 ("Cambridge")
+
+* KERNAL
+	* I2C
+		* Fixed I2C writing [mist64]
+		* Support battery backup [jburks]
+		* Moved PS/2 functions to I2C interface [jburks, stefan-b-jakobsson]
+		* Caps Lock LED and 40/80 key support [stefan-b-jakobsson]
+	* Editor
+		* Added WAI to busy loop [LRFLEW]
+		* Cosmetic fixes [jestin, stefan-b-jakobsson]
+		* Fix line wrap in 20 column modes [mooinglemur]
+	* Channel I/O
+		* MACPTR: support non-incrementing I/O address as destination [ZeroByteOrg]
+		* Fix VERIFY routine (a special case of LOAD).
+		* Add headerless SAVE (`BSAVE`) API at `$FEBA`, which otherwise behaves identically to `SAVE` at `$FFD8`
+	* Memory
+		* Improved RAM detection and testing, allowing for high RAM amounts other than a power of 2 [JimmyDansbo]
+		* Fix memory_decompress to VRAM [bsb-Rickd]
+		* New cartridge detection and booting in ROM bank 32
+		* NMI vector has been replicated in all configured banks to point to a new RAM trampoline that in turn sets the ROM bank to 0 and jumps through (nminv), which by default points to a KERNAL routine that behaves like STOP+RESTORE on the C64.
+		* Support RTC NVRAM settings for two profiles to control screen output mode and resolution at boot, selectable with the 40/80 key. Currently requires an external configuration program to set up the profiles.
+		* Allocate a page of RAM bank 0 intended for use by user programs to accept parameters set by other such programs such as, for example, file browsers or launchers.
+	* Gamepad
+		* Properly set presence for nonstandard controllers [akumanatt]
+* DOS
+	* Return the current working directory with `DOS"$=C"` [mooinglemur]
+	* Prevent attempt at cross-directory renames as they're not supported.
+	* Allow file append syntax with secondary address 1 (write)
+* BASIC
+	* Stabilize token assignments for X16 additions to BASIC keywords. BASIC programs saved in this release should be compatible with future releases. [stefan-b-jakobsson]
+	* [New commands and functions](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md) [stefan-b-jakobsson, jestin, mooinglemur]
+		* `BANK`
+		* `BSAVE`
+		* `FMCHORD`
+		* `FMDRUM`
+		* `FMFREQ`
+		* `FMINIT`
+		* `FMINST`
+		* `FMNOTE`
+		* `FMPAN`
+		* `FMPLAY`
+		* `FMPOKE`
+		* `FMVIB`
+		* `FMVOL`
+		* `I2CPEEK`
+		* `I2CPOKE`
+		* `POWEROFF`
+		* `PSGCHORD`
+		* `PSGFREQ`
+		* `PSGINIT`
+		* `PSGNOTE`
+		* `PSGPAN`
+		* `PSGPLAY`
+		* `PSGVOL`
+		* `PSGWAV`
+		* `REBOOT`
+		* `SLEEP`
+	* Allow `ASC("")` to return 0 rather than an error
+	* Allow `RESTORE` to take a line number argument to set the READ pointer to an arbitrary DATA constant.
+	* Added test case test/show-gfx.bas [Jaxartes]
+* GRAPH
+	* New bank for graphics and font routines to free up KERNAL bank space [stefan-b-jakobsson]
+	* Implement FB_set_palette [irmen]
+* AUDIO
+	* New bank and [new machine language API](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2009%20-%20Sound%20Programming.md) to interact with the YM2151 and VERA PSG, including a full General MIDI-inspired patch set for the YM2151 mainly for use with new BASIC statements [ZeroByteOrg, mooinglemur, jestin]
+	* YM2151 and VERA PSG are silenced and reinitialized at boot and in the default handlers for NMI and BRK.
+* CODEX
+	* Fix for line delete crash [stefan-b-jakobsson]
+	* Fix for build under latest cc65 [mooinglemur]
+* GEOS
+	* Fix mouse issues [stefan-b-jakobsson]	
+* Documentation
+	* Improve README.md [mobluse]
+* Build
+	* Add ROM build to CI/CD [maxgerhardt]
 ### Release 41 ("Marrakech")
 
 * KERNAL
@@ -418,6 +498,6 @@ Release Notes
 [GNU Make]: https://www.gnu.org/software/make/
 [Python 3.7]: https://www.python.org/downloads/release/python-370/
 [cc65]: https://cc65.github.io/
-[emu-releases]: https://github.com/commanderx16/x16-emulator/releases
+[emu-releases]: https://github.com/X16community/x16-emulator/releases
 [nd-cc65]: https://wiki.nesdev.com/w/index.php/Installing_CC65
 [trikaliotis.net]: https://spiro.trikaliotis.net/debian
