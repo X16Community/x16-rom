@@ -97,6 +97,7 @@ This is the first release of x16-rom by the X16Community team
 		* Added WAI to busy loop [LRFLEW]
 		* Cosmetic fixes [jestin, stefan-b-jakobsson]
 		* Fix line wrap in 20 column modes [mooinglemur]
+		* Shift+40/80 will cycle through the three output modes: VGA, Composite, RGB
 	* Channel I/O
 		* MACPTR: support non-incrementing I/O address as destination [ZeroByteOrg]
 		* Fix VERIFY routine (a special case of LOAD).
