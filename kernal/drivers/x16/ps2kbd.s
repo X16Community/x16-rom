@@ -13,6 +13,7 @@
 .import i2c_read_byte
 .import i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
 .import joystick_from_ps2_init, joystick_from_ps2; [joystick]
+
 ; data
 .import mode; [declare]
 .import fetch, fetvec; [memory]
@@ -43,6 +44,10 @@ MODIFIER_4080  = 32; 40/80 DISPLAY
 MODIFIER_ALTGR = MODIFIER_ALT | MODIFIER_CTRL
 ; set of modifiers that are toggled on each key press
 MODIFIER_TOGGLE_MASK = MODIFIER_CAPS | MODIFIER_4080
+
+LED_SCROLL_LOCK = 1
+LED_NUM_LOCK	= 2
+LED_CAPS_LOCK	= 4
 
 TABLE_COUNT = 11
 KBDNAM_LEN = 14
@@ -265,29 +270,73 @@ _keymap:
 	clc
 	rts
 
+;---------------------------------------------------------------
+; Scan keyboard and handle
+;---------------------------------------------------------------
 _kbd_scan:
-	jsr receive_down_scancode_no_modifiers
+	jsr fetch_key_code
+	ora #0
 	bne :+
 	rts
 
-:	tay
-	cpx #0
-	jne down_ext
-; *** regular scancodes
-	cpy #$01 ; f9
-	beq cycle_layout
-	cmp #$84 ; Eat weird Alt + PrtScr scan code
-	bne :+
+	; Is it a modifier key?
+:	pha			; Save key code on stack
+	and #%01111111		; Clear up/down bit
+	ldx #0
+:	cmp modifier_key_codes,x
+	beq is_mod_key
+	inx
+	cpx #8			; Modifier key count = 8
+	bne :-
+
+	; Is it Caps Lock down?
+	cmp #30
+	bne is_reg_key
+	pla			; Restore key code from stack
+	bmi :+			; Ignore key up
+	lda shflag
+	eor #MODIFIER_CAPS
+	sta shflag
+	jmp set_caps_led
+:	rts
+
+is_mod_key:
+	; Restore key code from stack
+	pla
+	bpl mod_key_down
+
+mod_key_up:
+	lda modifier_shift_states,x
+	eor #$ff
+	and shflag
+	sta shflag
 	rts
-:	cmp #$83 ; convert weird f7 scancode
+
+mod_key_down:
+	lda modifier_shift_states,x
+	ora shflag
+	sta shflag
+	rts
+
+is_reg_key:
+	pla 
+
+	; Ignore key up events
+	bpl :+
+	rts
+
+	; F9 = cycle keyboard layouts
+:	cmp #120
 	bne :+
-	lda #$02 ; this one is unused
-	tay
-:
-	; combine mode & modifiers into ID byte
+	jmp cycle_layout
+
+	; Transfer key code to Y
+:	tay
+
+	; Calculate shift state from mode and modifiers
 	lda mode
 	asl
-	asl ; bit 6
+	asl ; bit 6 = ISO mode on off
 	php
 	lda shflag
 	and #(255-MODIFIER_4080-MODIFIER_CAPS)
@@ -295,15 +344,16 @@ _kbd_scan:
 	plp
 	ror
 
+	; Is Scroll Lock active?
 	tax
 	lda shflag
 	and #MODIFIER_CAPS
-	jne handle_caps
+	jne handle_caps		; Yes
 	txa
 
-cont:
-	jsr find_table
-	bcs @notab
+	; Find keymap table
+cont: 	jsr find_table
+	bcs @notab		; C = 1 => table found
 
 ; For some encodings (e.g. US-Mac), Alt and AltGr is the same, so
 ; the tables use modifiers $C6 (Alt/AltGr) and $C7 (Shift+Alt/AltGr).
@@ -449,54 +499,6 @@ handle_caps:
 	pla
 	jmp cont
 
-down_ext:
-	cpx #$e1 ; prefix $E1 -> E1-14 = Pause/Break
-	beq is_stop
-	cmp #$4a ; Numpad /
-	beq is_numpad_divide
-	cmp #$5a ; Numpad Enter
-	beq is_enter
-	cpy #$69 ; special case shift+end = help
-	beq is_end
-	cpy #$6c ; special case shift+home = clr
-	beq is_home
-	cpy #$2f
-	beq is_menu
-	cmp #$68
-	bcc drv_end
-	cmp #$80
-	bcs drv_end
-	lda tab_extended-$68,y
-	bne kbdbuf_put2
-drv_end:
-	rts
-
-is_numpad_divide:
-	lda #'/'
-	bra kbdbuf_put2
-is_menu:
-	lda #$06
-	bra kbdbuf_put2
-
-; or $80 if shift is down
-is_end:
-	ldx #$04 * 2; end (-> help)
-	bra :+
-is_home:
-	ldx #$13 * 2; home (-> clr)
-	bra :+
-is_enter:
-	ldx #$0d * 2 ; return (-> shift+return)
-	bra :+
-is_stop:
-	ldx #$03 * 2 ; stop (-> run)
-:	lda shflag
-	lsr ; shift -> C
-	txa
-	ror
-kbdbuf_put2:
-	jmp kbdbuf_put
-
 find_table:
 .assert keymap_data = $a000, error; so we can ORA instead of ADC and carry
 	sta tmp2
@@ -518,155 +520,61 @@ find_table:
 	clc             ; .C = 0: not found
 @ret:	rts
 
-;****************************************
-; RECEIVE SCANCODE:
-; out: X: prefix (E0, E1; 0 = none)
-;      A: scancode low (0 = none)
-;      C:   0: key down
-;           1: key up
-;****************************************
-receive_scancode:
+
+;*****************************************
+; FETCH KEY CODE:
+; out: A: key code (0 = none)
+;         bit 7=0 => key down, else key up
+;         A = 127/255 => extended key code
+;      X: Extended key code second byte
+;      Z: 1 if no key
+;*****************************************
+fetch_key_code:
 	ldx #I2C_ADDRESS
 	ldy #I2C_GET_SCANCODE_OFFSET
-	jsr i2c_read_byte
-	bcs rcvsc1 ; I2C error
-	bne rcvsc2 ; non-zero code
-rcvsc1:	lda #0
-	rts
-rcvsc2:	cmp #$e0 ; extend prefix 1
-	beq rcvsc3
-	cmp #$e1 ; extend prefix 2
-	bne rcvsc4
-rcvsc3:	sta prefix
-	beq receive_scancode ; always
-rcvsc4:	cmp #$f0
-	bne rcvsc5
-	rol brkflg ; set to 1
-	bne receive_scancode ; always
-rcvsc5:	pha
-	lsr brkflg ; break bit into C
-	ldx prefix
-	lda #0
-	sta prefix
-	sta brkflg
-	pla ; lower byte into A
-	jmp (keyhdl)	;Jump to key event handler
+	jsr i2c_read_byte 	; Key code returned in A
+	bne :+
+	rts			; 0 = no key code available
+
+:	jmp (keyhdl)		;Jump to key event handler
 receive_scancode_resume:
 	rts
 
-;****************************************
-; RECEIVE SCANCODE AFTER shflag
-; * key down only
-; * modifiers have been interpreted
-;   and filtered
-; out: X: prefix (E0, E1; 0 = none)
-;      A: scancode low (0 = none)
-;      Z: scancode available
-;           0: yes
-;           1: no
-;****************************************
-receive_down_scancode_no_modifiers:
-	jsr receive_scancode
-	ora #0
-	beq no_key
-	jsr joystick_from_ps2
-	php
-	cmp #$fa
-	bcs cmd_resp
-	jsr check_mod
-	bcc no_mod
-	bit #MODIFIER_TOGGLE_MASK
-	beq ntoggle
-	plp
-	bcs key_up
-	eor shflag
-	bra mstore
-ntoggle:
-	plp
-	bcc key_down
-	eor #$ff
-	and shflag
-	bra mstore
-key_down:
-	ora shflag
-mstore:	sta shflag
-	jsr check_charset_switch
-key_up:	lda #0 ; no key to return
-	rts
-no_mod:	plp
-	bcs key_up
-no_key:	rts ; original Z is retained
-cmd_resp:
-	plp
-	lda #0
-	rts
+;*****************************************
+; SET CAPS LOCK LED
+;*****************************************
+set_caps_led:
+	pha
 
-check_mod:
-	cpx #$e1
-	beq ckmod1
-	cmp #$11 ; left alt (0011) or right alt (E011)
-	bne nmd_alt
-	cpx #$e0 ; right alt
-	bne :+
-	lda #MODIFIER_ALTGR
-	bra :++
-:	lda #MODIFIER_ALT
-:	sec
-	rts
-nmd_alt:
-	cmp #$14 ; left ctrl (0014) or right ctrl (E014)
-	beq md_ctl
-	cpx #0
-	bne ckmod2
-	cmp #$12 ; left shift (0012)
-	beq md_sh
-	cmp #$59 ; right shift (0059)
-	beq md_sh
-	cmp #$58 ; caps lock (0058)
-	beq md_caps
-	cmp #$7e ; scroll lock (007e)
-	beq md_4080disp
-ckmod1:	clc
-	rts
-ckmod2:	cmp #$1F ; left win (001F)
-	beq md_win
-	cmp #$27 ; right win (0027)
-	bne ckmod1
-md_win:	lda #MODIFIER_WIN
-	bra :+
-md_alt:	lda #MODIFIER_ALT
-	bra :+
-md_ctl:	lda #MODIFIER_CTRL
-	bra :+
-md_sh:	lda #MODIFIER_SHIFT
-	bra :+
-md_caps:
-	jsr caps_led
-	lda #MODIFIER_CAPS
-	bra :+
-md_4080disp:
-	lda #MODIFIER_4080
-:	sec
-	rts
-
-caps_led:
 	ldx #I2C_ADDRESS
 	ldy #I2C_KBD_CMD2
 	lda #$ed
 	jsr i2c_write_first_byte
 	lda shflag
-	and #MODIFIER_CAPS
+	and #MODIFIER_CAPS			; Caps Lock is bit 2
 	lsr
 	lsr
-	ora #2
+	ora #LED_NUM_LOCK			; Num Lock always on
 	jsr i2c_write_next_byte
 	jmp i2c_write_stop
-	
-tab_extended:
-	;         end      lf hom              (END & HOME special cased)
-	.byte $00,$00,$00,$9d,$00,$00,$00,$00 ; @$68
-	;     ins del  dn      rt  up
-	.byte $94,$19,$11,$00,$1d,$91,$00,$00 ; @$70
-	;             pgd         pgu brk
-	.byte $00,$00,$02,$00,$00,$82,$03,$00 ; @$78
+	rts
 
+modifier_key_codes:
+	.byt 44	; left shift
+	.byt 60 ; left alt
+	.byt 58 ; left ctrl
+	.byt 0  ; left win
+	.byt 57 ; right shift
+	.byt 62 ; right alt
+	.byt 64 ; right ctrl
+	.byt 0  ; right win
+
+modifier_shift_states:
+	.byt MODIFIER_SHIFT
+	.byt MODIFIER_ALT
+	.byt MODIFIER_CTRL
+	.byt MODIFIER_WIN
+	.byt MODIFIER_SHIFT
+	.byt MODIFIER_ALTGR
+	.byt MODIFIER_CTRL
+	.byt MODIFIER_WIN
