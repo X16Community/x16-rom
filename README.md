@@ -83,9 +83,9 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 42 ("Cambridge")
 
 This is the first release of x16-rom by the X16Community team
-### Release 42 ("Cambridge")
 
 * KERNAL
 	* I2C
