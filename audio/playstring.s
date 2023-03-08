@@ -846,7 +846,6 @@ panning:
 	jsr psg_setpan
 	bra noteloop
 instrument:
-	txa ; set waveform
 	lda playstring_voice
 	sec
 	jsr bas_psgwav
@@ -940,7 +939,6 @@ panning:
 	jsr psg_setpan
 	jmp noteloop
 instrument:
-	txa ; set waveform
 	lda playstring_voice
 	sec
 	jsr bas_psgwav
