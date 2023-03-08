@@ -544,8 +544,6 @@ receive_scancode_resume:
 ; SET CAPS LOCK LED
 ;*****************************************
 set_caps_led:
-	pha
-
 	ldx #I2C_ADDRESS
 	ldy #I2C_KBD_CMD2
 	lda #$ed
@@ -557,7 +555,6 @@ set_caps_led:
 	ora #LED_NUM_LOCK			; Num Lock always on
 	jsr i2c_write_next_byte
 	jmp i2c_write_stop
-	rts
 
 modifier_key_codes:
 	.byt 44	; left shift
