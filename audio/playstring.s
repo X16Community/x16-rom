@@ -847,7 +847,6 @@ panning:
 	bra noteloop
 instrument:
 	lda playstring_voice
-	sec
 	jsr bas_psgwav
 	jmp noteloop
 .endproc
@@ -940,7 +939,6 @@ panning:
 	jmp noteloop
 instrument:
 	lda playstring_voice
-	sec
 	jsr bas_psgwav
 	jmp noteloop
 .endproc
