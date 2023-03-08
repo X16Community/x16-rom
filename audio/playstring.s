@@ -35,11 +35,14 @@
 .import ym_playnote
 .import ym_setatten
 .import ym_setpan
+.import ym_loadpatch
 
 .import psg_setvol
 .import psg_playfreq
 .import psg_setatten
 .import psg_setpan
+
+.import bas_psgwav
 
 .export bas_fmplaystring
 .export bas_psgplaystring
@@ -143,7 +146,7 @@ rest_r:
 	ldx #0
 	jsr check_notelen
 	txa
-	bra done
+	jmp done
 
 length_l:
 	cmp #'L'
@@ -209,9 +212,20 @@ panning_p:
 
 rekey_k: ; rearticulate next note
 	cmp #'K'
-	bne articulation_s
+	bne inst_i
 	stz playstring_ymcnt ; for PSG, this should still be safe
 	jmp parsestring
+
+inst_i: ; change instrument
+	cmp #'I'
+	bne articulation_s
+	jsr parse_number
+	ldx playstring_tmp2 ; digit count, ignore bare "I" with no number
+	bne :+
+	jmp parsestring
+:	tax
+	lda #3
+	rts ; returns parsed instrument in X
 
 articulation_s:
 	cmp #'S'
@@ -576,6 +590,8 @@ noteloop:
 	beq volume
 	cmp #2
 	beq panning
+	cmp #3
+	beq instrument
 
 	tax
 	ldy #0
@@ -620,7 +636,19 @@ panning:
 	lda playstring_voice
 	jsr ym_setpan
 	jmp noteloop
-
+instrument:
+	ldy azp0L
+	phy
+	ldy azp0H
+	phy
+	lda playstring_voice
+	sec
+	jsr ym_loadpatch
+	ply
+	sty azp0H
+	ply
+	sty azp0L
+	jmp noteloop
 .endproc
 
 
@@ -656,6 +684,10 @@ noteloop:
 	beq volume
 	cmp #2
 	beq panning
+	cmp #3
+	bne :+
+	jmp instrument
+:
 
 	tax
 	ldy #0
@@ -721,6 +753,19 @@ panning:
 	lda playstring_voice
 	jsr ym_setpan
 	jmp noteloop
+instrument:
+	ldy azp0L
+	phy
+	ldy azp0H
+	phy
+	lda playstring_voice
+	sec
+	jsr ym_loadpatch
+	ply
+	sty azp0H
+	ply
+	sty azp0L
+	jmp noteloop
 
 .endproc
 
@@ -756,6 +801,8 @@ noteloop:
 	beq volume
 	cmp #2
 	beq panning
+	cmp #3
+	beq instrument
 
 	tax
 	ldy #0
@@ -798,6 +845,12 @@ panning:
 	lda playstring_voice
 	jsr psg_setpan
 	bra noteloop
+instrument:
+	txa ; set waveform
+	lda playstring_voice
+	sec
+	jsr bas_psgwav
+	jmp noteloop
 .endproc
 
 ;-----------------------------------------------------------------
@@ -832,6 +885,8 @@ noteloop:
 	beq volume
 	cmp #2
 	beq panning
+	cmp #3
+	beq instrument
 
 	tax
 	ldy #0
@@ -883,7 +938,13 @@ panning:
 	tax
 	lda playstring_voice
 	jsr psg_setpan
-	bra noteloop
+	jmp noteloop
+instrument:
+	txa ; set waveform
+	lda playstring_voice
+	sec
+	jsr bas_psgwav
+	jmp noteloop
 .endproc
 
 
