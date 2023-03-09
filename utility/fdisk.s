@@ -45,7 +45,16 @@ sector_size:
 	pha
 	stz ram_bank
 
-	printc $0F ; ISO mode
+	lda #8
+	jsr jsrfar
+	.word sdcard_check
+	.byte BANK_CBDOS
+
+	bcc :+
+	print sdcard_not_found
+	jmp fdisk_exit
+
+:	printc $0F ; ISO mode
 	print welcome
 
 	set32_val sector_size, 2048 ; FIXME: Query from SD card
@@ -119,6 +128,7 @@ command_loop:
 command_loop_exit:
 	printc $8F
 
+fdisk_exit:
 	pla
 	sta ram_bank
 	rts
@@ -419,6 +429,9 @@ letter:
 
 ; *********************************************************************
 .data
+
+sdcard_not_found: ; PETSCII!
+	.byte "NO SD CARD DETECTED.", $0D, $00
 
 welcome:
 	.byte "Welcome to fdisk.", $0D
