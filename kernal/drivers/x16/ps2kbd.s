@@ -344,7 +344,7 @@ is_reg_key:
 	plp
 	ror
 
-	; Is Scroll Lock active?
+	; Is Caps Lock active?
 	tax
 	lda shflag
 	and #MODIFIER_CAPS
