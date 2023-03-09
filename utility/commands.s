@@ -1012,7 +1012,7 @@ error:
 	jsr write_mbr_sector
 	bcc :+
 	print write_success
-	jmp quit
+	rts
 :   print write_error
 	rts
 .endproc
