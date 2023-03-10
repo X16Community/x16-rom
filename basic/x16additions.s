@@ -531,15 +531,15 @@ joy:
 minus1:	.byte $81, $80, $00, $00, $00
 
 ;***************
-reset:
+reboot:
 	ldx #5
-:	lda reset_copy,x
+:	lda reboot_copy,x
 	sta $0100,x
 	dex
 	bpl :-
 	jmp $0100
 
-reset_copy:
+reboot_copy:
 	stz rom_bank
 	jmp ($fffc)
 
@@ -741,8 +741,8 @@ screen_default_color_from_nvram:
 
 uc_address = $42
 
-; reboot/poweroff: trigger system reboot/poweroff via i2c to smc
-reboot:
+; reset/poweroff: trigger system reset/poweroff via i2c to smc
+reset:
 	ldy #2
 	bra :+
 poweroff:
