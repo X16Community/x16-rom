@@ -778,6 +778,7 @@ screen_default_color_from_nvram:
 	adc #10 ; color offset
 	tay
 	jsr rtc_get_nvram
+	bcs @exit
 
 	sta tmp2
 
