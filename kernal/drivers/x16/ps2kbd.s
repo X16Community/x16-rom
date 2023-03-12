@@ -277,7 +277,9 @@ _kbd_scan:
 	jsr fetch_key_code
 	ora #0
 	bne :+
-	rts
+	rts			; No key
+
+:	jsr joystick_from_ps2
 
 	; Is it a modifier key?
 :	pha			; Save key code on stack
