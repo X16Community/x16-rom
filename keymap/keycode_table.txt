@@ -1,0 +1,119 @@
+KEY CODE TRANSLATION TABLE
+
+Key code    = IBM System/2 key numbers for 101- and 102 key keyboards
+              The SMC translates PS/2 Set 2 scan codes to IBM key
+              numbers which are read by the Kernal over I2C
+
+PS/2 Set 1  = Used in Windows klc keyboard layout files, which are
+              used in keymap/klc_to_asm.py to build layout
+              tables used by the Kernal.
+
+PS/2 Set 2  = Default type of scan code sent by a PS/2 keyboard,
+              and here read by the SMC firmware
+
++----------+------------+------------+-----------------------+
+| Key code | PS/2 Set 1 | PS/2 Set 2 | Base Case (US layout) |
++----------+------------+------------+-----------------------+
+| 01       | 29         | 0E         | `                     | 
+| 02       | 02         | 16         | 1                     | 
+| 03       | 03         | 1E         | 2                     | 
+| 04       | 04         | 26         | 3                     | 
+| 05       | 05         | 25         | 4                     | 
+| 06       | 06         | 2E         | 5                     | 
+| 07       | 07         | 36         | 6                     | 
+| 08       | 08         | 3D         | 7                     | 
+| 09       | 09         | 3E         | 8                     | 
+| 0A       | 0A         | 46         | 9                     | 
+| 0B       | 0B         | 45         | 0                     | 
+| 0C       | 0C         | 4E         | -                     | 
+| 0D       | 0D         | 55         | =                     | 
+| 0F       | 0E         | 66         | Backspace             | 
+| 10       | 0F         | 0D         | Tab                   | 
+| 11       | 10         | 15         | q                     | 
+| 12       | 11         | 1D         | w                     | 
+| 13       | 12         | 24         | e                     | 
+| 14       | 13         | 2D         | r                     | 
+| 15       | 14         | 2C         | t                     | 
+| 16       | 15         | 35         | y                     | 
+| 17       | 16         | 3C         | u                     | 
+| 18       | 17         | 43         | i                     | 
+| 19       | 18         | 44         | o                     | 
+| 1A       | 19         | 4D         | p                     | 
+| 1B       | 1A         | 54         | [                     | 
+| 1C       | 1B         | 5B         | ]                     | 
+| 1D       | 2B         | 5D         | \                     | 
+| 1E       | 3A         | 58         | Caps Lock             | 
+| 1F       | 1E         | 1C         | a                     | 
+| 20       | 1F         | 1B         | s                     | 
+| 21       | 20         | 23         | d                     | 
+| 22       | 21         | 2B         | f                     | 
+| 23       | 22         | 34         | g                     | 
+| 24       | 23         | 33         | h                     | 
+| 25       | 24         | 3B         | j                     | 
+| 26       | 25         | 42         | k                     | 
+| 27       | 26         | 4B         | l                     | 
+| 28       | 27         | 4C         | ;                     | 
+| 29       | 28         | 52         | '                     | 
+| 2B       | 1C         | 5A         | Enter                 | 
+| 2C       | 2A         | 12         | Left Shift            | 
+| 2D       | 56         | 61         | N/A (102-key = "<")   |
+| 2E       | 2C         | 1A         | z                     | 
+| 2F       | 2D         | 22         | x                     | 
+| 30       | 2E         | 21         | c                     | 
+| 31       | 2F         | 2A         | v                     |
+| 32       | 30         | 32         | b                     | 
+| 33       | 31         | 31         | n                     | 
+| 34       | 32         | 3A         | m                     | 
+| 35       | 33         | 41         | ,                     | 
+| 36       | 34         | 49         | .                     | 
+| 37       | 35         | 4A         | /                     | 
+| 39       | 36         | 59         | Right Shift           | 
+| 3A       | 1D         | 14         | Left Ctrl             | 
+| 3C       | 38         | 11         | Left Alt              | 
+| 3D       | 39         | 29         | Spacebar              | 
+| 3E       | E0 38      | E0 11      | Right Alt             | 
+| 40       | E0 1D      | E0 14      | Right Ctrl            | 
+| 4B       | E0 52      | E0 70      | Insert                | 
+| 4C       | E0 4B      | E0 71      | Delete                | 
+| 4F       | E0 4B      | E0 6B      | Left Arrow            | 
+| 50       | E0 47      | E0 6C      | Home                  | 
+| 51       | E0 4F      | E0 69      | End                   | 
+| 53       | E0 48      | E0 75      | Up Arrow              | 
+| 54       | E0 50      | E0 72      | Down Arrow            | 
+| 55       | E0 49      | E0 7D      | Page Up               | 
+| 56       | E0 51      | E0 7A      | Page Down             | 
+| 59       | E0 4D      | E0 74      | Right Arrow           | 
+| 5A       | 45         | 77         | Num Lock              | 
+| 5B       | 47         | 6C         | Keypad 7              | 
+| 5C       | 4B         | 6B         | Keypad 4              | 
+| 5D       | 4F         | 69         | Keypad 1              | 
+| 5F       | E0 35      | E0 4A      | Keypad /              | 
+| 60       | 48         | 75         | Keypad 8              | 
+| 61       | 4C         | 73         | Keypad 5              | 
+| 62       | 50         | 72         | Keypad 2              | 
+| 63       | 52         | 70         | Keypad 0              | 
+| 64       | 37         | 7C         | Keypad *              | 
+| 65       | 49         | 7D         | Keypad 9              | 
+| 66       | 4D         | 74         | Keypad 6              | 
+| 67       | 51         | 7A         | Keypad 3              | 
+| 68       | 53         | 71         | Keypad .              | 
+| 69       | 4A         | 7B         | Keypad -              | 
+| 6A       | 4E         | 79         | Keypad +              | 
+| 6C       | E0 1C      | E0 5A      | Keypad Enter          | 
+| 6E       | 01         | 76         | Esc                   | 
+| 70       | 3B         | 05         | F1                    | 
+| 71       | 3C         | 06         | F2                    | 
+| 72       | 3D         | 04         | F3                    | 
+| 73       | 3E         | 0C         | F4                    | 
+| 74       | 3F         | 03         | F5                    | 
+| 75       | 40         | 0B         | F6                    | 
+| 76       | 41         | 83         | F7                    | 
+| 77       | 42         | 0A         | F8                    | 
+| 78       | 43         | 01         | F9                    | 
+| 79       | 44         | 09         | F10                   | 
+| 7A       | 57         | 78         | F11                   | 
+| 7B       | 58         | 07         | F12                   | 
+| 7C       | E0 2A      | E0 12      | Print Screen          | 
+| 7D       | 46         | 7E         | Scroll Lock           | 
+| 7E       | E1 1D 45   | E1 14 77 E1| Pause Break           | 
++----------+------------+------------+-----------------------+
