@@ -700,7 +700,8 @@ rtc_address            = $6f
 nvram_base             = $20
 
 ; This is a mirror of the internal kernal routine by the same name
-; but it only sets the fg color
+; but it only sets the fg color.  This is called after the splash
+; banner, which has messed with the colors itself
 screen_default_color_from_nvram:
 	ldy #nvram_base+0
 	ldx #rtc_address
@@ -716,6 +717,9 @@ screen_default_color_from_nvram:
 	tay
 	ldx #rtc_address
 	jsr i2c_read_byte
+	bcc :+
+	lda #$61 ; hardcode value on i2c error
+:
 
 	sta facho ; tmp variable
 
