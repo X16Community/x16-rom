@@ -215,6 +215,8 @@ screen_mode:
 	and #$ef
 	sta VERA_DC_VIDEO
 	jsr screen_default_color_from_nvram ; was $61, blue on white
+	bcc @cont
+	lda #$61 ; didn't get a valid value from NVRAM, hardcode it
 	bra @cont
 
 @graph:	; graphics mode
@@ -765,6 +767,7 @@ screen_set_mode_from_nvram:
 screen_default_color_from_nvram:
 	ldy #0
 	jsr rtc_get_nvram
+	bcs @exit
 
 	and #1
 	beq :+
@@ -775,6 +778,7 @@ screen_default_color_from_nvram:
 	adc #10 ; color offset
 	tay
 	jsr rtc_get_nvram
+	bcs @exit
 
 	sta tmp2
 
@@ -798,6 +802,7 @@ screen_default_color_from_nvram:
 	ora tmp2
 :
 	clc
+@exit:
 	rts
 
 screen_set_default_nvram:
