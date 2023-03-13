@@ -64,7 +64,8 @@ KERNAL_CORE_SOURCES = \
 	kernal/vectors.s \
 	kernal/kbdbuf.s \
 	kernal/memory.s \
-	kernal/lzsa.s
+	kernal/lzsa.s \
+	kernal/signature.s
 
 ifeq ($(CORE_SOURCE_BASE),CBM)
 	KERNAL_CORE_SOURCES += $(KERNAL_CORE_CBM_SOURCES)
@@ -382,9 +383,11 @@ endif
 ifeq ($(MACHINE),x16)
 	ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 	ROM_LST=$(BUILD_DIR)/rom_lst.h
+	GIT_SIGNATURE=$(BUILD_DIR)/../signature.bin
 else
 	ROM_LABELS=
 	ROM_LST=
+	GIT_SIGNATURE=
 endif
 
 all: $(BUILD_DIR)/rom.bin $(ROM_LABELS) $(ROM_LST)
@@ -393,8 +396,16 @@ $(BUILD_DIR)/rom.bin: $(BANK_BINS)
 	cat $(BANK_BINS) > $@
 
 clean:
+	rm -f $(GIT_SIGNATURE)
 	rm -rf $(BUILD_DIR)
 	(cd codex; make clean)
+
+$(GIT_SIGNATURE): FORCE
+	@mkdir -p $(BUILD_DIR)
+	echo -n $$( (git rev-parse --short=8 HEAD || echo "00000000") | tr '[:lower:]' '[:upper:]') > $(GIT_SIGNATURE)
+	echo -n $$(git diff --quiet || echo "+") >> $(GIT_SIGNATURE)
+
+FORCE:
 
 $(BUILD_DIR)/%.cfg: %.cfgtpl
 	@mkdir -p $$(dirname $@)
@@ -408,7 +419,7 @@ $(BUILD_DIR)/%.o: %.s
 
 # TODO: Need a way to control relist generation; don't try to do it if lst files haven't been generated!
 # Bank 0 : KERNAL
-$(BUILD_DIR)/kernal.bin: $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-$(MACHINE).cfg
+$(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-$(MACHINE).cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/kernal-$(MACHINE).cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym
 	./scripts/relist.py $(BUILD_DIR)/kernal.map $(BUILD_DIR)/kernal
@@ -431,7 +442,7 @@ $(BUILD_DIR)/geos.bin: $(GEOS_OBJS) $(GEOS_DEPS) $(CFG_DIR)/geos-$(MACHINE).cfg
 	./scripts/relist.py $(BUILD_DIR)/geos.map $(BUILD_DIR)/geos
 
 # Bank 4 : BASIC
-$(BUILD_DIR)/basic.bin: $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-$(MACHINE).cfg
+$(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-$(MACHINE).cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/basic-$(MACHINE).cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag`
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
