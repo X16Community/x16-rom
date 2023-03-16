@@ -357,7 +357,7 @@ ptstat2	php
 	rts
 :	jsr unlstn
 	jsr getfa
-	jsr talk
+ptstat3	jsr talk
 	lda #$6f
 	jsr tksa
 dos11	jsr iecin
