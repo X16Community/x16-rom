@@ -106,13 +106,27 @@ csysrz	=*-1            ;return to here
 csave	jsr plsv        ;parse parms
 	bcs nsnerr6
 	jmp snerr6      ;disallow bank/address parms
-nsnerr6	ldx vartab      ;end save addr
+nsnerr6	lda verck   ;fetch the device (fa) that was used
+	pha             ;save it for later
+	ldx vartab      ;end save addr
 	ldy vartab+1
 	lda #<txttab    ;indirect with start address
 	jsr $ffd8       ;save it
-	bcs :+
-	jmp erexit
-:	rts
+	bcc :+
+	jmp erexit      ;extra value in stack does not matter
+:	lda curlin      ;in direct mode, show save status
+	bne :+
+	lda curlin+1
+	cmp #255
+	bne :+
+	lda #$0d
+	jsr bsout
+	pla             ;this will have the fa used for the save
+	sec
+	php
+	jmp ptstat3     ;part of the `dos` routine
+:	pla
+	rts
 
 cverf	lda #1          ;verify flag
 	bra :+
@@ -233,6 +247,7 @@ plsv
 ;
 	pha
 	jsr getfa
+	sta verck       ;save device number
 	tax
 	pla
 	ldy #0          ;command 0
@@ -251,12 +266,12 @@ plsv
 	jsr paoc20      ;quit if no comma
 	jsr getbyt      ;get 'fa'
 	ldy #0          ;command 0
-	stx andmsk
+	stx verck
 	jsr paoc19      ;store x,y then maybe quit
 	jsr getbyt      ;get 'sa'
 	txa             ;new command
 	tay
-	ldx andmsk      ;device #
+	ldx verck       ;device #
 	jsr paoc19      ;store x,y then maybe quit
 	sty andmsk      ;bank number
 	ldy addend      ;headerless mode?
