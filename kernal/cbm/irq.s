@@ -10,7 +10,7 @@
 
 .export puls, key
 
-	.segment "IRQ"
+.segment "IRQ"
 
 .import screen_init
 .import mouse_scan
@@ -20,9 +20,19 @@
 .import led_update
 .export panic
 
+.include "banks.inc"
+
+rom_bank = 1
+
+
 ; puls - checks for real irq's or breaks
 ;
 puls	pha
+	lda rom_bank
+	beq :+
+	pla
+	jmp banked_irq
+:
 .ifp02
 	txa
 	pha
