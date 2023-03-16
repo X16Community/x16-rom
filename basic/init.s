@@ -190,6 +190,9 @@ freme2	.byt "K HIGH RAM"
 	.byte ((PRERELEASE_VERSION / 10) .mod 10) + '0'
 .endif
 	.byte (PRERELEASE_VERSION .mod 10) + '0'
+.else
+	.byte " - GIT "
+	.incbin "../build/signature.bin"
 .endif
 	.byt $0d
 	; line 4
