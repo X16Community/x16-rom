@@ -1169,10 +1169,10 @@ runtb	.byt "LOAD",$d,"RUN:",$d
 runtb_end:
 
 fkeytb	.byt "LIST:", 13, 0
-	.byt "MONITOR:", 13, 0
-	.byt "RUN:", 13, 0
-	.byt $93, "S", 'C' + $80, "-1", 13, 0
-	.byt "LOAD", 13, 0
 	.byt "SAVE", '"', 0
+	.byt "LOAD ", '"', 0
+	.byt $93, "S", 'C' + $80, "-1", 13, 0
+	.byt "RUN:", 13, 0
+	.byt "MONITOR:", 13, 0
 	.byt "DOS",'"', "$",13, 0
 	.byt "DOS", '"', 0
