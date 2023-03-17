@@ -505,7 +505,7 @@ wlogic
 	cmp pntr        ;if lnmx is less than pntr
 	bcs wlgrts      ;branch if lnmx>=pntr
 	cmp #maxchr-1   ;past max characters
-	beq wlog10      ;branch if so
+	bcs wlog10      ;branch if so
 	lda autodn      ;should we auto scroll down?
 	beq wlog20      ;branch if not
 	jmp bmt1        ;else decide which way to scroll
@@ -809,7 +809,7 @@ up5	ldx qtsw
 	cpy pntr
 	bne ins1
 ins3	cpy #maxchr-1
-	beq insext      ;exit if line too long
+	bcs insext      ;exit if line too long
 	jsr newlin      ;scroll down 1
 ins1	ldy lnmx
 ; move line right
