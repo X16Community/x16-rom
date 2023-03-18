@@ -361,13 +361,14 @@ ptstat3	jsr talk
 	lda #$6f
 	jsr tksa
 dos11	jsr iecin
+	beq dos0
 	plp
 	php
 	bcc :+
 	jsr bsout
 :	cmp #13
 	bne dos11
-	plp
+dos0	plp
 	jmp untalk
 
 ;***************
