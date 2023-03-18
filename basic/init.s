@@ -118,9 +118,15 @@ init20	rts
 initms	lda txttab
 	ldy txttab+1
 	jsr reason
-	lda #<fremes
-	ldy #>fremes
+	lda #<btrfly
+	ldy #>btrfly
 	jsr strout
+	jsr screen_default_color_from_nvram
+	; position for ram count
+	ldy #8
+	ldx #3
+	clc
+	jsr plot
 	sec
 	jsr $ff99       ;read num ram banks
 	tax
@@ -138,9 +144,28 @@ initm2	sta facho
 	rol
 	ldx facho
 initm3	jsr linprt
-	lda #<freme2
-	ldy #>freme2
+	jsr screen
+	cpx #40
+	bcc inib40
+
+	lda #<l4msg40
+	ldy #>l4msg40
 	jsr strout
+
+	ldy #8
+	ldx #1
+	clc
+	jsr plot
+
+	lda #<l2msg40
+	ldy #>l2msg40
+	jsr strout
+
+	ldy #8
+	ldx #5
+	clc
+	jsr plot
+
 	lda memsiz
 	sec
 	sbc txttab
@@ -148,10 +173,75 @@ initm3	jsr linprt
 	lda memsiz+1
 	sbc txttab+1
 	jsr linprt
-	lda #<words
-	ldy #>words
+
+	lda #<l6msg40
+	ldy #>l6msg40
 	jsr strout
-	jsr screen_default_color_from_nvram
+
+	bra iniend
+inib40 ; screen is smaller than 40, use compact banner
+	lda #<l4msg20
+	ldy #>l4msg20
+	jsr strout
+
+	ldy #8
+	ldx #1
+	clc
+	jsr plot
+
+	lda #<l2msg20
+	ldy #>l2msg20
+	jsr strout
+
+	ldy #8
+	ldx #2
+	clc
+	jsr plot
+
+	lda #<l3msg20
+	ldy #>l3msg20
+	jsr strout
+
+	ldy #8
+	ldx #4
+	clc
+	jsr plot
+
+	lda #<l5msg20
+	ldy #>l5msg20
+	jsr strout
+
+	ldy #8
+	ldx #5
+	clc
+	jsr plot
+
+	lda memsiz
+	sec
+	sbc txttab
+	tax
+	lda memsiz+1
+	sbc txttab+1
+	jsr linprt
+
+	lda #<l6msg20
+	ldy #>l6msg20
+	jsr strout
+
+	ldy #8
+	ldx #6
+	clc
+	jsr plot
+
+	lda #<l7msg20
+	ldy #>l7msg20
+	jsr strout
+iniend
+	ldy #0
+	ldx #7
+	clc
+	jsr plot
+
 	jmp scrtch
 
 bvtrs	.word nerror,nmain,ncrnch,nqplop,ngone,neval
@@ -164,23 +254,42 @@ initv1	lda bvtrs,x
 	rts
 chke0	.byt $00
 
-fremes
+btrfly
 	.byt $8f, $93
 	; line 0
 	.byt $9c, $12, $df, $92, "     ", $12, $a9
 	.byt $0d
 	; line 1
 	.byt $9a, $12, $b4, $df, $92, "   ", $12, $a9, $a7, $92
-	.byt 5, " **** COMMANDER X16 BASIC V2 ****"
 	.byt $0d
-	.byt $13, $11, $11
 	; line 2
 	.byt $9f, $12, $b5, " ", $df, $92, " ", $12, $a9, " ", $b6
 	.byt $0d
 	; line 3
 	.byt $1e, " ", $b7, $12, $bb, $92, " ", $12, $ac, $92, $b7
-	.byt 5, "  ",0
-freme2	.byt "K HIGH RAM"
+	.byt $0d
+	; line 4
+	.byt $9e, " ", $af, $12, $be, $92, " ", $12, $bc, $92, $af
+	.byt $0d
+	; line 5
+	.byt $81, $a7, $12, " ", $92, $a9, " ", $df, $12, " ", $92, $b4
+	.byt $0d
+	; line 6
+	.byt $1c, $b6, $a9, "   ", $df, $b5
+	.byt $0d
+	.byt 5
+	.byt 0
+
+
+l2msg40
+	.byte "**** COMMANDER X16 BASIC V2 ****",0
+l2msg20
+	.byte "COMMANDER",0
+l3msg20
+	.byte "X16 BASIC V2",0
+
+l4msg40
+	.byte "K HIGH RAM"
 .ifdef PRERELEASE_VERSION
 	.byte " - ROM VER R"
 .if PRERELEASE_VERSION >= 100
@@ -194,20 +303,31 @@ freme2	.byt "K HIGH RAM"
 	.byte " - GIT "
 	.incbin "../build/signature.bin"
 .endif
-	.byt $0d
-	; line 4
-	.byt $9e, " ", $af, $12, $be, $92, " ", $12, $bc, $92, $af
-	.byt $0d
-	; line 5
-	.byt $81, $a7, $12, " ", $92, $a9, " ", $df, $12, " ", $92, $b4
-	.byt 5, " ", 0
-words	.byt " BASIC BYTES FREE"
-	.byt $0d
-	; line 6
-	.byt $1c, $b6, $a9, "   ", $df, $b5
-	.byt $0d
-	.byt 5
-	.byt 0
+	.byte 0
+
+l4msg20
+	.byte "K HI RAM",0
+l5msg20
+.ifdef PRERELEASE_VERSION
+	.byte "ROM VER R"
+.if PRERELEASE_VERSION >= 100
+	.byte (PRERELEASE_VERSION / 100) + '0'
+.endif
+.if PRERELEASE_VERSION >= 10
+	.byte ((PRERELEASE_VERSION / 10) .mod 10) + '0'
+.endif
+	.byte (PRERELEASE_VERSION .mod 10) + '0'
+.else
+	.incbin "../build/signature.bin"
+.endif
+	.byte 0
+
+l6msg40
+	.byte " BASIC BYTES FREE",0
+l6msg20
+	.byte " BASIC",0
+l7msg20
+	.byte "BYTES FREE",0
 
 ; ppach - print# patch to coout (save .a)
 ;
