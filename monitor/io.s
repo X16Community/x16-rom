@@ -227,10 +227,11 @@ ptstat	jsr listen_cmd
 	jsr tksa
 	jsr print_cr
 dos11	jsr iecin
+	beq dos0
 	jsr bsout
 	cmp #13
 	bne dos11
-	jsr untalk
+dos0	jsr untalk
 	jmp input_loop
 
 ;***************
