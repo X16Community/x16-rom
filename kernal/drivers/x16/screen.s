@@ -164,6 +164,11 @@ screen_init:
 ;             $04: 40x15
 ;             $05: 20x30
 ;             $06: 20x15
+;             $07: 22x23
+;             $08: 64x50
+;             $09: 64x25
+;             $0A: 32x50
+;             $0B: 32x25
 ;             $80: 320x240@256c + 40x30 text
 ;             $81: 640x400@16c ; XXX currently unsupported
 ;   Out:  .c  =0: success, =1: failure
@@ -176,7 +181,6 @@ screen_mode:
 ; get
 	lda cscrmd
 	pha
-	jsr mode_lookup
 	jsr calc_scaled_res
 	pla
 	rts
@@ -184,6 +188,7 @@ screen_mode:
 @set:
 	pha
 	jsr mode_lookup
+	lda scale,x
 	plx
 	bcs @rts
 
@@ -194,17 +199,33 @@ screen_mode:
 	stx cscrmd
 
 	pla             ; scale
-	pha
-
 	php             ; save if graph/text switch
 	; set VERA scaling
 	jsr set_scale
 
-	; Set vertical display stop
+	; Set display start/stop for mode
+	lda cscrmd
+	jsr mode_lookup
+
 	lda #2
 	sta VERA_CTRL
+
+	lda hbdr,x
+	sta VERA_DC_HSTART
+
+	lda #(640/4)
+	sec
+	sbc hbdr,x
+	sta VERA_DC_HSTOP
+
+	lda vbdr,x
+	sta VERA_DC_VSTART
+
 	lda #(480/2)
+	sec
+	sbc vbdr,x
 	sta VERA_DC_VSTOP
+
 	stz VERA_CTRL
 
 	lda cscrmd
@@ -228,48 +249,32 @@ screen_mode:
 	sta color ; only set color if graph/text switch
 :
 	; set editor size
-	pla
+	lda cscrmd
 	jsr calc_scaled_res
+	bcs @rts
 	jsr scnsiz
 	clc
 @rts:	rts
 
 mode_lookup:
-	ldx #scale-modes
-:	cmp modes-1,x
+	ldx #(scale-modes)-1
+:	cmp modes,x
 	beq @found
 	dex
 	bpl :-
 	sec ; otherwise: illegal mode
 	rts
-@found:	lda scale-1,x
+@found:
 	clc
 	rts
 
 calc_scaled_res:
-	pha
-	lsr
-	lsr
-	lsr
-	lsr
-	tay
-	lda #80
-:	cpy #0
-	beq @xdone
-	lsr
-	dey
-	bra :-
-@xdone:	tax      ; scaled x res
-	pla
-	and #$0f
-	tay
-	lda #60
-:	cpy #0
-	beq @ydone
-	lsr
-	dey
-	bra :-
-@ydone:	tay      ; scaled yres
+	jsr mode_lookup
+	bcs @fail
+	ldy trows,x
+	lda tcols,x
+	tax
+@fail:
 	rts
 
 set_scale:
@@ -298,8 +303,13 @@ set_scale:
 @ydone:	sta VERA_DC_VSCALE
 	rts
 
-modes:	.byte   0,   1,   2,   3,   4,   5,   6, $80
-scale:	.byte $00, $01, $10, $11, $12, $21, $22, $11 ; hi-nyb: x >> n, lo-nyb: y >> n
+modes:	.byte   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11, $80
+scale:	.byte $00, $01, $10, $11, $12, $21, $22, $11, $00, $01, $10, $11, $11 ; hi-nyb: x >> n, lo-nyb: y >> n
+hbdr:	.byte $00, $00, $00, $00, $00, $00, $00, $24, $10, $10, $10, $10, $00
+vbdr:	.byte $00, $00, $00, $00, $00, $00, $00, $1C, $14, $14, $14, $14, $00
+tcols:	.byte  80,  80,  40,  40,  40,  20,  20,  22,  64,  64,  32,  32,  40
+trows:	.byte  60,  30,  60,  30,  15,  30,  15,  23,  50,  25,  50,  25,  30
+
 
 ;---------------------------------------------------------------
 ; Calculate start of line
