@@ -158,9 +158,7 @@ menutext:
 	.byte 163,163,163,163,163,163,163,163,163,163,13
 	.byte 18,"F1",146,"  VGA  ",13
 	.byte 18,"F2",146,"  NTSC  ",18,"F4",146,"  COLOR",13
-	.byte 18,"F3",146,"  RGB   "
-	;; commented out until there's emu support
-;	.byte 18,"F3",146,"  RGB   ",18,"F5",146,"  240P"
+	.byte 18,"F3",146,"  RGB   ",18,"F5",146,"  240P"
 	.byte 0
 .endproc
 
@@ -254,7 +252,7 @@ scv2:	sta VERA_DATA0
 	lda #81	;round ball
 	bra scv4
 scv3:	lda #32	;blank space
-scv4:	;sta VERA_DATA0 ;; commented out until there's emu support
+scv4:	sta VERA_DATA0
 	;now show video output status
 	lda #%00000001
 	sta VERA_ADDR_H
