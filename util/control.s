@@ -131,7 +131,7 @@ dsma:	cmp #138        ;f4
 	eor #%00000100
 	sta VERA_DC_VIDEO
 	jmp main_menu
-dsmb:	cmp #138        ;f5
+dsmb:	cmp #135        ;f5
 	bne dsmc
 	lda VERA_DC_VIDEO
 	eor #%00001000
@@ -1131,11 +1131,11 @@ write_to_nvram:
 	;now create checksum
 	ldx #0
 	lda #0
-chs1:	clc
-	adc nvram_buffer,x
+	clc
+chs1:	adc nvram_buffer,x ; carry is clear on loop
 	inx
 	cpx #kernal_nvram_cksum_offset
-	bne chs1
+	bcc chs1
 	sta nvram_buffer+kernal_nvram_cksum_offset
 	;now copy this data to nvram
 	stz counter1
@@ -1181,8 +1181,8 @@ nv_msg: .byte 147,"SAVED TO NVRAM,",13,"PRESS ANY KEY.",0
 	stz counter1
 gtnv1:	lda counter1
 	cmp #kernal_nvram_cksum_offset
-	beq gtnv2
-	clc
+	bcs gtnv2
+	; carry is clear
 	adc #$40
 	tay
 	ldx #$6f        ;i2c bus address of rtc
