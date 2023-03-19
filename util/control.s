@@ -43,7 +43,6 @@ filename_buf   := $00FF
 rtc_address     = $6f
 nvram_base      = $40
 kernal_nvram_cksum_offset = $1f
-kernal_nvram_cksum_addr = nvram_base + kernal_nvram_cksum_offset
 
 plot            = $fff0
 
@@ -1132,8 +1131,8 @@ write_to_nvram:
 	;now create checksum
 	ldx #0
 	lda #0
-	clc
-chs1:	adc nvram_buffer,x
+chs1:	clc
+	adc nvram_buffer,x
 	inx
 	cpx #kernal_nvram_cksum_offset
 	bne chs1
@@ -1181,7 +1180,7 @@ nv_msg: .byte 147,"SAVED TO NVRAM,",13,"PRESS ANY KEY.",0
 .proc get_nvram: near
 	stz counter1
 gtnv1:	lda counter1
-	cmp #$16
+	cmp #kernal_nvram_cksum_offset
 	beq gtnv2
 	clc
 	adc #$40

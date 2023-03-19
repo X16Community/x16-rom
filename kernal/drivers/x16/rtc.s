@@ -223,6 +223,7 @@ rtc_check_nvram_checksum:
 @cksumloop:
 	jsr i2c_read_byte
 	bcs @exit
+	; carry is clear
 	adc tmp2
 	sta tmp2
 	iny

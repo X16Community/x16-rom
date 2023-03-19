@@ -841,7 +841,7 @@ screen_set_default_nvram:
 	ply
 	bcs @set_default
 	iny
-	cpy #$15
+	cpy #$1f
 	bcc @loop
 @set_default:
 	lda @defaults+1
@@ -876,6 +876,11 @@ screen_set_default_nvram:
 	rts
 
 @defaults:
+	; active profile
 	.byte $00
+	; profile 0
 	.byte $00,$29,$80,$80,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
+	; profile 1
 	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
+	; expansion
+	.byte $00,$00,$00,$00

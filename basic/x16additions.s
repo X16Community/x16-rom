@@ -857,7 +857,7 @@ cbsave:
 
 
 cmenu:
-	jsr jsrfar
+	jsr bjsrfar
 	.word $c000
 	.byte BANK_UTIL
 	rts
