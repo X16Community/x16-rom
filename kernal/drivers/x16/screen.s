@@ -728,7 +728,7 @@ screen_set_mode_from_nvram:
 	pla
 	beq :+
 	clc
-	adc #9
+	adc #12
 :
 	inc
 	tay
@@ -799,7 +799,7 @@ screen_default_color_from_nvram:
 	and #1
 	beq :+
 	clc
-	adc #9 ; second profile (plus the #1 from above) = 10
+	adc #12 ; second profile (plus the #1 from above) = 13
 :
 	clc
 	adc #10 ; color offset
@@ -877,5 +877,5 @@ screen_set_default_nvram:
 
 @defaults:
 	.byte $00
-	.byte $00,$29,$80,$80,$00,$00,$A0,$00,$F0,$61
-	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61
+	.byte $00,$29,$80,$80,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
+	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
