@@ -862,18 +862,38 @@ col_screen_text:
 ;configured for the right VRAM location.
 .proc hexwrite: near
 	pha
+	lda VERA_ADDR_H
+	pha
+	and #%00000111
+	sta VERA_ADDR_H
+	lda VERA_DATA0
+	asl
+	pla
+	sta VERA_ADDR_H
+	pla
+	pha
+	php
 	lsr
 	lsr
 	lsr
 	lsr
 	tay
 	lda hex_code_table,y
-	sta VERA_DATA0
+	plp
+	php
+	bcc @1
+	ora #$80
+@1:	sta VERA_DATA0
+	plp
 	pla
+	php
 	and #%00001111
 	tay
 	lda hex_code_table,y
-	sta VERA_DATA0
+	plp
+	bcc @2
+	ora #$80
+@2:	sta VERA_DATA0
 	rts	
 .endproc
 
@@ -1835,6 +1855,13 @@ td_update_display:
 	ldy #10
 	jsr veraplot
 
+	stz counter1
+	lda menu_select
+	cmp #3
+	bne @wd1
+	lda #$80
+	sta counter1
+@wd1:
 	; grab weekday
 	ldx #rtc_address
 	ldy #3
@@ -1845,10 +1872,13 @@ td_update_display:
 	asl
 	tay 
 	lda wkdy-4,y
+	ora counter1
 	sta VERA_DATA0
 	lda wkdy-3,y
+	ora counter1
 	sta VERA_DATA0
 	lda wkdy-2,y
+	ora counter1
 	sta VERA_DATA0
 
 	; position for day
