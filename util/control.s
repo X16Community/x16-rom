@@ -605,10 +605,22 @@ geo_screen_text:
 mod0:	ldy #0
 mod1:	lda mode_screen_text,y
 	cmp #0
-	beq mod2
+	beq mod1a
 	jsr bsout
 	iny
 	jmp mod1
+mod1a:
+	ldy #0
+	lda screen_h
+	cmp #16
+	bcc mod2
+mod1b:
+	lda mode_screen_text2,y
+	cmp #0
+	beq mod2
+	jsr bsout
+	iny
+	jmp mod1b
 mod2:	sec
 	jsr screen_mode ;get
 	sta menu_select
@@ -643,19 +655,23 @@ mode_screen_text:
 	.byte 147,29,"SCREEN MODE",13
 	.byte 29,163,163,163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,13
-	.byte 29,"0 - 80 X 50",13
-	.byte 29,"1 - 80 X 30",13
-	.byte 29,"2 - 40 X 60",13
-	.byte 29,"3 - 40 X 30",13
-	.byte 29,"4 - 40 X 15",13
-	.byte 29,"5 - 20 X 30",13
-	.byte 29,"6 - 20 X 15",13
-	.byte 29,"7 - 22 X 23",13
-	.byte 29,"8 - 64 X 50",13
-	.byte 29,"9 - 64 X 25",13
-	.byte 29,"10- 32 X 50",13
-	.byte 29,"11- 32 X 25",13
+	.byte 29,"0 -80 X 50",13
+	.byte 29,"1 -80 X 30",13
+	.byte 29,"2 -40 X 60",13
+	.byte 29,"3 -40 X 30",13
+	.byte 29,"4 -40 X 15",13
+	.byte 29,"5 -20 X 30",13
+	.byte 29,"6 -20 X 15",13
+	.byte 29,"7 -22 X 23",13
+	.byte 29,"8 -64 X 50",13
+	.byte 29,"9 -64 X 25",13
+	.byte 29,"10-32 X 50",13
+	.byte 29,"11-32 X 25",13
 	.byte 29,"EXIT",0
+mode_screen_text2:
+	.byte 13,13,"MODES 7 AND ABOVE"
+	.byte 13,"ARE DESIGNED TO BE"
+	.BYTE 13,"CRT-SAFE.",0
 .endproc
 
 .proc get_current_color_scheme: near
