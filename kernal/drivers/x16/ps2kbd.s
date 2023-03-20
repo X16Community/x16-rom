@@ -215,11 +215,13 @@ cycle_layout:
 ;   Out:  .c  =0: success, =1: failure
 ; Get:
 ;   Out:  .x/.y  pointer to layout string
+;         .a = current keyboard layout index
 ;---------------------------------------------------------------
 _keymap:
 	bcc @set
 	ldx #<kbdnam
 	ldy #>kbdnam
+	lda curkbd
 	rts
 
 @set:	php

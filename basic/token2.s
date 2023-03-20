@@ -112,6 +112,7 @@ reslst3
 	.byt "I2CPOK", 'E' + $80
 	.byt "SLEE", 'P' + $80
 	.byt "BSAV", 'E' + $80
+	.byt "MEN", 'U' + $80
 	
 	; add new statements before this line
 

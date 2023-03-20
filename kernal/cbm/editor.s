@@ -83,6 +83,8 @@ MODIFIER_SHIFT = 1
 
 .import emulator_get_data
 
+.import fetch_keymap_from_nvram
+
 .include "banks.inc"
 .include "mac.inc"
 
@@ -191,7 +193,13 @@ cint	jsr iokeys
 	sta mode
 	stz blnon       ;we dont have a good char from the screen yet
 
+	jsr fetch_keymap_from_nvram
+	bne @l1
 	jsr emulator_get_data
+	bra @l2
+@l1
+	dec
+@l2
 	jsr kbd_config  ;set keyboard layout
 
 	lda #$c

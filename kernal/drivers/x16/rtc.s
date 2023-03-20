@@ -11,13 +11,15 @@
 .export rtc_get_date_time, rtc_set_date_time
 .export rtc_get_nvram, rtc_set_nvram, rtc_check_nvram_checksum
 
+.export fetch_keymap_from_nvram
+
 .segment "RTC"
 
 rtc_address            = $6f
 
-nvram_base             = $20
-nvram_size             = $40
-screen_mode_cksum_addr = nvram_base + $15
+nvram_base             = $40
+nvram_size             = $20
+screen_mode_cksum_addr = nvram_base + $1f
 
 ;---------------------------------------------------------------
 ; rtc_set_date_time
@@ -221,6 +223,7 @@ rtc_check_nvram_checksum:
 @cksumloop:
 	jsr i2c_read_byte
 	bcs @exit
+	; carry is clear
 	adc tmp2
 	sta tmp2
 	iny
@@ -231,4 +234,23 @@ rtc_check_nvram_checksum:
 	cmp tmp2
 	clc
 @exit:
+	rts
+
+
+fetch_keymap_from_nvram:
+	ldy #0
+	jsr rtc_get_nvram
+	bcs @exit
+
+	and #1
+	beq :+
+	clc
+	adc #12 ; second profile (plus the #1 from above) = 13
+:
+	clc
+	adc #11 ; layout byte
+	tay
+	jmp rtc_get_nvram
+@exit:
+	lda #0
 	rts
