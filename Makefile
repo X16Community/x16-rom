@@ -402,8 +402,8 @@ clean:
 
 $(GIT_SIGNATURE): FORCE
 	@mkdir -p $(BUILD_DIR)
-	echo -n $$( (git rev-parse --short=8 HEAD || echo "00000000") | tr '[:lower:]' '[:upper:]') > $(GIT_SIGNATURE)
-	echo -n $$(git diff --quiet || echo "+") >> $(GIT_SIGNATURE)
+	git diff --quiet && echo -n $$( (git rev-parse --short=8 HEAD || echo "00000000") | tr '[:lower:]' '[:upper:]') > $(GIT_SIGNATURE) \
+	|| echo -n $$( echo -n $$(git rev-parse --short=7 HEAD || echo "0000000") | tr '[:lower:]' '[:upper:]'; echo -n '+') > $(GIT_SIGNATURE)
 
 FORCE:
 
