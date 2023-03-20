@@ -280,7 +280,7 @@ scrpnc
 :
 	sta tmp2
 	lda VERA_DC_VIDEO
-	and #$70
+	and #$7c
 	ora tmp2
 	sta VERA_DC_VIDEO
 	bra loop3b
