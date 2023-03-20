@@ -183,6 +183,7 @@ screen_mode:
 	pha
 	jsr calc_scaled_res
 	pla
+@grts:
 	rts
 
 @set:
@@ -190,7 +191,7 @@ screen_mode:
 	jsr mode_lookup
 	lda scale,x
 	plx
-	bcs @rts
+	bcs @grts
 
 	pha             ; save scale
 	txa
@@ -228,6 +229,22 @@ screen_mode:
 
 	stz VERA_CTRL
 
+	; Set interlace bit for vscale > $40 and clear for modes <= $40
+
+	; First set it
+	lda VERA_DC_VIDEO
+	ora #%00001000
+	sta VERA_DC_VIDEO
+ 
+	lda scale,x
+	and #$0f
+	beq @inter
+
+	; Clear it
+	lda VERA_DC_VIDEO
+	and #%11110111
+	sta VERA_DC_VIDEO
+@inter: 
 	lda cscrmd
 	bmi @graph
 
@@ -860,5 +877,5 @@ screen_set_default_nvram:
 
 @defaults:
 	.byte $00
-	.byte $00,$21,$80,$80,$00,$00,$A0,$00,$F0,$61
+	.byte $00,$29,$80,$80,$00,$00,$A0,$00,$F0,$61
 	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61
