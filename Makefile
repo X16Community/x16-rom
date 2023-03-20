@@ -299,6 +299,12 @@ AUDIO_SOURCES= \
 	audio/audio_luts.s \
 	audio/playstring.s
 
+UTIL_SOURCES= \
+	kernsup/kernsup_util.s \
+	util/main.s \
+	util/menu.s \
+	util/control.s
+
 GENERIC_DEPS = \
 	inc/kernal.inc \
 	inc/mac.inc \
@@ -310,7 +316,8 @@ GENERIC_DEPS = \
 	kernsup/kernsup.inc
 
 KERNAL_DEPS = \
-	$(GENERIC_DEPS)
+	$(GENERIC_DEPS) \
+	$(GIT_SIGNATURE)
 
 KEYMAP_DEPS = \
 	$(GENERIC_DEPS)
@@ -340,7 +347,8 @@ GEOS_DEPS= \
 
 BASIC_DEPS= \
 	$(GENERIC_DEPS) \
-	math/math.inc
+	math/math.inc \
+	$(GIT_SIGNATURE)
 
 MONITOR_DEPS= \
 	$(GENERIC_DEPS) \
@@ -350,6 +358,9 @@ CHARSET_DEPS= \
 	$(GENERIC_DEPS)
 
 AUDIO_DEPS= \
+	$(GENERIC_DEPS)
+
+UTIL_DEPS= \
 	$(GENERIC_DEPS)
 
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
@@ -362,6 +373,7 @@ CHARSET_OBJS = $(addprefix $(BUILD_DIR)/, $(CHARSET_SOURCES:.s=.o))
 GRAPH_OBJS   = $(addprefix $(BUILD_DIR)/, $(GRAPH_SOURCES:.s=.o))
 DEMO_OBJS    = $(addprefix $(BUILD_DIR)/, $(DEMO_SOURCES:.s=.o))
 AUDIO_OBJS   = $(addprefix $(BUILD_DIR)/, $(AUDIO_SOURCES:.s=.o))
+UTIL_OBJS    = $(addprefix $(BUILD_DIR)/, $(UTIL_SOURCES:.s=.o))
 
 ifeq ($(MACHINE),c64)
 	BANK_BINS = $(BUILD_DIR)/kernal.bin
@@ -377,7 +389,8 @@ else
 		$(BUILD_DIR)/codex.bin \
 		$(BUILD_DIR)/graph.bin \
 		$(BUILD_DIR)/demo.bin \
-		$(BUILD_DIR)/audio.bin
+		$(BUILD_DIR)/audio.bin \
+		$(BUILD_DIR)/util.bin
 endif
 
 ifeq ($(MACHINE),x16)
@@ -479,6 +492,12 @@ $(BUILD_DIR)/audio.bin: $(AUDIO_OBJS) $(AUDIO_DEPS) $(CFG_DIR)/audio-$(MACHINE).
 	$(LD) -C $(CFG_DIR)/audio-$(MACHINE).cfg $(AUDIO_OBJS) -o $@ -m $(BUILD_DIR)/audio.map -Ln $(BUILD_DIR)/audio.sym
 	./scripts/relist.py $(BUILD_DIR)/audio.map $(BUILD_DIR)/audio
 
+# Bank B : Utilities
+$(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-$(MACHINE).cfg
+	@mkdir -p $$(dirname $@)
+	$(LD) -C $(CFG_DIR)/util-$(MACHINE).cfg $(UTIL_OBJS) -o $@ -m $(BUILD_DIR)/util.map -Ln $(BUILD_DIR)/util.sym
+	./scripts/relist.py $(BUILD_DIR)/util.map $(BUILD_DIR)/util
+
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
@@ -489,11 +508,13 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 5 build/x16/monitor.sym >> $@
 	./scripts/symbolize.sh 6 build/x16/charset.sym >> $@
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
+	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
-	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst` > $@
-	./scripts/trace_lst.py 2 `find build/x16/dos/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py 3 `find build/x16/geos/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst` >> $@
-	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst`   >> $@
+	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
+	./scripts/trace_lst.py 2 `find build/x16/dos/ -name \*.rlst`     >> $@
+	./scripts/trace_lst.py 3 `find build/x16/geos/ -name \*.rlst`    >> $@
+	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst`   >> $@
+	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst` >> $@
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
+	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@

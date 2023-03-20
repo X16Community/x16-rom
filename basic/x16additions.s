@@ -698,7 +698,7 @@ test:
 @copy_end:
 
 rtc_address            = $6f
-nvram_base             = $20
+nvram_base             = $40
 
 ; This is a mirror of the internal kernal routine by the same name
 ; but it only sets the fg color.  This is called after the splash
@@ -711,7 +711,7 @@ screen_default_color_from_nvram:
 	and #1
 	beq :+
 	clc
-	adc #9 ; second profile (plus the #1 from above) = 10
+	adc #12 ; second profile (plus the #1 from above) = 13
 :
 	clc
 	adc #nvram_base+10 ; color offset
@@ -856,6 +856,11 @@ cbsave:
 :	rts
 
 
+cmenu:
+	jsr bjsrfar
+	.word $c000
+	.byte BANK_UTIL
+	rts
 
 ; BASIC's entry into jsrfar
 .setcpu "65c02"

@@ -1,0 +1,15 @@
+MEMORY {
+	#include "x16.cfginc"
+
+	ROM:         start = $C000, size = $3B00, fill=yes, fillval=$AA;
+	KSUP_CODE11: start = $FB00, size = $03A8, fill=yes, fillval=$AA;
+	KSUP_VEC11:  start = $FEA8, size = $0158, fill=yes, fillval=$AA;
+
+}
+
+SEGMENTS {
+	JMPTBL:      load = ROM,     type = ro;
+	CODE:        load = ROM,     type = ro;
+	KSUP_CODE11: load = KSUP_CODE11, type = ro;
+	KSUP_VEC11:  load = KSUP_VEC11,  type = ro;
+}
