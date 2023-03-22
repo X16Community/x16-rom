@@ -96,7 +96,6 @@ plot            = $fff0
 	sta menu_h
 	ldy #0
 dsm1:	lda menutext,y
-	cmp #0
 	beq dsm1a
 	jsr bsout
 	iny
@@ -110,21 +109,18 @@ dsm1a:
 	beq @ntsc
 @rgb:
 	lda menutext_rgb,y
-	cmp #0
 	beq dsm2
 	jsr bsout
 	iny
 	bra @rgb
 @ntsc:
 	lda menutext_ntsc,y
-	cmp #0
 	beq dsm2
 	jsr bsout
 	iny
 	bra @ntsc
 @vga:
 	lda menutext_vga,y
-	cmp #0
 	beq dsm2
 	jsr bsout
 	iny
@@ -333,9 +329,8 @@ scv6:	sta VERA_DATA0
 
 .proc execute_command: near
 	lda menu_select
-	cmp #0          ;color scheme
 	bne exe1
-	jmp color_menu
+	jmp color_menu      ;color scheme
 exe1:	cmp #1          ;screen mode
 	bne exe2
 	jmp mode_menu
@@ -430,7 +425,6 @@ gm08:	sta VERA_DATA0
 	;write text
 	ldy #0
 gem1:	lda geo_screen_text,y
-	cmp #0
 	beq gem2
 	jsr bsout
 	iny
@@ -719,7 +713,6 @@ geo_screen_text:
 
 mod0:	ldy #0
 mod1:	lda mode_screen_text,y
-	cmp #0
 	beq mod1a
 	jsr bsout
 	iny
@@ -731,7 +724,6 @@ mod1a:
 	bcc mod2
 mod1b:
 	lda mode_screen_text2,y
-	cmp #0
 	beq mod2
 	jsr bsout
 	iny
@@ -830,7 +822,6 @@ mode_screen_text2:
 
 col0:	ldy #0
 col1:	lda col_screen_text,y
-	cmp #0
 	beq col2
 	jsr bsout
 	iny
@@ -1050,7 +1041,6 @@ col_screen_text:
 	jsr bsout
 klm0:	ldy #0
 klm1:	lda key_menu_text,y
-	cmp #0
 	beq klm2
 	jsr bsout
 	iny
@@ -1182,7 +1172,6 @@ key_menu_text:
 	sta menu_h
 	ldy #0
 svm1:	lda save_menu_text,y
-	cmp #0
 	beq svm2
 	jsr bsout
 	iny
@@ -1206,7 +1195,6 @@ svm8:	jmp svm3
 
 sm_execute:
 	lda menu_select
-	cmp #0
 	bne sme2
 	jmp save_to_nvram0
 sme2:	cmp #1
@@ -1320,13 +1308,11 @@ wtn1:	lda counter1
 	;now display message
 nvmsg1:	ldx #0
 nvmsg2:	lda nv_msg,x
-	cmp #0
 	beq nvrtm
 	jsr bsout
 	inx
 	bra nvmsg2
 nvrtm:	jsr getin
-	cmp #0
 	beq nvrtm
 	jmp sme4
 
@@ -1586,13 +1572,11 @@ kbs3:
 	;now display message
 	ldx #0
 msg1:	lda saved_msg,x
-	cmp #0
 	beq rtme
 	jsr bsout
 	inx
 	jmp msg1
 rtme:	jsr getin
-	cmp #0
 	beq rtme
 	jmp main_menu
 
@@ -1774,7 +1758,6 @@ altbasic_end:
 	sta menu_h
 	ldy #0
 tdm1:	lda time_date_text,y
-	cmp #0
 	beq tdm2
 	jsr bsout
 	iny
@@ -1822,7 +1805,6 @@ tde1:	cmp #7
 
 td_left:
 	lda menu_select
-	cmp #0
 	bne @1
 	jmp dec_year
 @1:	cmp #1
@@ -1848,7 +1830,6 @@ td_left:
 
 td_right:
 	lda menu_select
-	cmp #0
 	bne @1
 	jmp inc_year
 @1:	cmp #1
