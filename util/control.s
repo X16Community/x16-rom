@@ -178,9 +178,9 @@ menutext:
 	.byte "VIDEO OUTPUT MODE",13
 	.byte 163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,163,163,163,163,13
-	.byte 18,"F1",146," VGA    ",18,"F4",146," CRTSAFE",13
-	.byte 18,"F2",146," NTSC   ",18,"F5",146," COLOR",13
-	.byte 18,"F3",146," RGB    ",18,"F6",146," 240P"
+	.byte 18,"F1",146," VGA   ",18,"F4",146," CRTSAFE",13
+	.byte 18,"F2",146," NTSC  ",18,"F5",146," COLOR",13
+	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
 	.byte 0
 .endproc
 
@@ -252,7 +252,7 @@ cmo1:	stx VERA_ADDR_L
 	sta VERA_ADDR_H
 	lda #$bc
 	sta VERA_ADDR_M
-	lda #$18
+	lda #$16
 	sta VERA_ADDR_L
 	lda safemode
 	beq scv1
