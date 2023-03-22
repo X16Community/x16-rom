@@ -206,17 +206,18 @@ menutext:
 	.byte "VIDEO OUTPUT MODE",13
 	.byte 163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,163,163,163,163,13
-	.byte 18,"F1",146," VGA   ",18,"F4",146," CRTSAFE",13,0
+	.byte 18,"F1",146," VGA   ",18,"F4",146," CRTSAFE",13
+	.byte 18,"F2",146," NTSC  ",18,"F5",146," ",0
 menutext_vga:
-	.byte 18,"F2",146," NTSC  ",18,"F5",146," N/A",13
+	.byte "N/A",13
 	.byte 18,"F3",146," RGB   ",18,"F6",146," N/A"
 	.byte 0
 menutext_ntsc:
-	.byte 18,"F2",146," NTSC  ",18,"F5",146," COLOR",13
+	.byte "COLOR",13
 	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
 	.byte 0
 menutext_rgb:
-	.byte 18,"F2",146," NTSC  ",18,"F5",146," CSYNC",13
+	.byte "CSYNC",13
 	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
 	.byte 0
 .endproc
