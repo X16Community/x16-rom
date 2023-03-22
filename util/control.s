@@ -97,10 +97,38 @@ plot            = $fff0
 	ldy #0
 dsm1:	lda menutext,y
 	cmp #0
+	beq dsm1a
+	jsr bsout
+	iny
+	bra dsm1
+dsm1a:
+	ldy #0
+	lda VERA_DC_VIDEO
+	and #3
+	cmp #2
+	bcc @vga
+	beq @ntsc
+@rgb:
+	lda menutext_rgb,y
+	cmp #0
 	beq dsm2
 	jsr bsout
 	iny
-	jmp dsm1
+	bra @rgb
+@ntsc:
+	lda menutext_ntsc,y
+	cmp #0
+	beq dsm2
+	jsr bsout
+	iny
+	bra @ntsc
+@vga:
+	lda menutext_vga,y
+	cmp #0
+	beq dsm2
+	jsr bsout
+	iny
+	bra @vga
 dsm2:	jsr highlight_menu_option
 	jsr show_current_video_status
 dsm5:	jsr getin       ;get keyboard input
@@ -178,8 +206,17 @@ menutext:
 	.byte "VIDEO OUTPUT MODE",13
 	.byte 163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,163,163,163,163,13
-	.byte 18,"F1",146," VGA   ",18,"F4",146," CRTSAFE",13
+	.byte 18,"F1",146," VGA   ",18,"F4",146," CRTSAFE",13,0
+menutext_vga:
+	.byte 18,"F2",146," NTSC  ",18,"F5",146," N/A",13
+	.byte 18,"F3",146," RGB   ",18,"F6",146," N/A"
+	.byte 0
+menutext_ntsc:
 	.byte 18,"F2",146," NTSC  ",18,"F5",146," COLOR",13
+	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
+	.byte 0
+menutext_rgb:
+	.byte 18,"F2",146," NTSC  ",18,"F5",146," CSYNC",13
 	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
 	.byte 0
 .endproc
