@@ -1,4 +1,4 @@
-.segment "CHARSET"
+.segment "CHARPET"
 
 ; Both the Upper/Graphics and the Upper/Lower character match the
 ; C64 charsets, except for these changes:

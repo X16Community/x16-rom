@@ -35,6 +35,11 @@ source_h       := BSS_BASE+$29
 counter1       := BSS_BASE+$2A
 layout         := BSS_BASE+$2B
 layout_changed := BSS_BASE+$2C
+egg            := BSS_BASE+$2D
+safemode       := BSS_BASE+$2E
+tmp1           := BSS_BASE+$2F
+tmp2           := BSS_BASE+$30    ;2 bytes
+tmp3           := BSS_BASE+$32    ;2 bytes
 
 ptr            := $D4             ;Borrowed ZP from BASIC (poker)
 
@@ -72,6 +77,9 @@ plot            = $fff0
 	inc
 	sta layout
 
+	stz egg
+
+	stz safemode
 	stz menu_select
 	jsr get_screen_dimensions
 	jsr get_current_color_scheme
@@ -127,20 +135,34 @@ dsm9:	cmp #134        ;f3
 	jmp main_menu
 dsma:	cmp #138        ;f4
 	bne dsmb
+	lda safemode
+	dec
+	and #1
+	sta safemode
+	beq :+
+	jsr apply_safemode
+:	jmp main_menu
+dsmb:	cmp #135        ;f5
+	bne dsmc
 	lda VERA_DC_VIDEO
 	eor #%00000100
 	sta VERA_DC_VIDEO
 	jmp main_menu
-dsmb:	cmp #135        ;f5
-	bne dsmc
+dsmc:	cmp #139        ;f6
+	bne dsmd
 	lda VERA_DC_VIDEO
 	eor #%00001000
 	sta VERA_DC_VIDEO
 	jmp main_menu
-dsmc:	cmp #13         ;return
-	bne dsmd
+dsmd:	cmp #27			;Esc
+	bne dsme
+	lda #6
+	sta menu_select
+	jmp main_menu
+dsme:	cmp #13         ;return
+	bne dsmf
 	jmp execute_command
-dsmd:	jmp dsm5
+dsmf:	jmp dsm5
 menutext:
 	.byte 147       ;clear screen
 	.byte "X16 CONTROL PANEL",13
@@ -156,9 +178,9 @@ menutext:
 	.byte "VIDEO OUTPUT MODE",13
 	.byte 163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,163,163,163,163,13
-	.byte 18,"F1",146,"  VGA  ",13
-	.byte 18,"F2",146,"  NTSC  ",18,"F4",146,"  COLOR",13
-	.byte 18,"F3",146,"  RGB   ",18,"F5",146,"  240P"
+	.byte 18,"F1",146," VGA    ",18,"F4",146," CRTSAFE",13
+	.byte 18,"F2",146," NTSC   ",18,"F5",146," COLOR",13
+	.byte 18,"F3",146," RGB    ",18,"F6",146," 240P"
 	.byte 0
 .endproc
 
@@ -225,34 +247,37 @@ cmo1:	stx VERA_ADDR_L
 ;video mode and then whether or not NTSC color is on.
 ;as well as 240p mode for RGB/NTSC
 .proc show_current_video_status: near
-	;first show ntsc color status
+	;first show safe mode bit
 	lda #%00000001
 	sta VERA_ADDR_H
-	lda #$bd
+	lda #$bc
 	sta VERA_ADDR_M
-	lda #$1a
+	lda #$18
 	sta VERA_ADDR_L
-	lda VERA_DC_VIDEO
-	and #%00000100
-	bne scv1
+	lda safemode
+	beq scv1
 	lda #81	;round ball
 	bra scv2
 scv1:	lda #32	;blank space
 scv2:	sta VERA_DATA0
-	;next show 240p
-	lda #%00000001
-	sta VERA_ADDR_H
-	lda #$be
-	sta VERA_ADDR_M
-	lda #$1a
-	sta VERA_ADDR_L
+	;next show ntsc color status
+	inc VERA_ADDR_M
 	lda VERA_DC_VIDEO
-	and #%00001000
+	and #%00000100
 	bne scv3
 	lda #81	;round ball
 	bra scv4
 scv3:	lda #32	;blank space
 scv4:	sta VERA_DATA0
+	;next show progressive bit
+	inc VERA_ADDR_M
+	lda VERA_DC_VIDEO
+	and #%00001000
+	beq scv5
+	lda #81	;round ball
+	bra scv6
+scv5:	lda #32	;blank space
+scv6:	sta VERA_DATA0
 	;now show video output status
 	lda #%00000001
 	sta VERA_ADDR_H
@@ -261,7 +286,7 @@ scv4:	sta VERA_DATA0
 	clc
 	adc #$bb
 	sta VERA_ADDR_M
-	lda #$06
+	lda #$04
 	sta VERA_ADDR_L
 	lda #81	;round ball
 	sta VERA_DATA0
@@ -390,21 +415,28 @@ ge11:	cmp #$11        ;cursor down
 ge13:	cmp #87         ;w
 	bne ge14
 	jsr w_up
-	jmp ge10	
+	jmp ge10
 ge14:	cmp #83         ;s
 	bne ge15
 	jsr s_down
-	jmp ge10	
+	jmp ge10
 ge15:	cmp #65         ;a
 	bne ge16
 	jsr a_left
-	jmp ge10	
+	jmp ge10
 ge16:	cmp #68         ;d
-	bne ge17
+	bne ge16a
 	jsr d_right
-	jmp ge10	
+	jmp ge10
+ge16a:
+	cmp #$d6            ;shift+V
+	bne ge16b
+	bra eggy
+ge16b:
+	cmp #27             ;Esc
+	beq ge18a
 ge17:	cmp #13         ;return	
-	bne ge18
+	bne ge19
 	lda menu_select
 	cmp #5
 	bne ge18
@@ -412,10 +444,55 @@ ge17:	cmp #13         ;return
 	jmp geometry
 ge18:	cmp #6
 	bne ge19
-	lda #2
+ge18a:	lda #2
 	sta menu_select
 	jmp main_menu
 ge19:	jmp ge10	
+
+eggy:
+	ldx #6
+	stx tcol
+	lda color_table,x
+	jsr bsout
+	lda #1
+	jsr bsout
+	tax
+	sta bgcol
+	lda color_table,x
+	jsr bsout
+	lda #1
+	jsr bsout
+
+	lda #$00
+	clc
+	jsr screen_mode
+
+	lda #$07
+	sta egg
+	clc
+	jsr screen_mode
+	lda #$2c
+	sta VERA_DC_HSCALE
+	lda #$40
+	sta VERA_DC_VSCALE
+	lda #$ab
+	sta VERA_DC_BORDER
+	lda #2
+	sta VERA_CTRL
+	lda #$10
+	sta VERA_DC_HSTART
+	lda #$90
+	sta VERA_DC_HSTOP
+	lda #$1c
+	sta VERA_DC_VSTART
+	lda #$d3
+	sta VERA_DC_VSTOP
+	stz VERA_CTRL
+	lda #4
+	jsr screen_set_charset
+	lda #2
+	sta menu_select
+	jmp main_menu
 
 w_up:
 	lda menu_select
@@ -637,25 +714,32 @@ mod6:	cmp #$11        ;cursor down
 mod7:	cmp #13         ;return
 	bne mod8
 	jmp mode_change
-mod8:	jmp mod5
+mod8:	cmp #27			;Esc
+	beq mc00
+mod9:
+	jmp mod5
 
 mode_change:
 	lda menu_select
 	cmp #12
 	bne mc01
-	lda #1
+mc00:	lda #1
 	sta menu_select
 	jmp main_menu
 mc01:	lda menu_select
 	clc
 	jsr screen_mode ;set
 	jsr get_screen_dimensions
+	lda safemode
+	beq mc02
+	jsr apply_safemode
+mc02:
 	jmp mod0
 mode_screen_text:
 	.byte 147,29,"SCREEN MODE",13
 	.byte 29,163,163,163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,13
-	.byte 29,"0 -80 X 50",13
+	.byte 29,"0 -80 X 60",13
 	.byte 29,"1 -80 X 30",13
 	.byte 29,"2 -40 X 60",13
 	.byte 29,"3 -40 X 30",13
@@ -671,7 +755,11 @@ mode_screen_text:
 mode_screen_text2:
 	.byte 13,13,"MODES 7 AND ABOVE"
 	.byte 13,"ARE DESIGNED TO BE"
-	.BYTE 13,"CRT-SAFE.",0
+	.byte 13,"NATIVELY CRT-SAFE."
+	.byte 13,"SAFE MODE AT MAIN"
+	.byte 13,"MENU RESCALES OTHER"
+	.byte 13,"MODES INWARD TO"
+	.byte 13,"AVOID OVERSCAN.",0
 .endproc
 
 .proc get_current_color_scheme: near
@@ -744,16 +832,18 @@ col7:	cmp #157        ;cursor left
 	jsr col_cursor_left
 	jmp col0
 col8:	cmp #29	        ;cursor right
-	bne col9
+	bne col8a
 	jsr col_cursor_right
 	jmp col0
+col8a:
+	cmp #27             ;ESC
+	beq col9a
 col9:	cmp #13	        ;return
 	bne col10
 	lda menu_select
 	cmp #5
 	bne col10
-	lda #0
-	sta menu_select
+col9a:	stz menu_select
 	jmp main_menu
 col10:	jmp col5
 
@@ -950,9 +1040,10 @@ klm7:	cmp #29	        ;cursor right
 	jsr kl_cursor_right
 	bra klm0
 klm8:	cmp #13         ;return
-	bne klm9
-	jmp kl_execute
-klm9:	bra klm3
+	beq kl_execute
+klm9:	cmp #27			;Esc
+	beq kl_execute
+klma:	bra klm3
 
 kl_execute:
 kle2:	
@@ -1070,9 +1161,10 @@ svm5:	cmp #$11        ;cursor down
 	jsr menu_down
 	jmp svm3
 svm6:	cmp #13         ;return
-	bne svm7
-	jmp sm_execute
-svm7:	jmp svm3
+	beq sm_execute
+svm7:	cmp #27         ;Esc
+	beq sme4
+svm8:	jmp svm3
 
 sm_execute:
 	lda menu_select
@@ -1085,7 +1177,9 @@ sme2:	cmp #1
 sme3:	cmp #2
 	bne sme4
 	jmp save_autoboot
-sme4:	jmp main_menu
+sme4:	lda #5
+	sta menu_select
+	jmp main_menu
 	
 save_to_nvram0:
 	sec
@@ -1196,7 +1290,7 @@ nvmsg2:	lda nv_msg,x
 nvrtm:	jsr getin
 	cmp #0
 	beq nvrtm
-	jmp main_menu
+	jmp sme4
 
 save_menu_text:
 	.byte 147       ;clear screen
@@ -1264,7 +1358,30 @@ sab1:	lda filename-1,x
 	jsr ckout           ;open for write and set output channel
 
 	WRITE_RAW_BYTES basic_start, basic_prog1
-	
+
+	;Foreground color
+	lda tcol
+	jsr convert_high_nybble
+	jsr bsout
+	lda tcol
+	jsr convert_low_nybble
+	jsr bsout
+	lda #','
+	jsr bsout
+	lda #'$'
+	jsr bsout
+	;Background color
+	lda bgcol
+	jsr convert_high_nybble
+	jsr bsout
+	lda bgcol
+	jsr convert_low_nybble
+	jsr bsout
+	lda #0
+	jsr bsout
+
+	WRITE_RAW_BYTES basic_prog1, basic_prog2
+
 	;kernal screen mode
 	sec
 	jsr screen_mode    ;get current screen mode
@@ -1277,7 +1394,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog1, basic_prog2
+	WRITE_RAW_BYTES basic_prog2, basic_prog3
 
 	;Display Composer register (DC_VIDEO)
 	lda VERA_DC_VIDEO
@@ -1289,7 +1406,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog2, basic_prog3
+	WRITE_RAW_BYTES basic_prog3, basic_prog4
 
 	;Horizontal Scale register (DC_HSCALE)
 	lda VERA_DC_HSCALE
@@ -1301,7 +1418,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog3, basic_prog4
+	WRITE_RAW_BYTES basic_prog4, basic_prog5
 
 	;Verical Scale register (DC_VSCALE)
 	lda VERA_DC_VSCALE
@@ -1313,7 +1430,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog4, basic_prog5
+	WRITE_RAW_BYTES basic_prog5, basic_prog6
 
 	;Border Color (DC_BORDER)
 	lda VERA_DC_BORDER
@@ -1325,7 +1442,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog5, basic_prog7
+	WRITE_RAW_BYTES basic_prog6, basic_prog8
 
 	;DCSEL=1
 	lda #$02
@@ -1341,7 +1458,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog7, basic_prog8
+	WRITE_RAW_BYTES basic_prog8, basic_prog9
 
 	;Horizontal Stop (DC_HSTOP)
 	lda VERA_DC_HSTOP
@@ -1353,7 +1470,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog8, basic_prog9
+	WRITE_RAW_BYTES basic_prog9, basic_prog10
 
 	;Vertical Start (DC_VSTART)
 	lda VERA_DC_VSTART
@@ -1365,7 +1482,7 @@ sab1:	lda filename-1,x
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog9, basic_prog10
+	WRITE_RAW_BYTES basic_prog10, basic_prog11
 
 	;Vertical STOP (DC_VSTOP)
 	lda VERA_DC_VSTOP
@@ -1381,7 +1498,7 @@ sab1:	lda filename-1,x
 	lda #00
 	sta VERA_CTRL
 
-	WRITE_RAW_BYTES basic_prog10, basic_prog12
+	WRITE_RAW_BYTES basic_prog11, basic_prog13
 
 	lda layout
 	asl
@@ -1412,8 +1529,16 @@ kbs3:
 	lda #0
 	jsr bsout
 
-	WRITE_RAW_BYTES basic_prog12, basic_end
+	lda egg
+	beq @noegg
 
+	WRITE_RAW_BYTES altbasic_prog13, altbasic_end
+
+	bra @afterbasic
+@noegg:
+	WRITE_RAW_BYTES basic_prog13, basic_end
+
+@afterbasic:
 	jsr clrch       ;return output to screen
 
 	lda #$02
@@ -1441,80 +1566,109 @@ filename_len=*-filename
 
 loadaddr=$0801
 
-nextlin0 = loadaddr+(basic_prog1-basic_prog0)+$03
+nextlin0 = loadaddr+(basic_prog1-basic_prog0)+$07
 nextlin1 = nextlin0+(basic_prog2-basic_prog1)+$03
 nextlin2 = nextlin1+(basic_prog3-basic_prog2)+$03
 nextlin3 = nextlin2+(basic_prog4-basic_prog3)+$03
 nextlin4 = nextlin3+(basic_prog5-basic_prog4)+$03
-nextlin5 = nextlin4+(basic_prog6-basic_prog5)
-nextlin6 = nextlin5+(basic_prog7-basic_prog6)+$03
+nextlin5 = nextlin4+(basic_prog6-basic_prog5)+$03
+nextlin6 = nextlin5+(basic_prog7-basic_prog6)
 nextlin7 = nextlin6+(basic_prog8-basic_prog7)+$03
 nextlin8 = nextlin7+(basic_prog9-basic_prog8)+$03
 nextlin9 = nextlin8+(basic_prog10-basic_prog9)+$03
-nextlin10 = nextlin9+(basic_prog11-basic_prog10)
-nextlin11 = nextlin10+(basic_prog12-basic_prog11)+$0B
-nextlin12 = nextlin11+(basic_prog13-basic_prog12)
+nextlin10 = nextlin9+(basic_prog11-basic_prog10)+$03
+nextlin11 = nextlin10+(basic_prog12-basic_prog11)
+nextlin12 = nextlin11+(basic_prog13-basic_prog12)+$0B
+nextlin13 = nextlin12+(basic_prog14-basic_prog13)
+
+altnextlin13 = nextlin12+(altbasic_prog14-altbasic_prog13)
+altnextlin14 = altnextlin13+(altbasic_prog15-altbasic_prog14)
+
 
 basic_start:
 	.word loadaddr         ;Program load address
 basic_prog0:
 	.word nextlin0
 	.word $0000
-	.byte $CE,$86,"$"      ;0 SCREEN$
+	.byte $CE,$8D,'$'      ;0 COLOR$
 basic_prog1:
 	.word nextlin1
 	.word $0001
-	.byte $97,"$9F29,$"    ;1 POKE$9F29,$
+	.byte $CE,$86,"$"      ;1 SCREEN$
 basic_prog2:
 	.word nextlin2
 	.word $0002
-	.byte $97,"$9F2A,$"    ;2 POKE$9F2A,$
+	.byte $97,"$9F29,$"    ;2 POKE$9F29,$
 basic_prog3:
 	.word nextlin3
 	.word $0003
-	.byte $97,"$9F2B,$"    ;3 POKE$9F2B,$
+	.byte $97,"$9F2A,$"    ;3 POKE$9F2A,$
 basic_prog4:
 	.word nextlin4
 	.word $0004
-	.byte $97,"$9F2C,$"    ;4 POKE$9F2C,$
+	.byte $97,"$9F2B,$"    ;4 POKE$9F2B,$
 basic_prog5:
 	.word nextlin5
 	.word $0005
-	.byte $97,"$9F25,$02"  ;5 POKE$9F25,$02
-	.byte $00
+	.byte $97,"$9F2C,$"    ;5 POKE$9F2C,$
 basic_prog6:
 	.word nextlin6
 	.word $0006
-	.byte $97,"$9F29,$"    ;6 POKE$9F29,$
+	.byte $97,"$9F25,$02"  ;6 POKE$9F25,$02
+	.byte $00
 basic_prog7:
 	.word nextlin7
 	.word $0007
-	.byte $97,"$9F2A,$"    ;7 POKE$9F2A,$
+	.byte $97,"$9F29,$"    ;7 POKE$9F29,$
 basic_prog8:
 	.word nextlin8
 	.word $0008
-	.byte $97,"$9F2B,$"    ;8 POKE$9F2B,$
+	.byte $97,"$9F2A,$"    ;8 POKE$9F2A,$
 basic_prog9:
 	.word nextlin9
 	.word $0009
-	.byte $97,"$9F2C,$"    ;9 POKE$9F2C,$
+	.byte $97,"$9F2B,$"    ;9 POKE$9F2B,$
 basic_prog10:
 	.word nextlin10
 	.word $000A
-	.byte $97,"$9F25,$00"  ;10 POKE$9F25,$00
-	.byte $00
+	.byte $97,"$9F2C,$"    ;10 POKE$9F2C,$
 basic_prog11:
 	.word nextlin11
 	.word $000B
-	.byte $CE,$94,$22      ;11 KEYMAP"
+	.byte $97,"$9F25,$00"  ;11 POKE$9F25,$00
+	.byte $00
 basic_prog12:
 	.word nextlin12
 	.word $000C
-	.byte $A2              ;12 NEW
-	.byte $00
+	.byte $CE,$94,$22      ;12 KEYMAP"
 basic_prog13:
+	.word nextlin13
+	.word $000D
+	.byte $A2              ;13 NEW
+	.byte $00
+basic_prog14:
 	.word $0000
 basic_end:
+
+altbasic_prog13:
+	.word altnextlin13
+	.word $000D            ;13 PRINT "...":BANK1,0:POKE$30C,4:SYS$FF62
+	.byte $99,$22,$93,"**** CBM BASIC V2 ****"
+	.byte $13,$11,$11,"3583 BYTES FREE",$22,':'
+	.byte $CE,$98,"1,0:"
+	.byte $97,"$30C,4:"
+	.byte $9E,"$FF62"
+	.byte $00
+altbasic_prog14:
+	.word altnextlin14
+	.word $000E
+	.byte $A2              ;14 NEW
+	.byte $00
+altbasic_prog15:
+	.word $0000
+altbasic_end:
+
+
 .endproc
 
 .proc convert_high_nybble: near
@@ -1532,6 +1686,47 @@ basic_end:
 	tay
 	lda hex_table,y	
 	rts
+.endproc
+
+.proc apply_safemode: near
+	sec
+	jsr screen_mode
+
+	cmp #7
+	bcs @exit
+	tax
+	stz VERA_CTRL
+	lda @hscale,x
+	sta VERA_DC_HSCALE
+	lda @vscale,x
+	sta VERA_DC_VSCALE
+	lda #2
+	sta VERA_CTRL
+	lda #$10
+	sta VERA_DC_HSTART
+	lda #$90
+	sta VERA_DC_HSTOP
+	lda @vstart,x
+	sta VERA_DC_VSTART
+	lda @vstop,x
+	sta VERA_DC_VSTOP
+	stz VERA_CTRL
+	lda VERA_DC_VSCALE
+	lda VERA_DC_VIDEO
+	and #%11110111
+	sta VERA_DC_VIDEO
+@exit:
+	rts
+
+@hscale:
+	.byte $a1,$a0,$51,$51,$51,$28,$29
+@vscale:
+	.byte $99,$4d,$99,$4d,$26,$4d,$27
+@vstart:
+	.byte $14,$14,$14,$14,$14,$14,$14
+@vstop:
+	.byte $dd,$dd,$dd,$dc,$dd,$dc,$d9
+
 .endproc
 
 .proc time_date_menu: near
@@ -1569,18 +1764,20 @@ tdm7:	cmp #$1D        ;cursor right
 tdm8:	cmp #13	;return
 	bne tdm9
 	jmp td_execute
-tdm9:	wai
+tdm9:	cmp #27 ;esc
+	beq tde0
+tdma:	wai
 	bra tdm3
 
 td_execute:
 	lda menu_select
 	cmp #8
-	bne @1
-	jsr td_start_clock
+	bne tde1
+tde0:	jsr td_start_clock
 	lda #3
 	sta menu_select
 	jmp main_menu
-@1:	cmp #7
+tde1:	cmp #7
 	bne tdm3
 	jsr td_start_clock
 	bra tdm3
