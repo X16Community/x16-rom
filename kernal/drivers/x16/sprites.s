@@ -158,7 +158,7 @@ sprite_set_position:
 	ldx #((^VERA_SPRITES_BASE) | $10)
 	stx VERA_ADDR_H
 
-	and #7 ; mask sprites 0-7
+	and #31 ; mask sprites 0-31
 	asl
 	asl
 	asl ; *8
@@ -170,7 +170,11 @@ sprite_set_position:
 ; disable sprite
 	adc #$06
 	sta VERA_ADDR_L
-	stz VERA_DATA0 ; set zdepth to 0
+	ldx #(^VERA_SPRITES_BASE)
+	stx VERA_ADDR_H
+	lda VERA_DATA0
+	and #%11110011
+	sta VERA_DATA0 ; set zdepth to 0
 	rts
 
 @1:	adc #$02
@@ -183,9 +187,15 @@ sprite_set_position:
 	sta VERA_DATA0 ; offset 4: Y lo
 	lda r1H
 	sta VERA_DATA0 ; offset 5: Y hi
-	lda #3 << 2
-	sta VERA_DATA0 ; offset 6: set zdepth to 3
-
+	ldx #(^VERA_SPRITES_BASE)
+	stx VERA_ADDR_H
+	lda VERA_DATA0
+	and #%00001100
+	bne @2
+	lda VERA_DATA0
+	ora #%00001100
+	sta VERA_DATA0 ; offset 6: set zdepth to 3 if clear
+@2:
 	; enable sprites globally
 	lda VERA_DC_VIDEO
 	ora #$40
