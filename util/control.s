@@ -125,7 +125,87 @@ dsm1a:
 	jsr bsout
 	iny
 	bra @vga
-dsm2:	jsr highlight_menu_option
+dsm2:
+	lda screen_h
+	cmp #25
+	bcs :+
+	jmp dsm4
+:	ldy #0
+dsm3:
+	lda infoscreen,y
+	beq dsm3a
+	jsr bsout
+	iny
+	bra dsm3
+dsm3a:
+	ldx #16
+	ldy #15
+	jsr plot
+	lda nvram_buffer
+	clc
+	adc #'0'
+	jsr bsout
+
+	ldx #17
+	ldy #6
+	jsr plot
+	lda #%01111110
+	sta VERA_CTRL
+	lda $9f29
+	cmp #'V'
+	bne dsm3b
+	stz VERA_CTRL
+	jsr bsout
+
+	lda #%01111110
+	sta VERA_CTRL
+	lda $9f2a
+	stz VERA_CTRL
+	pha
+	jsr convert_high_nybble
+	jsr bsout
+	pla
+	jsr convert_low_nybble
+	jsr bsout
+
+	lda #'.'
+	jsr bsout
+
+	lda #%01111110
+	sta VERA_CTRL
+	lda $9f2b
+	stz VERA_CTRL
+	pha
+	jsr convert_high_nybble
+	jsr bsout
+	pla
+	jsr convert_low_nybble
+	jsr bsout
+
+	lda #'.'
+	jsr bsout
+
+	lda #%01111110
+	sta VERA_CTRL
+	lda $9f2c
+	stz VERA_CTRL
+	pha
+	jsr convert_high_nybble
+	jsr bsout
+	pla
+	jsr convert_low_nybble
+	jsr bsout
+	bra dsm4
+dsm3b:
+	stz VERA_CTRL
+	ldy #0
+:	lda unknown,y
+	beq dsm4
+	jsr bsout
+	iny
+	bra :-
+dsm4:
+	jsr highlight_menu_option
 	jsr show_current_video_status
 dsm5:	jsr getin       ;get keyboard input
 	cmp #$91        ;cursor up
@@ -163,9 +243,12 @@ dsma:	cmp #138        ;f4
 	dec
 	and #1
 	sta safemode
-	beq :+
+	beq dsma1
 	jsr apply_safemode
-:	jmp main_menu
+	jmp main_menu
+dsma1:
+	jsr restore_defaults
+	jmp main_menu
 dsmb:	cmp #135        ;f5
 	bne dsmc
 	lda VERA_DC_VIDEO
@@ -216,6 +299,11 @@ menutext_rgb:
 	.byte "CSYNC",13
 	.byte 18,"F3",146," RGB   ",18,"F6",146," 240P"
 	.byte 0
+infoscreen:
+	.byte 13,13,"NVRAM PROFILE:",13
+	.byte "VERA: ",13,0
+unknown:
+	.byte "UNKNOWN VER.",0
 .endproc
 
 .proc menu_up: near
