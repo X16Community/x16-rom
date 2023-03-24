@@ -114,10 +114,8 @@ nsnerr6	lda verck   ;fetch the device (fa) that was used
 	jsr $ffd8       ;save it
 	bcc :+
 	jmp erexit      ;extra value in stack does not matter
-:	lda curlin      ;in direct mode, show save status
-	bne :+
-	lda curlin+1
-	cmp #255
+:	lda curlin+1    ;in direct mode, show save status
+	inc
 	bne :+
 	lda #$0d
 	jsr bsout

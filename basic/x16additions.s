@@ -315,7 +315,11 @@ dos	beq ptstat      ;no argument: print status
 	iny
 	cpy verck       ;length?
 	bne :-
-	jmp unlstn
+	jsr unlstn
+	lda curlin+1
+	inc
+	beq ptstat
+	rts
 
 ; in:  C=1 show "DEVICE NOT PRESENT" on error
 ;      C=0 return error in C
