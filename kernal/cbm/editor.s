@@ -1186,6 +1186,6 @@ fkeytb	.byt "LIST:", 13, 0
 	.byt "LOAD ", '"', 0
 	.byt "S", 'C' + $80, "-1:REM", 0
 	.byt "RUN:", 13, 0
-	.byt "MONITOR:REM X TO EXIT", 13, 0
+	.byt "MONITOR:", 13, 0
 	.byt "DOS",'"', "$",13, 0
 	.byt "DOS", '"', 0
