@@ -681,6 +681,7 @@ nc3w	cmp #$12
 nc1	cmp #$13
 	bne nc2
 	jsr nxtd
+	jmp loop2
 nc2	cmp #$04        ;END
 	bne nc25
 	stz pntr        ;column
