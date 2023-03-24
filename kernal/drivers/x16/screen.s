@@ -32,6 +32,7 @@
 .import color
 .import llen
 .import data
+.import mode
 
 ; kernal call
 .import scnsiz
@@ -229,7 +230,7 @@ screen_mode:
 
 	stz VERA_CTRL
 
-	; Set interlace bit for vscale > $40 and clear for modes <= $40
+	; Clear progressive bit for vscale > $40 and set for modes <= $40
 
 	; First set it
 	lda VERA_DC_VIDEO
@@ -238,13 +239,13 @@ screen_mode:
  
 	lda scale,x
 	and #$0f
-	beq @inter
+	bne @prog
 
 	; Clear it
 	lda VERA_DC_VIDEO
 	and #%11110111
 	sta VERA_DC_VIDEO
-@inter: 
+@prog: 
 	lda cscrmd
 	bmi @graph
 
@@ -631,13 +632,24 @@ screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #1
-	beq cpyiso
-	cmp #2
-	beq cpypet1
+	cmp #6
+	bcs @nope
+	sta tmp2+1
+	lda mode
+	and #$f0
+	ora tmp2+1
+	sta mode
+	lda tmp2+1
+	cmp #5
+	beq cpypet4
+	cmp #4
+	beq cpypet3
 	cmp #3
 	beq cpypet2
-	rts ; ignore unsupported values
+	cmp #2
+	beq cpypet1
+	bra cpyiso
+@nope:	rts ; ignore unsupported values
 
 ; 0: custom character set
 cpycustom:
@@ -689,6 +701,31 @@ cpypet2:
 	sta tmp2+1       ;character data at ROM 0400
 	ldx #4
 	jmp copyv
+
+; 4: Alternate PETSCII upper/graph character set
+cpypet3:
+	lda #$d0
+	sta tmp2+1       ;character data at ROM 1000
+	ldx #4
+	jsr copyv
+	dec data
+	lda #$d0
+	sta tmp2+1       ;character data at ROM 1000
+	ldx #4
+	jmp copyv
+
+; 5: Alternate PETSCII upper/lower character set
+cpypet4:
+	lda #$d4
+	sta tmp2+1       ;character data at ROM 1400
+	ldx #4
+	jsr copyv
+	dec data
+	lda #$d4
+	sta tmp2+1       ;character data at ROM 1400
+	ldx #4
+	jmp copyv
+
 
 inicpy:
 	phx
@@ -879,8 +916,8 @@ screen_set_default_nvram:
 	; active profile
 	.byte $00
 	; profile 0
-	.byte $00,$29,$80,$80,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
+	.byte $00,$21,$80,$80,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
 	; profile 1
-	.byte $03,$21,$40,$40,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
+	.byte $03,$29,$40,$40,$00,$00,$A0,$00,$F0,$61,$00,$00,$00
 	; expansion
 	.byte $00,$00,$00,$00
