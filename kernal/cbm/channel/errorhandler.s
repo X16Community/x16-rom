@@ -10,8 +10,6 @@
 ;* return z flag set if flag true.     *
 ;* also closes active channels and     *
 ;* flushes keyboard queue.             *
-;* also returns key downs from last    *
-;* keyboard row in .a.                 *
 ;***************************************
 nstop	jsr kbdbuf_get_stop;check stop key
 	bne stop2       ;not down

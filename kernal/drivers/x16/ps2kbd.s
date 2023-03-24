@@ -187,25 +187,6 @@ kbd_getsrc:
 	rts
 
 
-; cycle keyboard layouts
-cycle_layout:
-	ldx curkbd
-	inx
-	txa
-:	jsr _kbd_config
-	lda #0
-	bcs :-          ;end of list? use 0
-; put name into keyboard buffer
-	ldx #0
-:	lda kbdnam,x
-	beq :+
-	jsr kbdbuf_put
-	beq :+
-	inx
-	bra :-
-:	lda #$8d ; shift + cr
-	jmp kbdbuf_put
-
 ;---------------------------------------------------------------
 ; Get/Set keyboard layout
 ;
@@ -276,8 +257,6 @@ _kbd_scan:
 	cpx #0
 	jne down_ext
 ; *** regular scancodes
-	cpy #$01 ; f9
-	beq cycle_layout
 	cmp #$84 ; Eat weird Alt + PrtScr scan code
 	bne :+
 	rts
