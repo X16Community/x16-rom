@@ -327,22 +327,23 @@ error:
 ; *********************************************************************
 
 .proc parse_u8_hex
-	lda line_buffer + 1,x
+	lda line_buffer,x
 	jsr parse_u4_hex
 	bcs error
 
 	sta tmp2
 
-	lda line_buffer,x
+	lda line_buffer + 1,x
+	beq :+
 	jsr parse_u4_hex
 	bcs error
 
-	asl
-	asl
-	asl
-	asl
+	asl tmp2
+	asl tmp2
+	asl tmp2
+	asl tmp2
 
-	ora tmp2
+:   ora tmp2
 	clc
 
 error:
