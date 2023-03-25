@@ -40,7 +40,7 @@ isvret	sta facmo
 	jsr clock_get_date_time
 
 	; seconds
-	lda r2H
+	lda z:r2H
 	jsr component2ascii
 
 	lda lofbuf+3
@@ -49,7 +49,7 @@ isvret	sta facmo
 	pha
 
 	; minutes
-	lda r2L
+	lda z:r2L
 	jsr component2ascii
 
 	lda lofbuf+3
@@ -58,7 +58,7 @@ isvret	sta facmo
 	pha
 
 	; hours
-	lda r1H
+	lda z:r1H
 	jsr component2ascii
 
 	; Hours is at lofbuf+2.  But strings that start at lofbuf
@@ -94,15 +94,15 @@ tstr10	cpx #'D'
 	bne tstr11
 
 	jsr clock_get_date_time
-	lda r1L
-	ora r0H
-	ora r0L
+	lda z:r1L
+	ora z:r0H
+	ora z:r0L
 	bne :+
 	sta lofbuf+1
 	jmp strlitl
 :
 	; day
-	lda r1L
+	lda z:r1L
 	jsr component2ascii
 
 	lda lofbuf+3
@@ -111,7 +111,7 @@ tstr10	cpx #'D'
 	pha
 
 	; month
-	lda r0H
+	lda z:r0H
 	jsr component2ascii
 
 	lda lofbuf+3
@@ -120,7 +120,7 @@ tstr10	cpx #'D'
 	pha
 
 	; year
-	lda r0L
+	lda z:r0L
 	clc
 	adc #<1900
 	tay

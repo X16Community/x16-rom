@@ -23,7 +23,7 @@ verck  = zp3
 .import syntax_error
 .import byte_to_hex_ascii
 .import tmp16
-.import mon_fa
+.importzp mon_fa
 .importzp zp1
 .importzp zp2
 .importzp zp3

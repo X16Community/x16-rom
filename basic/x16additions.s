@@ -868,8 +868,6 @@ cmenu:
 
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
-ram_bank = 0
-rom_bank = 1
 .export bjsrfar
 bjsrfar:
 .include "jsrfar.inc"
