@@ -264,6 +264,7 @@ key_backspace:
 	bra :-
 
 key_enter:
+	stz line_buffer,x
 	clv
 	jmp bsout
 key_runstop:
