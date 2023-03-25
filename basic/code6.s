@@ -27,7 +27,7 @@ inpcom
 	jsr getadr
 	cpy #24
 	bcs fcerr2
-	sty r1H
+	sty z:r1H
 
 	; minutes
 	jsr zerofc
@@ -39,7 +39,7 @@ inpcom
 	jsr getadr
 	cpy #60
 	bcs fcerr2
-	sty r2L
+	sty z:r2L
 
 	; seconds
 	jsr zerofc
@@ -51,7 +51,7 @@ inpcom
 	jsr getadr
 	cpy #60
 	bcs fcerr2
-	sty r2H
+	sty z:r2H
 
 	jmp clock_set_date_time
 
@@ -94,7 +94,7 @@ asgndt
 	txa
 	sbc #>1900
 	bne fcerr2 ; YY < 1900 or YY > 1900+255
-	sty r0L
+	sty z:r0L
 
 	; month
 	jsr zerofc
@@ -108,7 +108,7 @@ asgndt
 	beq fcerr2 ; MM == 0
 	cmp #13
 	bcs fcerr2 ; MM > 12
-	sta r0H
+	sta z:r0H
 
 	; day
 	jsr zerofc
@@ -122,7 +122,7 @@ asgndt
 	beq fcerr2 ; DD == 0
 	cmp #32
 	bcs fcerr2 ; DD > 32
-	sta r1L
+	sta z:r1L
 
 	jmp clock_set_date_time
 

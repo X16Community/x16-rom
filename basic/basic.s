@@ -12,6 +12,9 @@
 ; for emulator
 .global vartab
 
+ram_bank = 0
+rom_bank = 1
+
 .include "declare.s"
 .include "tokens.s"
 .include "token2.s"

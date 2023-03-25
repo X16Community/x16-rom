@@ -1375,23 +1375,23 @@ s_regs: .byte	CR, "   PC  IRQ  BK AC XR YR SP NV#BDIZC", CR, 0
 
 command_names:
 	.byte "M" ; N.B.: code relies on "M" being the first entry of this table!
-command_index_d = * - command_names
+command_index_d = <(* - command_names)
 	.byte "D"
 	.byte ":"
 	.byte "A"
 	.byte "G"
 	.byte "X"
-command_index_f = * - command_names
+command_index_f = <(* - command_names)
 	.byte "F"
-command_index_h = * - command_names
+command_index_h = <(* - command_names)
 	.byte "H"
-command_index_c = * - command_names
+command_index_c = <(* - command_names)
 	.byte "C"
 	.byte "T"
 	.byte "R"
-command_index_l = * - command_names
+command_index_l = <(* - command_names)
 	.byte "L"
-command_index_s = * - command_names
+command_index_s = <(* - command_names)
 	.byte "S"
 	.byte ","
 	.byte "O"
@@ -1401,7 +1401,7 @@ command_index_s = * - command_names
 	.byte "E"
 	.byte "["
 	.byte "]"
-command_index_i = * - command_names
+command_index_i = <(* - command_names)
 	.byte "I"
 	.byte "'"
 	.byte ";"
