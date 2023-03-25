@@ -299,7 +299,7 @@ key_runstop:
 ; Reads 8 characters from line_buffer, converts them into a hexadecimal number and stores it in the buffer pointed to by r0.
 ; Sets the carry flag if the number is invalid.
 ; X indicates the start position.
-; Clobbers: A, X, Y, r0
+; Clobbers: A, X, Y, tmp2, r0
 ; *********************************************************************
 
 .proc parse_u32_hex
