@@ -485,8 +485,8 @@ test14_image:
 
 checksum_framebuffer:
 	lda #$ff
-	sta crclo
-	sta crchi
+	sta z:crclo
+	sta z:crchi
 
 	ldx #0
 @loop:	LoadW r0, 0
@@ -530,7 +530,7 @@ checksum_framebuffer:
 	lda #1
 	jsr GRAPH_set_colors
 
-	lda crchi
+	lda z:crchi
 	lsr
 	lsr
 	lsr
@@ -539,13 +539,13 @@ checksum_framebuffer:
 	lda hextab,x
 	jsr GRAPH_put_char
 
-	lda crchi
+	lda z:crchi
 	and #15
 	tax
 	lda hextab,x
 	jsr GRAPH_put_char
 
-	lda crclo
+	lda z:crclo
 	lsr
 	lsr
 	lsr
@@ -554,7 +554,7 @@ checksum_framebuffer:
 	lda hextab,x
 	jsr GRAPH_put_char
 
-	lda crclo
+	lda z:crclo
 	and #15
 	tax
 	lda hextab,x
@@ -570,32 +570,32 @@ crclo	=r7         ; current value of CRC
 crchi	=r7+1       ; not necessarily contiguous
 
 crc16_f:
-	eor crchi       ; A contained the data
-	sta crchi       ; XOR it into high byte
+	eor z:crchi       ; A contained the data
+	sta z:crchi       ; XOR it into high byte
 	lsr             ; right shift A 4 bits
 	lsr             ; to make top of x^12 term
 	lsr             ; ($1...)
 	lsr
 	tax             ; save it
 	asl             ; then make top of x^5 term
-	eor crclo       ; and XOR that with low byte
-	sta crclo       ; and save
+	eor z:crclo       ; and XOR that with low byte
+	sta z:crclo       ; and save
 	txa             ; restore partial term
-	eor crchi       ; and update high byte
-	sta crchi       ; and save
+	eor z:crchi       ; and update high byte
+	sta z:crchi       ; and save
 	asl             ; left shift three
 	asl             ; the rest of the terms
 	asl             ; have feedback from x^12
 	tax             ; save bottom of x^12
 	asl             ; left shift two more
 	asl             ; watch the carry flag
-	eor crchi       ; bottom of x^5 ($..2.)
+	eor z:crchi       ; bottom of x^5 ($..2.)
 	tay             ; save high byte
 	txa             ; fetch temp value
 	rol             ; bottom of x^12, middle of x^5!
-	eor crclo       ; finally update low byte
-	sta crchi       ; then swap high and low bytes
-	sty crclo
+	eor z:crclo       ; finally update low byte
+	sta z:crchi       ; then swap high and low bytes
+	sty z:crclo
 	rts
 
 
