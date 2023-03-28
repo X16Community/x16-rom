@@ -81,22 +81,22 @@ l1:	lda nes_data
 	lda joy1+1
 	and #%00001111
 	cmp #15
-	bne :+
+	beq :+
 	sty joy1+2
 :	lda joy2+1
 	and #%00001111
 	cmp #15
-	bne :+
+	beq :+
 	sty joy2+2
 :	lda joy3+1
 	and #%00001111
 	cmp #15
-	bne :+
+	beq :+
 	sty joy3+2
 :	lda joy4+1
 	and #%00001111
 	cmp #15
-	bne :+
+	beq :+
 	sty joy4+2
 :
 
