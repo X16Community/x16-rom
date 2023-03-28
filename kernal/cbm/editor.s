@@ -276,7 +276,11 @@ loop3
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
-	bra doredy
+	tsx
+	lda $106,x
+	cmp #4 ; only if we came from BASIC do we print READY.
+	beq doredy
+	bra loop3b
 scrpnc
 	; screen panic, cycle through VGA/composite/RGB modes
 	stz VERA_CTRL
@@ -1178,9 +1182,9 @@ runtb	.byt "LOAD",$d,"RUN:",$d
 runtb_end:
 
 fkeytb	.byt "LIST:", 13, 0
-	.byt "SAVE", '"', 0
+	.byt "SAVE", '"', "@:", 0
 	.byt "LOAD ", '"', 0
-	.byt $93, "S", 'C' + $80, "-1", 13, 0
+	.byt "S", 'C' + $80, "-1:REM", 0
 	.byt "RUN:", 13, 0
 	.byt "MONITOR:", 13, 0
 	.byt "DOS",'"', "$",13, 0

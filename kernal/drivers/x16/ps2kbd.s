@@ -8,6 +8,7 @@
 .include "regs.inc"
 .include "io.inc"
 .include "mac.inc"
+.include "keycode.inc"
 
 ; code
 .import i2c_read_byte
@@ -192,25 +193,6 @@ kbd_getsrc:
 	rts
 
 
-; cycle keyboard layouts
-cycle_layout:
-	ldx curkbd
-	inx
-	txa
-:	jsr _kbd_config
-	lda #0
-	bcs :-          ;end of list? use 0
-; put name into keyboard buffer
-	ldx #0
-:	lda kbdnam,x
-	beq :+
-	jsr kbdbuf_put
-	beq :+
-	inx
-	bra :-
-:	lda #$8d ; shift + cr
-	jmp kbdbuf_put
-
 ;---------------------------------------------------------------
 ; Get/Set keyboard layout
 ;
@@ -284,7 +266,7 @@ _kbd_scan:
 :	jsr joystick_from_ps2
 
 	; Is it a modifier key?
-:	pha			; Save key code on stack
+ 	pha			; Save key code on stack
 	and #%01111111		; Clear up/down bit
 	ldx #0
 :	cmp modifier_key_codes,x
@@ -294,7 +276,7 @@ _kbd_scan:
 	bne :-
 
 	; Is it Caps Lock down?
-	cmp #30
+	cmp #KEYCODE_CAPSLOCK
 	bne is_reg_key
 	pla			; Restore key code from stack
 	bmi :+			; Ignore key up
@@ -328,11 +310,6 @@ is_reg_key:
 	; Ignore key up events
 	bpl :+
 	rts
-
-	; F9 = cycle keyboard layouts
-:	cmp #120
-	bne :+
-	jmp cycle_layout
 
 	; Transfer key code to Y
 :	tay
