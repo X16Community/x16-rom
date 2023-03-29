@@ -3,6 +3,7 @@ lofbuf	=$ff            ;$FF the low fac buffer. copyable
 buflen	=89             ;vic buffer
 bufpag	=2
 buf	=512
+.assert buf = 512, error, "cc65 depends on BASIC_BUF = $200, change with caution"
 stkend	=507
 clmwid	=10             ;print window 10 chars
 pi	=255
@@ -40,6 +41,7 @@ eormsk	=forpnt+1        ;$4A the mask for eoring in wait
 ; CHRGET
 chrget	.res 6           ;$73
 chrgot	.res 1           ;$79
+.assert * = $EE, error, "cc65 depends on TXTPTR = $EE, change with caution"
 txtptr	.res 6           ;$7A
 qnum	.res 11          ;$80
 
@@ -101,6 +103,7 @@ temppt	.res 1           ;$16 pointer at first free temp descriptor
                          ;    initialized to point to tempst
 
 lastpt	.res 2           ;$17 pointer to last-used string temporary
+.assert * = $03E1, error, "cc65 depends on VARTAB = $03E1, change with caution"
 vartab	.res 2           ;$2D pointer to start of simple
                          ;    variable space.
                          ;    updated whenever the size of the
@@ -116,6 +119,7 @@ strend	.res 2           ;$31end of storage in use.
                          ;    or simple variable is encountered.
                          ;    set to [vartab] by "clearc".
 fretop	.res 2           ;$33 top of string free space
+.assert * = $03E9, error, "cc65 depends on MEMSIZ = $03E9, change with caution"
 memsiz	.res 2           ;$37 highest location in memory
 
 ; --- line numbers and textual pointers ---:

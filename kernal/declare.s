@@ -16,6 +16,7 @@ mhz     =8
 .segment "ZPKERNAL" : zeropage
 ;                      C64 location
 ;                         VVV
+.assert * = $80, error, "cc65 depends on KTEMP2 = $80, change with caution"
 tmp2	.res 2           ;$C3
 .assert * = imparm, error, "imparm must be at specific address"
 __imparm
