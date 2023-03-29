@@ -50,6 +50,7 @@
 .segment "KVAR"
 
 cscrmd:	.res 1           ;    X16: current screen mode (argument to screen_mode)
+.assert * = $0262, error, "cc65 depends on SCREEN_PTR = $0262, change with caution"
 pnt:	.res 2           ;$D1 pointer to row
 
 .segment "SCREEN"
