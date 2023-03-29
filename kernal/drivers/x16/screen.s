@@ -632,7 +632,7 @@ screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #6
+	cmp #7
 	bcs @nope
 	sta tmp2+1
 	lda mode
@@ -640,6 +640,8 @@ screen_set_charset:
 	ora tmp2+1
 	sta mode
 	lda tmp2+1
+	cmp #6
+	beq @cpyiso2
 	cmp #5
 	beq cpypet4
 	cmp #4
@@ -650,6 +652,7 @@ screen_set_charset:
 	beq cpypet1
 	bra cpyiso
 @nope:	rts ; ignore unsupported values
+@cpyiso2: jmp cpyiso2
 
 ; 0: custom character set
 cpycustom:
@@ -724,6 +727,12 @@ cpypet4:
 	lda #$d4
 	sta tmp2+1       ;character data at ROM 1400
 	ldx #4
+	jmp copyv
+
+; 6: ISO character set #2
+cpyiso2:	lda #$d8
+	sta tmp2+1       ;character data at ROM 1800
+	ldx #8
 	jmp copyv
 
 
