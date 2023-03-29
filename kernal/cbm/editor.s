@@ -741,8 +741,8 @@ colr1	jsr chkcol      ;check for a color
 	bit mode
 	bvs outhre      ;ISO
 	lda mode
-	and #$c0
-	ora #3          ;upper/lower
+	and #$ce
+	ora #1          ;upper/lower
 	jmp setchr
 
 upper
@@ -751,8 +751,7 @@ upper
 	bit mode
 	bvs outhre      ;ISO
 	lda mode
-	and #$c0
-	ora #2          ;upper/graph
+	and #$ce        ;upper/graph
 setchr	sta mode
 	and #$0f
 	jsr screen_set_charset
@@ -776,7 +775,14 @@ lexit	sta mode
 isoon
 	cmp #$0f        ;switch to ISO mode?
 	bne isooff      ;branch if not
+	lda mode
+	and #4
+	bne isosk
 	lda #1
+	bra isocon
+isosk
+	lda #6
+isocon
 	jsr screen_set_charset
 	lda mode
 	ora #$40
@@ -785,7 +791,11 @@ isoon
 isooff
 	cmp #$8f        ;switch to PETSCII mode?
 	bne bell        ;branch if not
+	lda mode
+	and #4
+	bne petsk
 	lda #2
+petsk
 	jsr screen_set_charset
 	lda mode
 	and #$ff-$40

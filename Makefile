@@ -274,6 +274,7 @@ CHARSET_SOURCES= \
 	charset/petscii.s \
 	charset/iso-8859-15.s \
 	charset/petscii2.s \
+	charset/iso-8859-15_2.s \
 	charset/vectors.s
 
 GRAPH_SOURCES= \
