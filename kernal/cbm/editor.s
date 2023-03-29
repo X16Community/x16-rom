@@ -105,26 +105,37 @@ ldtb1	.res 61 +1       ;flags+endspace
 .export data; [cpychr]
 mode	.res 1           ;    bit7=1: charset locked, bit6=1: ISO
                          ;    bits3-0: current charset
+.assert * = $0373, error, "cc65 depends on CURS_COLOR = $0373, change with caution"
 gdcol	.res 1           ;    original color before cursor
 autodn	.res 1           ;    auto scroll down flag(=0 on,<>0 off)
 lintmp	.res 1           ;    temporary for line index
+.assert * = $0376, error, "cc65 depends on CHARCOLOR = $0376, change with caution"
 color	.res 1           ;    activ color nybble
+.assert * = $0377, error, "cc65 depends on RVS = $0377, change with caution"
 rvs	.res 1           ;$C7 rvs field on flag
 indx	.res 1           ;$C8
 lsxp	.res 1           ;$C9 x pos at start
 lstp	.res 1           ;$CA
+.assert * = $037B, error, "cc65 depends on CURS_FLAG = $037B, change with caution"
 blnsw	.res 1           ;$CC cursor blink enab
+.assert * = $037C, error, "cc65 depends on CURS_BLINK = $037C, change with caution"
 blnct	.res 1           ;$CD count to toggle cur
+.assert * = $037D, error, "cc65 depends on CURS_CHAR = $037D, change with caution"
 gdbln	.res 1           ;$CE char before cursor
+.assert * = $037E, error, "cc65 depends on CURS_STATE = $037E, change with caution"
 blnon	.res 1           ;$CF on/off blink flag
 crsw	.res 1           ;$D0 input vs get flag
+.assert * = $0380, error, "cc65 depends on CURS_X = $0380, change with caution"
 pntr	.res 1           ;$D3 pointer to column
 qtsw	.res 1           ;$D4 quote switch
 lnmx	.res 1           ;$D5 40/80 max positon
+.assert * = $0383, error, "cc65 depends on CURS_Y = $0383, change with caution"
 tblx	.res 1           ;$D6
 data	.res 1           ;$D7
 insrt	.res 1           ;$D8 insert mode flag
+.assert * = $0386, error, "cc65 depends on LLEN = $0386, change with caution"
 llen	.res 1           ;$D9 x resolution
+.assert * = $0387, error, "cc65 depends on NLINES = $0387, change with caution"
 nlines	.res 1           ;$DA y resolution
 nlinesp1 .res 1          ;    X16: y resolution + 1
 nlinesm1 .res 1          ;    X16: y resolution - 1
