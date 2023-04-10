@@ -18,7 +18,7 @@ symbol:
 
 .segment "KSUP_CODE12"
 
-; Audio bank's entry into jsrfar
+; BASIC annex bank's entry into jsrfar
 .setcpu "65c02"
 	ram_bank = 0
 	rom_bank = 1
