@@ -1,4 +1,12 @@
 
+.macro bannex_call addr
+    jsr bjsrfar
+    .word addr
+    .byte BANK_BANNEX
+.endmacro
+
+.include "bannex.inc"
+
 VERA_BASE = $9F20
 
 VERA_ADDR_L   	  = (VERA_BASE + $00)
@@ -611,15 +619,6 @@ ckeymap:
 	rts
 @fcerr:	jmp fcerr
 
-;***************
-.export crambank, crombank
-.segment "BVARS"
-	crambank: .res 1
-.segment "BVARSB0"
-	crombank: .res 1
-
-.segment "BASIC"
-.export setbank
 setbank:
 	jsr getbyt
 	stx crambank
@@ -865,6 +864,76 @@ cmenu:
 	.word $c000
 	.byte BANK_UTIL
 	rts
+
+; REN [newstart[,increment[,oldstart]]]
+; line renumber
+cren:
+	lda curlin+1
+	inc
+	beq @imm ; ensure renumber only happens in direct mode
+	ldx #errid
+	jmp error
+@imm:
+	stz ram_bank
+	lda #10
+	sta rennew
+	stz rennew+1
+	sta reninc
+	stz reninc+1
+	stz renold
+	stz renold+1
+
+	jsr chrgot
+	beq @go
+
+	jsr frmadr
+	lda poker
+	sta rennew
+	lda poker+1
+	sta rennew+1
+
+	jsr chrgot
+	beq @go
+
+	jsr chkcom
+	jsr frmadr
+	lda poker
+	sta reninc
+	lda poker+1
+	sta reninc+1
+
+	jsr chrgot
+	beq @go
+
+	jsr chkcom
+	jsr frmadr
+	lda poker
+	sta renold
+	lda poker+1
+	sta renold+1
+
+@go:
+	; make sure rennew < 65280
+	lda rennew+1
+	inc
+	beq @errlin
+	; make sure reninc > 0.
+	lda reninc+1
+	bne @startok
+	lda reninc
+	bne @startok
+@errlin:
+	ldx #errfc
+	jmp error
+@startok:
+	bannex_call bannex_renumber
+	bcs @fail
+	; resets table pointers and return to BASIC
+	jmp cleart
+@fail:
+	jsr cleart
+	ldx #errov
+	jmp error
 
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
