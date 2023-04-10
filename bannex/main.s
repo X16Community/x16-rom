@@ -28,5 +28,3 @@ rom_bank = 1
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
-
-.segment "ANNEX"
