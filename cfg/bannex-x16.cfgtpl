@@ -1,0 +1,22 @@
+MEMORY {
+	#include "x16.cfginc"
+
+	ANNEX:     start = $C000, size = $3B00, fill=yes, fillval=$AA;
+	KSUP_CODE12: start = $FB00, size = $03A8, fill=yes, fillval=$AA;
+	KSUP_VEC12:  start = $FEA8, size = $0158, fill=yes, fillval=$AA;
+}
+
+SEGMENTS {
+	ZPBASIC:  load = ZPBASIC,  type = zp;
+	BVARS:    load = BVARS,    type = bss;
+
+	ZPMATH:   load = ZPMATH,   type = zp;
+	FPVARS:   load = FPVARS,   type = bss;
+	BVARSB0:  load = BVARSB0,  type = bss;
+
+	JMPTBL:    load = ANNEX,     type = ro;
+	ANNEX:     load = ANNEX,     type = ro;
+	CODE:      load = ANNEX,     type = ro;
+	KSUP_CODE12: load = KSUP_CODE12, type = ro;
+	KSUP_VEC12:  load = KSUP_VEC12,  type = ro;
+}

@@ -134,6 +134,7 @@ stmdsp2	; statements
 	.word sleep-1
 	.word cbsave-1
 	.word cmenu-1
+	.word cren-1
 
 	; functions
 ptrfunc	.word vpeek
@@ -164,8 +165,10 @@ datatk	=$83
 	.byt "GOT",$cf
 gototk	=$89
 	.byt "RU",$ce
+runtk   =$8a
 	.byt "I",$c6
 	.byt "RESTOR",$c5
+resttk  =$8c
 	.byt "GOSU",$c2
 gosutk	=$8d
 	.byt "RETUR",$ce
