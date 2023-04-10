@@ -123,4 +123,4 @@ basic_fa .res 1          ;    default device address
     reninc: .res 2
     rencur: .res 2
     rentmp: .res 2
-    rentmp2: .res 5
+    rentmp2: .res 2

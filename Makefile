@@ -309,7 +309,8 @@ UTIL_SOURCES= \
 
 BANNEX_SOURCES= \
 	kernsup/kernsup_bannex.s \
-	bannex/main.s
+	bannex/main.s \
+	bannex/renumber.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
