@@ -307,6 +307,10 @@ UTIL_SOURCES= \
 	util/menu.s \
 	util/control.s
 
+BANNEX_SOURCES= \
+	kernsup/kernsup_bannex.s \
+	bannex/main.s
+
 GENERIC_DEPS = \
 	inc/kernal.inc \
 	inc/mac.inc \
@@ -365,6 +369,10 @@ AUDIO_DEPS= \
 UTIL_DEPS= \
 	$(GENERIC_DEPS)
 
+BANNEX_DEPS= \
+	$(GENERIC_DEPS)
+
+
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
 DOS_OBJS     = $(addprefix $(BUILD_DIR)/, $(DOS_SOURCES:.s=.o))
@@ -376,6 +384,7 @@ GRAPH_OBJS   = $(addprefix $(BUILD_DIR)/, $(GRAPH_SOURCES:.s=.o))
 DEMO_OBJS    = $(addprefix $(BUILD_DIR)/, $(DEMO_SOURCES:.s=.o))
 AUDIO_OBJS   = $(addprefix $(BUILD_DIR)/, $(AUDIO_SOURCES:.s=.o))
 UTIL_OBJS    = $(addprefix $(BUILD_DIR)/, $(UTIL_SOURCES:.s=.o))
+BANNEX_OBJS  = $(addprefix $(BUILD_DIR)/, $(BANNEX_SOURCES:.s=.o))
 
 ifeq ($(MACHINE),c64)
 	BANK_BINS = $(BUILD_DIR)/kernal.bin
@@ -392,7 +401,8 @@ else
 		$(BUILD_DIR)/graph.bin \
 		$(BUILD_DIR)/demo.bin \
 		$(BUILD_DIR)/audio.bin \
-		$(BUILD_DIR)/util.bin
+		$(BUILD_DIR)/util.bin \
+		$(BUILD_DIR)/bannex.bin
 endif
 
 ifeq ($(MACHINE),x16)
@@ -500,6 +510,12 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-$(MACHINE).cfg
 	$(LD) -C $(CFG_DIR)/util-$(MACHINE).cfg $(UTIL_OBJS) -o $@ -m $(BUILD_DIR)/util.map -Ln $(BUILD_DIR)/util.sym
 	./scripts/relist.py $(BUILD_DIR)/util.map $(BUILD_DIR)/util
 
+# Bank C : BASIC Annex
+$(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-$(MACHINE).cfg
+	@mkdir -p $$(dirname $@)
+	$(LD) -C $(CFG_DIR)/bannex-$(MACHINE).cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym
+	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
+
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
@@ -511,6 +527,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 6 build/x16/charset.sym >> $@
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
+	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
@@ -520,3 +537,4 @@ $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst` >> $@
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@
+	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`  >> $@

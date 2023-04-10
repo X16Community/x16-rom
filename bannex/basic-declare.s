@@ -1,21 +1,5 @@
-romloc	=$c000          ;x16 basic rom
-lofbuf	=$ff            ;$FF the low fac buffer. copyable
-buflen	=89             ;vic buffer
-bufpag	=2
-buf	=512
-.assert buf = 512, error, "cc65 depends on BASIC_BUF = $200, change with caution"
-stkend	=507
-clmwid	=10             ;print window 10 chars
-pi	=255
-numlev	=23
-strsiz	=3
-
-; *************** IMPORTANT ****************
-; There is a copy of ZPBASIC and BVARS from these declarations
-; inside of bannex/basic-declare.s
-; if something changes here, that file must change too
-; but ideally these should no longer change
-; -MooingLemur 2023-04-08
+; This is a copy of ZPBASIC and BVARS from basic/declare.s
+; if that one changes, this one must change too
 
 .segment "ZPBASIC" : zeropage
 linnum	.res 2           ;$14 location to store line number before buf
@@ -51,28 +35,6 @@ chrgot	.res 1           ;$79
 .assert * = $EE, error, "cc65 depends on TXTPTR = $EE, change with caution"
 txtptr	.res 6           ;$7A
 qnum	.res 11          ;$80
-
-; reused zero page from MATH
-addend	=resmo           ;$28 temporary used by "umult" (2 bytes)
-varpnt	=fdecpt          ;$47 pointer to variable in memory
-defpnt	=tempf3          ;$4E pointer used in function definition (2 bytes)
-grbpnt	=tempf3          ;$4E another used in garbage collection (2 bytes)
-dscpnt	=tempf3+2        ;$50 pointer to a string descriptor
-highds	=tempf1+1        ;$58 desination of highest element in blt
-arypnt	=tempf1+1        ;$58 a pointer used in array building
-hightr	=tempf1+3        ;$5A source of highest element to move (2 bytes)
-lowtr	=tempf2+3        ;$5F last thing to move in blt
-grbtop	=tempf2+3        ;$5F a pointer used in garbage collection
-dptflg	=tempf2+3        ;$5F base ten exponent
-expsgn	=tempf2+4        ;$60 sign of base ten exponent
-dsctmp	=fac             ;$61 this is where temp descs are built
-indice	=facmo           ;$64 indice is set up here by "qint"
-sgnflg	=degree          ;$67 sign of fac is preserved bere by "fin".
-strng1	=arisgn          ;$6F
-bufptr	=polypt          ;$71 pointer to buf used by "crunch".
-strng2	=polypt          ;$71 pointer to string or desc.
-curtol	=polypt          ;$71 absolute linear index is formed here.
-
 
 .segment "BVARS"
 ;                      C64 location
@@ -151,25 +113,6 @@ four6	.res 1           ;$53 variable constant used by garb collect
 jmper	.res 3           ;$54
 size	=jmper+1         ;$55
 basic_fa .res 1          ;    default device address
-
-; reused vars from MATH
-charac	=integr          ;$07 a delimiting character
-domask	=tansgn          ;$12 mask in use by relation operations
-
-.segment "BVECTORS" ;basic indirects
-
-ierror	.res 2           ;$0300 indirect error (output error in .x)
-imain	.res 2           ;$0302 indirect main (system direct loop)
-icrnch	.res 2           ;$0304 indirect crunch (tokenization routine)
-iqplop	.res 2           ;$0306 indirect list (char list)
-igone	.res 2           ;$0308 indirect gone (char dispatch)
-ieval	.res 2           ;$030A indirect eval (symbol evaluation)
-; sys 6502 regs
-sareg	.res 1           ;$030C .a reg
-sxreg	.res 1           ;$030D .x reg
-syreg	.res 1           ;$030E .y reg
-spreg	.res 1           ;$030F .p reg
-usrpok	.res 3           ;$0310 user function dispatch
 
 .segment "BVARS"
 	crambank: .res 1
