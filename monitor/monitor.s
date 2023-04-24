@@ -166,7 +166,7 @@ monitor:
 	lda #'C'
 	sta entry_type
 	lda #DEFAULT_BANK
-	sta bank
+	stz bank_flags
 	ldx #<(__monitor_ram_code_SIZE__ - 1)
 :	lda __monitor_ram_code_LOAD__,x
 	sta __monitor_ram_code_RUN__,x
