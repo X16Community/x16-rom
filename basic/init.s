@@ -1,3 +1,11 @@
+.macro bannex_call addr
+    jsr bjsrfar
+    .word addr
+    .byte BANK_BANNEX
+.endmacro
+
+.include "bannex.inc"
+
 panic	jsr clschn      ;warm start basic...
 	lda #0          ;clear channels
 	sta channl
@@ -121,7 +129,7 @@ initms	lda txttab
 	lda #<btrfly
 	ldy #>btrfly
 	jsr strout
-	jsr screen_default_color_from_nvram
+	bannex_call bannex_screen_default_color_from_nvram
 	; position for ram count
 	ldy #8
 	ldx #3
