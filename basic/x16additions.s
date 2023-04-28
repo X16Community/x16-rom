@@ -1,11 +1,4 @@
 
-.macro bannex_call addr
-    jsr bjsrfar
-    .word addr
-    .byte BANK_BANNEX
-.endmacro
-
-.include "bannex.inc"
 
 VERA_BASE = $9F20
 
@@ -700,53 +693,6 @@ test:
 	jmp $0400
 @copy_end:
 
-rtc_address            = $6f
-nvram_base             = $40
-
-; This is a mirror of the internal kernal routine by the same name
-; but it only sets the fg color.  This is called after the splash
-; banner, which has messed with the colors itself
-screen_default_color_from_nvram:
-	ldy #nvram_base+0
-	ldx #rtc_address
-	jsr i2c_read_byte
-
-	and #1
-	beq :+
-	clc
-	adc #12 ; second profile (plus the #1 from above) = 13
-:
-	clc
-	adc #nvram_base+10 ; color offset
-	tay
-	ldx #rtc_address
-	jsr i2c_read_byte
-	bcc :+
-	lda #$61 ; hardcode value on i2c error
-:
-
-	sta facho ; tmp variable
-
-	; swap nibbles
-	asl
-	adc #$80
-	rol
-	asl
-	adc #$80
-	rol
-	cmp facho
-	lda facho
-	bne :+
-	; increment fg color to make it visible if it's the same as bg
-	inc
-:
-	and #$0f
-	tax
-	lda coltab,x
-	jsr bsout
-	clc
-	rts
-
 uc_address = $42
 
 ; reset/poweroff: trigger system reset/poweroff via i2c to smc
@@ -808,24 +754,7 @@ sleep:
 	ldy poker
 	ldx poker+1
 @slp:
-	.byte $cb ; wai
-	phx
-	phy
-	jsr stop
-	beq @pend
-	ply
-	plx
-	cpy #0
-	bne @decit
-	cpx #0
-	beq @end
-	dex
-@decit:
-	dey
-	bra @slp
-@pend:
-	ply
-	plx
+	bannex_call bannex_sleep_cont
 @end:
 	rts
 

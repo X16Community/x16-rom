@@ -21,10 +21,15 @@ ram_bank = 0
 rom_bank = 1
 
 .exportzp index, index2, txttab
+.exportzp facho
 .export rencur, reninc, rennew, renold, rentmp, rentmp2
 .export crambank, vartab
 
 .import renumber
+.import sleep_cont
+.import screen_default_color_from_nvram
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
+	jmp sleep_cont         ; $C003
+	jmp screen_default_color_from_nvram ; $C006
