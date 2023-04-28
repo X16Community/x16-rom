@@ -25,5 +25,5 @@
 	ply
 	plx
 @end:
-    rts
+	rts
 .endproc

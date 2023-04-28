@@ -1,7 +1,7 @@
 .macro bannex_call addr
-    jsr bjsrfar
-    .word addr
-    .byte BANK_BANNEX
+	jsr bjsrfar
+	.word addr
+	.byte BANK_BANNEX
 .endmacro
 
 .include "bannex.inc"
