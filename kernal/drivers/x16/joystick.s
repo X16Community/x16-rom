@@ -5,6 +5,7 @@
 
 .include "banks.inc"
 .include "io.inc"
+.include "keycode.inc"
 
 ; KERNAL API
 .export joystick_scan
@@ -273,5 +274,5 @@ outtab0:
 outtab1:
 	.byte C_R, C_L, C_X, C_A
 
-intab0:	.byte 89, 79, 84, 83, 43, 44, 30, 46
-intab1:	.byte 48, 33, 32, 47
+intab0: .byte KEYCODE_RIGHTARROW, KEYCODE_LEFTARROW, KEYCODE_DOWNARROW, KEYCODE_UPARROW, KEYCODE_ENTER, KEYCODE_LSHIFT, KEYCODE_CAPSLOCK, KEYCODE_Z
+intab1: .byte KEYCODE_C, KEYCODE_D, KEYCODE_S, KEYCODE_X

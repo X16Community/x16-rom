@@ -538,14 +538,14 @@ set_caps_led:
 	jmp i2c_write_stop
 
 modifier_key_codes:
-	.byt 44	; left shift
-	.byt 60 ; left alt
-	.byt 58 ; left ctrl
-	.byt 0  ; left win
-	.byt 57 ; right shift
-	.byt 62 ; right alt
-	.byt 64 ; right ctrl
-	.byt 0  ; right win
+	.byt KEYCODE_LSHIFT
+	.byt KEYCODE_LALT
+	.byt KEYCODE_LCTRL
+	.byt KEYCODE_LGUI
+	.byt KEYCODE_RSHIFT
+	.byt KEYCODE_RALT
+	.byt KEYCODE_RCTRL
+	.byt KEYCODE_RGUI
 
 modifier_shift_states:
 	.byt MODIFIER_SHIFT
