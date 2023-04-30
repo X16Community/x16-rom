@@ -339,8 +339,8 @@ FB_fill_pixels:
 	beq @2
 
 ; full blocks, 8 bytes at a time
-	ldy #$20
-@1:	jsr fill_y
+@1:	ldy #$20
+	jsr fill_y
 	dex
 	bne @1
 
