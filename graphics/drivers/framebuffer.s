@@ -328,7 +328,7 @@ FB_set_8_pixels_opaque:
 ;            a    color
 ;---------------------------------------------------------------
 FB_fill_pixels:
-	ldx r1H
+	ldy r1H
 	bne fill_pixels_with_step
 	ldx r1L
 	cpx #2
@@ -384,11 +384,16 @@ fill_y:	sta VERA_DATA0
 	bne fill_y
 	rts
 
-; XXX TODO support other step sizes
 fill_pixels_with_step:
 
-	; Old implementation would assume the requested increment is 320 px, keep that logic for now.
-	; Vera driver expects that increment is always 1 and decrement is 0.
+	; Is the step size equal to 320?
+	cpy #(320 >> 8)
+	bne fill_pixels_non_accelerated
+	cpx #(320 - 256)
+	bne fill_pixels_non_accelerated
+
+	; Step size is 320, fill using HW accelerated increment setting in VERA
+
 	; Temporarily set ADDR_H to use increment 14 (320)
 	tay
 	lda VERA_ADDR_H
@@ -399,12 +404,52 @@ fill_pixels_with_step:
 
 	jsr fill_pixels_hw_accelerated
 
+fill_pixels_reset_increment_and_rts:
 	; Restore ADDR_H to use increment 1
 	lda VERA_ADDR_H
 	and #$01
 	ora #$10
 	sta VERA_ADDR_H
 	rts
+
+fill_pixels_non_accelerated:
+
+	tay
+
+	; temporarily set increment to 0
+	lda #$FE
+	trb VERA_ADDR_H
+
+	ldx r0L
+	inx
+	inc r0H
+	clc
+
+@loop:
+
+	sty VERA_DATA0
+
+	lda VERA_ADDR_L
+	adc r1L
+	sta VERA_ADDR_L
+	lda r1H
+	bcs @incrementM
+	bne @incrementM
+
+@resumeLoop:
+	dex
+	bne @loop
+	dec r0H
+	bne @loop
+	bra fill_pixels_reset_increment_and_rts
+
+@incrementM:
+	adc VERA_ADDR_M
+	sta VERA_ADDR_M
+	bcc @resumeLoop
+	inc VERA_ADDR_H
+	clc
+	bra @resumeLoop
 
 ;---------------------------------------------------------------
 ; FB_filter_pixels
