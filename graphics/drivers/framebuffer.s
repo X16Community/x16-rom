@@ -425,31 +425,64 @@ fill_pixels_non_accelerated:
 	inc r0H
 	clc
 
-@loop:
+	; increment larger than 255?
+	lda r1H
+	bne fill_pixels_non_accelerated_16bit
+
+	lda VERA_ADDR_L
+
+@loop8bit:
+
+	sty VERA_DATA0
+
+	; increment with r1 (step size)
+	adc r1L
+	sta VERA_ADDR_L
+	bcs @incrementM
+
+@resumeLoop8:
+	dex
+	bne @loop8bit
+	dec r0H
+	bne @loop8bit
+	bra fill_pixels_reset_increment_and_rts
+
+@incrementM:
+	; carry, increment M and H addresses
+	clc
+	inc VERA_ADDR_M
+	bne @resumeLoop8
+	inc VERA_ADDR_H
+	bra @resumeLoop8
+
+
+fill_pixels_non_accelerated_16bit:
+
+@loop16bit:
 
 	sty VERA_DATA0
 
 	lda VERA_ADDR_L
 	adc r1L
 	sta VERA_ADDR_L
-	lda r1H
-	bcs @incrementM
-	bne @incrementM
 
-@resumeLoop:
+	lda VERA_ADDR_M
+	adc r1H
+	sta VERA_ADDR_M
+
+	bcs @incrementH
+
+@resumeLoop16:
 	dex
-	bne @loop
+	bne @loop16bit
 	dec r0H
-	bne @loop
+	bne @loop16bit
 	bra fill_pixels_reset_increment_and_rts
 
-@incrementM:
-	adc VERA_ADDR_M
-	sta VERA_ADDR_M
-	bcc @resumeLoop
+@incrementH:
 	inc VERA_ADDR_H
 	clc
-	bra @resumeLoop
+	bra @resumeLoop16
 
 ;---------------------------------------------------------------
 ; FB_filter_pixels
