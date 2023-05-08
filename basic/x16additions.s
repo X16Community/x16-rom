@@ -881,10 +881,8 @@ strptr:
 	sta facho+1
 	iny
 	lda (poker),y
-	sta facho	
-	ldx #144
-	sec
-	jmp floatc      ;get the unsigned PTR value into FAC
+	sta facho
+	bra ptr3
 @typerr:
 	jmp chkerr      ;this calls error with errtm
 @null:
@@ -898,25 +896,27 @@ strptr:
 ;******************************************************************
 pointer:
 	jsr chrget
-	jsr chkopn		;test for open paren
-	jsr isletc		;test if character follows parens
-	bcc @pointer_err		;...syntax error if not.
-	jsr ptrget		;look for this varname in table
+	jsr chkopn      ;test for open paren
+	jsr isletc      ;test if character follows parens
+	bcc pointer_err ;...syntax error if not.
+	jsr ptrget      ;look for this varname in table
 	ldx valtyp
 	stx poker       ;stashing it here temporariliy
 	cmp #>zero	    ;is this a dummy pointer (system variable)?
-	bne @1
-	lda #0			;if so, return 0
+	bne ptr2
+	lda #0          ;if so, return 0
 	tay
-@1:	sty facho
+ptr2:
+	sty facho
 	sta facho+1
 	jsr chkcls		;look for closing paren
+ptr3:
 	stz valtyp
 	ldx #144
 	sec
-	jmp floatc      ;get the unsigned 16 bit value into FAC
-@pointer_err:
-	jmp snerr		;syntax error
+	jmp floatc      ;get the unsigned PTR value into FAC
+pointer_err:
+	jmp snerr       ;syntax error
 
 
 ; BASIC's entry into jsrfar
