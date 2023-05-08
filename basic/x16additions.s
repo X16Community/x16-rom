@@ -902,14 +902,14 @@ pointer:
 	jsr ptrget      ;look for this varname in table
 	ldx valtyp
 	stx poker       ;stashing it here temporariliy
-	cmp #>zero	    ;is this a dummy pointer (system variable)?
+	cmp #>zero      ;is this a dummy pointer (system variable)?
 	bne ptr2
 	lda #0          ;if so, return 0
 	tay
 ptr2:
 	sty facho
 	sta facho+1
-	jsr chkcls		;look for closing paren
+	jsr chkcls      ;look for closing paren
 ptr3:
 	stz valtyp
 	ldx #144
