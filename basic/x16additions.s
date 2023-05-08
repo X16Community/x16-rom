@@ -864,6 +864,61 @@ cren:
 	ldx #errov
 	jmp error
 
+;******************************************************************
+;
+; STRPTR(var_name) - return address of string for var_name
+;
+;******************************************************************
+strptr:
+	jsr pointer
+	lda poker       ; valtyp saved
+	beq @typerr
+	jsr getadr0
+	cmp #0
+	beq @null
+	ldy #1
+	lda (poker),y
+	sta facho+1
+	iny
+	lda (poker),y
+	sta facho
+	bra ptr3
+@typerr:
+	jmp chkerr      ;this calls error with errtm
+@null:
+	rts             ;let the zero stand
+
+;******************************************************************
+;
+; POINTER(var_name) - return address of descriptor for var_name
+; adapted from BASIC_C128_04/pointer.src
+;
+;******************************************************************
+pointer:
+	jsr chrget
+	jsr chkopn      ;test for open paren
+	jsr isletc      ;test if character follows parens
+	bcc pointer_err ;...syntax error if not.
+	jsr ptrget      ;look for this varname in table
+	ldx valtyp
+	stx poker       ;stashing it here temporariliy
+	cmp #>zero      ;is this a dummy pointer (system variable)?
+	bne ptr2
+	lda #0          ;if so, return 0
+	tay
+ptr2:
+	sty facho
+	sta facho+1
+	jsr chkcls      ;look for closing paren
+ptr3:
+	stz valtyp
+	ldx #144
+	sec
+	jmp floatc      ;get the unsigned PTR value into FAC
+pointer_err:
+	jmp snerr       ;syntax error
+
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar
