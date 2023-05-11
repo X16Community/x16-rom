@@ -116,8 +116,8 @@ nofref	jsr garba2
 	tay
 	lda fretop+1
 	sbc strend+1
-gu16ayf	sty facho
-	sta facho+1
+gu16ayf	sta facho
+	sty facho+1
 gu16fc	stz valtyp
 	ldx #144
 	sec

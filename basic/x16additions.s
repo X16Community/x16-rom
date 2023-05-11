@@ -882,7 +882,7 @@ strptr:
 	iny
 	lda (poker),y
 	sta facho
-	bra ptr3
+	jmp gu16fc      ;get the unsigned PTR value into FAC
 @typerr:
 	jmp chkerr      ;this calls error with errtm
 @null:
@@ -910,7 +910,6 @@ ptr2:
 	sty facho
 	sta facho+1
 	jsr chkcls      ;look for closing paren
-ptr3:
 	jmp gu16fc      ;get the unsigned PTR value into FAC
 pointer_err:
 	jmp snerr       ;syntax error
