@@ -872,7 +872,7 @@ cren:
 strptr:
 	jsr pointer
 	lda poker       ; valtyp saved
-	beq @typerr
+	beq type_err
 	jsr getadr0
 	cmp #0
 	beq @null
@@ -883,8 +883,6 @@ strptr:
 	lda (poker),y
 	sta facho
 	jmp gu16fc      ;get the unsigned PTR value into FAC
-@typerr:
-	jmp chkerr      ;this calls error with errtm
 @null:
 	rts             ;let the zero stand
 
@@ -898,7 +896,7 @@ pointer:
 	jsr chrget
 	jsr chkopn      ;test for open paren
 	jsr isletc      ;test if character follows parens
-	bcc pointer_err ;...syntax error if not.
+	bcc syntax_err  ;...syntax error if not.
 	jsr ptrget      ;look for this varname in table
 	ldx valtyp
 	stx poker       ;stashing it here temporariliy
@@ -911,8 +909,134 @@ ptr2:
 	sta facho+1
 	jsr chkcls      ;look for closing paren
 	jmp gu16fc      ;get the unsigned PTR value into FAC
-pointer_err:
+
+line_delimeter = poker
+check_delimiter = poker+1
+err_on_max_string = poker+1
+
+gen_err:
+	tax
+	jmp error
+syntax_err:
 	jmp snerr       ;syntax error
+type_err:
+	jmp chkerr      ;this calls error with errtm
+iq_err:
+	ldx #errfc
+	jmp error
+
+; utility subroutine with two entry points
+; for BINPUT#, LINPUT# and LINPUT
+ninput_common:
+	jsr getbyt
+	stx channl
+	jsr chkin
+	bcs gen_err
+	jsr chkcom
+linput_common:
+	jsr isletc      ;test for alpha character
+	bcc syntax_err  ;...syntax error if not.
+	jsr ptrget      ; get pointer of variable into A/Y
+	ldx valtyp      ; make sure it's a string variable
+	beq type_err    ; it's numeric, we don't handle that
+	sta forpnt
+	sty forpnt+1    ; stash variable pointer
+	lda #13
+	sta line_delimeter
+	lda #$c0
+	sta check_delimiter
+	rts
+
+
+;******************************************************************
+;
+; BINPUT# <channel>, <string var_name>, <size>
+; reads a block of text from an open file of at most <size> bytes
+;
+;******************************************************************
+binputn:
+	jsr ninput_common
+	stz check_delimiter
+
+	jsr chkcom
+	jsr getbyt
+	txa
+	beq iq_err
+	bra in2var
+
+;******************************************************************
+;
+; LINPUT# <channel>, <string var_name>[, <delimiter>]
+; reads a line of text from an open file, with an arbitrary
+; delimiter. 13 (CR) is the default delimiter.
+;
+;******************************************************************
+linputn:
+	jsr ninput_common
+	jsr chrgot
+	beq :+
+	jsr chkcom
+	jsr getbyt
+	stx line_delimeter
+:
+
+	lda #255
+	bra in2var
+
+;******************************************************************
+;
+; LINPUT <string var_name> - reads a line of text via the keyboard
+; (or more specifically, calls `basin` to retrieve a line of text)
+;
+;******************************************************************
+linput:
+	jsr linput_common
+	lda #buflen
+
+in2var:             ; input (line or block) to var
+	sta size        ; store max length
+	jsr strspa      ; allocate string space
+
+	ldy #0
+in2varc:
+	jsr basin
+	bit check_delimiter
+	bvc in2sto
+	cmp line_delimeter
+	beq in2done
+in2sto:
+	sta (dsctmp+1),y
+	iny
+	ldx channl
+	beq in2noch
+	jsr readst
+	and #$40
+	bne in2done
+in2noch:
+	cpy size
+	bcc in2varc
+	bit err_on_max_string
+	bpl in2done
+
+	ldx #errls      ;string too long error
+	jmp error
+in2done:
+	tya
+	sta (forpnt)
+	ldy #1
+	lda dsctmp+1
+	sta (forpnt),y
+	iny
+	lda dsctmp+2
+	sta (forpnt),y
+	lda channl
+	beq :+
+	jsr clrch
+	stz channl
+	rts
+:	lda line_delimeter
+	jmp bsout
+
 
 
 ; BASIC's entry into jsrfar

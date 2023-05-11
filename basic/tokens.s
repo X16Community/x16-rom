@@ -135,6 +135,9 @@ stmdsp2	; statements
 	.word cbsave-1
 	.word cmenu-1
 	.word cren-1
+	.word linputn-1
+	.word linput-1
+	.word binputn-1
 
 	; functions
 ptrfunc	.word vpeek

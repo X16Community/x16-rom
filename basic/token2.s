@@ -114,7 +114,10 @@ reslst3
 	.byt "BSAV", 'E' + $80
 	.byt "MEN", 'U' + $80
 	.byt "RE", 'N' + $80
-	
+	.byt "LINPUT", '#' + $80
+	.byt "LINPU", 'T' + $80
+	.byt "BINPUT", '#' + $80
+
 	; add new statements before this line
 
 	; functions start here
