@@ -116,14 +116,17 @@ nofref	jsr garba2
 	tay
 	lda fretop+1
 	sbc strend+1
-givayf0	ldx #0
-	stx valtyp
-	jmp givayf
+gu16ayf	sty facho
+	sta facho+1
+gu16fc	stz valtyp
+	ldx #144
+	sec
+	jmp floatc
 pos	sec
 	jsr plot        ;get tab pos in .y
 sngflt	lda #0
-	beq givayf0
-
+givayf0	stz valtyp
+	jmp givayf
 rnd	jsr sign        ;get sign into accb.
 	php
 	jsr entropy_get

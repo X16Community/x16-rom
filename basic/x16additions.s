@@ -911,10 +911,7 @@ ptr2:
 	sta facho+1
 	jsr chkcls      ;look for closing paren
 ptr3:
-	stz valtyp
-	ldx #144
-	sec
-	jmp floatc      ;get the unsigned PTR value into FAC
+	jmp gu16fc      ;get the unsigned PTR value into FAC
 pointer_err:
 	jmp snerr       ;syntax error
 
