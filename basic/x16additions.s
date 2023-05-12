@@ -1069,7 +1069,9 @@ rptd:
 	pla
 	jmp putnew      ;return the string literal to BASIC
 
-
+help:
+	bannex_call bannex_help
+	rts
 
 
 ; BASIC's entry into jsrfar

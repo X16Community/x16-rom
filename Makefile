@@ -312,7 +312,8 @@ BANNEX_SOURCES= \
 	bannex/main.s \
 	bannex/renumber.s \
 	bannex/sleep_cont.s \
-	bannex/screen_default_color_from_nvram.s
+	bannex/screen_default_color_from_nvram.s \
+	bannex/help.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
