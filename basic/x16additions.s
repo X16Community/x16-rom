@@ -914,16 +914,10 @@ line_delimeter = poker
 check_delimiter = poker+1
 err_on_max_string = poker+1
 
-gen_err:
-	tax
-	jmp error
 syntax_err:
 	jmp snerr       ;syntax error
 type_err:
 	jmp chkerr      ;this calls error with errtm
-iq_err:
-	ldx #errfc
-	jmp error
 
 ; utility subroutine with two entry points
 ; for BINPUT#, LINPUT# and LINPUT
@@ -983,6 +977,13 @@ linputn:
 	lda #255
 	bra in2var
 
+iq_err:
+	lda #errfc
+gen_err:
+	tax
+	jmp error
+
+
 ;******************************************************************
 ;
 ; LINPUT <string var_name> - reads a line of text via the keyboard
@@ -1036,6 +1037,38 @@ in2done:
 	rts
 :	lda line_delimeter
 	jmp bsout
+
+
+;******************************************************************
+;
+; RPT$(<byte>,<count>) - returns a string comprised of
+; <byte> repeated <count> times
+;
+;******************************************************************
+
+rptd:
+	jsr chrget
+	jsr chkopn      ;test for open paren
+	jsr getbyt
+	phx
+	jsr chkcom
+	jsr getbyt
+	phx
+	jsr chkcls
+	pla
+	beq iq_err
+	jsr strspa
+	ldy #0
+	pla
+@1:
+	sta (dsctmp+1),y
+	iny
+	cpy dsctmp
+	bcc @1
+	pla
+	pla
+	jmp putnew
+
 
 
 
