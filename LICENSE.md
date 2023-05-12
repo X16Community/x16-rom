@@ -54,4 +54,7 @@ All code outside of the subdirectories above as well as *additions* to legacy co
 | GEOS *additions*                          | `geos`       | 2-clause BSD  |
 | CMDR-DOS and FAT32 for 6502               | `dos`        | 2-clause BSD  |
 | CodeX Interactive Assembly Environment    | `codex`      | 2-clause BSD  |
+| Audio API and library                     | `audio`      | 2-clause BSD  |
+| Additional BASIC routines                 | `bannex`     | 2-clause BSD  |
+| ROM-based utilities                       | `util`       | 2-clause BSD  |
 
