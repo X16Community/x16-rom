@@ -91,7 +91,7 @@ This is the second release of x16-rom by the X16Community team
 	* Build
 		* Add git signature to ROM build process
 		* Update source to use zp addressing mode where appropriate, which suppresses warnings about using absolute mode for zp addresses.
-		* Due to cc65's use of KERNAL locations, `.assert`s were added to try to stablize most memory locations.
+		* Due to cc65's use of KERNAL RAM locations, `.assert`s were added to try to stablize RAM locations that are hardcoded in cc65's constants file.
 	* Hardware support
 		* Additional support for display preferences and keymap stored in nvram
 		* Support VPB. Hardware with this design sets the hardware ROM bank to 0 immediately before reading a ROM vector. The previous ROM bank will still be in zp `$01` upon interrupt handler entry.
