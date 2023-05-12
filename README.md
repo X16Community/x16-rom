@@ -83,6 +83,55 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 43 ("Stockholm")
+
+This is the second release of x16-rom by the X16Community team
+
+* KERNAL
+	* Build
+		* Add git signature to ROM build process
+		* Update source to use zp addressing mode where appropriate, which suppresses warnings about using absolute mode for zp addresses.
+		* Due to cc65's use of KERNAL locations, `.assert`s were added to try to stablize most memory locations.
+	* Hardware support
+		* Additional support for display preferences and keymap stored in nvram
+		* Support VPB. Hardware with this design sets the hardware ROM bank to 0 immediately before reading a ROM vector. The previous ROM bank will still be in zp `$01` upon interrupt handler entry.
+		* Bugfix: fix joysticks always being detected
+	* Editor/Display
+		* New bordered screen modes to support CRTs
+		* Support for automatically setting 240p in NTSC and RGB modes for screen modes that are scaled 2x vertically.
+		* New skinny PET style PETSCII and ISO charsets.
+		* Replace bold ISO charset [akumanatt]
+	* BASIC
+		* New logo splash logic for smaller screen modes
+		* Show git signature in BASIC splash screen under non-releases
+		* `REBOOT` and `RESET` behaviors swapped.
+		* Add "I" (instrument) to playstring macros for FMPLAY, PSGPLAY, and friends.
+		* Bugfix: If unable to read color pref from nvram, use the default white on blue.
+		* Show DOS status after `SAVE` and `DOS` commands.
+		* Modify the output of F-keys in the BASIC editor. Removed F9 for keymap cycling.
+		* Bugfix: Better support for reading CBM drives' status with the `DOS` command.
+		* Make `FRE(n)` always return a positive value.
+		* New BANNEX (BASIC annex) for overflow code from BASIC.
+		* New commands:
+			* `MENU` - load utility
+			* `REN` - renumber BASIC program
+			* `LINPUT` - Read line from keyboard
+			* `LINPUT#` - Read delimited data from file
+			* `BINPUT#` - Read fixed-length data from file
+			* `HELP` - Show short help blurb.
+		* New functions:
+			* `POINTER()` - return pointer to variable structure
+			* `STRPTR()` - return pointer to string variable's data
+			* `RPT$()` - return a string made up of a repeated byte
+	* MONITOR
+		* Bugfix: Better support for reading CBM drives' status with the `@` command
+		* Bugfix: Clear bank flags at init [stefan-b-jakobsson]
+	* API
+		* Allow `sprite_set_position` to retain existing priority/flip values in attribyte byte 6.
+	* GRAPH
+		* Fully implement `fb_fill_pixels` [stople]
+
+
 ### Release 42 ("Cambridge")
 
 This is the first release of x16-rom by the X16Community team
