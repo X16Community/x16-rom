@@ -882,7 +882,7 @@ strptr:
 	iny
 	lda (poker),y
 	sta facho
-	jmp gu16fc      ;get the unsigned PTR value into FAC
+	bra ptr3
 @null:
 	rts             ;let the zero stand
 
@@ -908,6 +908,7 @@ ptr2:
 	sty facho
 	sta facho+1
 	jsr chkcls      ;look for closing paren
+ptr3:
 	jmp gu16fc      ;get the unsigned PTR value into FAC
 
 line_delimeter = poker
@@ -1042,7 +1043,7 @@ in2done:
 ;******************************************************************
 ;
 ; RPT$(<byte>,<count>) - returns a string comprised of
-; <byte> repeated <count> times
+; <byte> repeated <count> times.  Byte is a value from 0-255
 ;
 ;******************************************************************
 
@@ -1050,16 +1051,15 @@ rptd:
 	jsr chrget
 	jsr chkopn      ;test for open paren
 	jsr getbyt
-	phx
+	phx             ;preserve character byte
 	jsr chkcom
 	jsr getbyt
-	phx
 	jsr chkcls
-	pla
-	beq iq_err
-	jsr strspa
+	txa             ;count = A
+	beq iq_err      ;zero count makes no sense
+	jsr strspa      ;allocate the string of length A
 	ldy #0
-	pla
+	pla             ;A = the byte to be repeated
 @1:
 	sta (dsctmp+1),y
 	iny
@@ -1067,7 +1067,7 @@ rptd:
 	bcc @1
 	pla
 	pla
-	jmp putnew
+	jmp putnew      ;return the string literal to BASIC
 
 
 
