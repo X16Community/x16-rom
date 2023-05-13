@@ -130,7 +130,7 @@ dsm2:
 	lda screen_h
 	cmp #25
 	bcs :+
-	jmp dsm4
+	jmp dsm4a
 :	ldy #0
 dsm3:
 	lda infoscreen,y
@@ -206,6 +206,15 @@ dsm3b:
 	iny
 	bra :-
 dsm4:
+	lda #13
+	jsr bsout
+	ldy #0
+:	lda otherstuff,y
+	beq dsm4a
+	jsr bsout
+	iny
+	bra :-
+dsm4a:
 	jsr highlight_menu_option
 	jsr show_current_video_status
 dsm5:	jsr getin       ;get keyboard input
@@ -309,6 +318,8 @@ infoscreen:
 	.byte "VERA: ",13,0
 unknown:
 	.byte "UNKNOWN VER.",0
+otherstuff:
+	.byte "T = TEST PATTERN",13,0
 .endproc
 
 .proc menu_up: near
