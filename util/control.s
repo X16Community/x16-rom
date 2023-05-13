@@ -2422,21 +2422,21 @@ bars_l:
 	.lobytes blue75
 
 	.lobytes blue75s
-	.lobytes gray111s1
+	.lobytes black000s1
 	.lobytes magenta75s
-	.lobytes gray111s2
+	.lobytes black000s2
 	.lobytes cyan75s
-	.lobytes gray111s3
+	.lobytes black000s3
 	.lobytes white75s
 
 	.lobytes minusi
 	.lobytes white100
 	.lobytes plusq
-	.lobytes gray111b1
+	.lobytes black000b1
 	.lobytes black000b
-	.lobytes gray111b2
-	.lobytes gray222b
-	.lobytes gray111b3
+	.lobytes black000b2
+	.lobytes gray111b
+	.lobytes black000b3
 bars_h:
 	.hibytes white75
 	.hibytes yellow75
@@ -2447,21 +2447,21 @@ bars_h:
 	.hibytes blue75
 
 	.hibytes blue75s
-	.hibytes gray111s1
+	.hibytes black000s1
 	.hibytes magenta75s
-	.hibytes gray111s2
+	.hibytes black000s2
 	.hibytes cyan75s
-	.hibytes gray111s3
+	.hibytes black000s3
 	.hibytes white75s
 
 	.hibytes minusi
 	.hibytes white100
 	.hibytes plusq
-	.hibytes gray111b1
+	.hibytes black000b1
 	.hibytes black000b
-	.hibytes gray111b2
-	.hibytes gray222b
-	.hibytes gray111b3
+	.hibytes black000b2
+	.hibytes gray111b
+	.hibytes black000b3
 
 
 white75:
@@ -2489,20 +2489,20 @@ blue75:
 blue75s:
 	.byte $f3
 	.word 0,160,45,20
-gray111s1:
-	.byte $11
+black000s1:
+	.byte $00
 	.word 45,160,46,20
 magenta75s:
 	.byte $f2
 	.word 91,160,45,20
-gray111s2:
-	.byte $11
+black000s2:
+	.byte $00
 	.word 136,160,46,20
 cyan75s:
 	.byte $aa
 	.word 182,160,46,20
-gray111s3:
-	.byte $11
+black000s3:
+	.byte $00
 	.word 228,160,46,20
 white75s:
 	.byte $1c
@@ -2517,20 +2517,20 @@ white100:
 plusq:
 	.byte $df
 	.word 114,180,57,60
-gray111b1:
-	.byte $11
+black000b1:
+	.byte $00
 	.word 171,180,56,60
 black000b:
 	.byte $10
 	.word 227,180,16,60
-gray111b2:
-	.byte $11
+black000b2:
+	.byte $00
 	.word 243,180,15,60
-gray222b:
-	.byte $12
-	.word 258,180,16,60
-gray111b3:
+gray111b:
 	.byte $11
+	.word 258,180,16,60
+black000b3:
+	.byte $00
 	.word 274,180,46,60
 
 
