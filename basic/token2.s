@@ -114,7 +114,11 @@ reslst3
 	.byt "BSAV", 'E' + $80
 	.byt "MEN", 'U' + $80
 	.byt "RE", 'N' + $80
-	
+	.byt "LINPUT", '#' + $80
+	.byt "LINPU", 'T' + $80
+	.byt "BINPUT", '#' + $80
+	.byt "HEL", 'P' + $80
+
 	; add new statements before this line
 
 	; functions start here
@@ -126,6 +130,9 @@ reslst3
 	.byt "HEX", $a4
 	.byt "BIN", $a4
 	.byt "I2CPEE", 'K' + $80
+	.byt "POINTE", 'R' + $80
+	.byt "STRPT", 'R' + $80
+	.byt "RPT", '$' + $80
 
 	; add new functions before this line
 	.byt 0

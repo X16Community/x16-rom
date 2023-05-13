@@ -328,19 +328,21 @@ FB_set_8_pixels_opaque:
 ;            a    color
 ;---------------------------------------------------------------
 FB_fill_pixels:
-	ldx r1H
+	ldy r1H
 	bne fill_pixels_with_step
 	ldx r1L
 	cpx #2
 	bcs fill_pixels_with_step
+
+fill_pixels_hw_accelerated:
 
 ; step 1
 	ldx r0H
 	beq @2
 
 ; full blocks, 8 bytes at a time
-	ldy #$20
-@1:	jsr fill_y
+@1:	ldy #$20
+	jsr fill_y
 	dex
 	bne @1
 
@@ -382,21 +384,105 @@ fill_y:	sta VERA_DATA0
 	bne fill_y
 	rts
 
-; XXX TODO support other step sizes
 fill_pixels_with_step:
-	pha
+
+	; Is the step size equal to 320?
+	cpy #(320 >> 8)
+	bne fill_pixels_non_accelerated
+	cpx #(320 - 256)
+	bne fill_pixels_non_accelerated
+
+	; Step size is 320, fill using HW accelerated increment setting in VERA
+
+	; Temporarily set ADDR_H to use increment 14 (320)
+	tay
 	lda VERA_ADDR_H
-	ora #$70        ; increment in steps of $40
+	and #$01
+	ora #$E0
 	sta VERA_ADDR_H
-	pla
-	ldx r0L
-@loop:	sta VERA_DATA0
-	inc VERA_ADDR_M ; increment hi -> add $140 = 320
-	bne :+
-	inc VERA_ADDR_H
-:	dex
-	bne @loop
+	tya
+
+	jsr fill_pixels_hw_accelerated
+
+fill_pixels_reset_increment_and_rts:
+	; Restore ADDR_H to use increment 1
+	lda VERA_ADDR_H
+	and #$01
+	ora #$10
+	sta VERA_ADDR_H
 	rts
+
+fill_pixels_non_accelerated:
+
+	tay
+
+	; temporarily set increment to 0
+	lda #$FE
+	trb VERA_ADDR_H
+
+	ldx r0L
+	inx
+	inc r0H
+	clc
+
+	; increment larger than 255?
+	lda r1H
+	bne fill_pixels_non_accelerated_16bit
+
+	lda VERA_ADDR_L
+
+@loop8bit:
+
+	sty VERA_DATA0
+
+	; increment with r1 (step size)
+	adc r1L
+	sta VERA_ADDR_L
+	bcs @incrementM
+
+@resumeLoop8:
+	dex
+	bne @loop8bit
+	dec r0H
+	bne @loop8bit
+	bra fill_pixels_reset_increment_and_rts
+
+@incrementM:
+	; carry, increment M and H addresses
+	clc
+	inc VERA_ADDR_M
+	bne @resumeLoop8
+	inc VERA_ADDR_H
+	bra @resumeLoop8
+
+
+fill_pixels_non_accelerated_16bit:
+
+@loop16bit:
+
+	sty VERA_DATA0
+
+	lda VERA_ADDR_L
+	adc r1L
+	sta VERA_ADDR_L
+
+	lda VERA_ADDR_M
+	adc r1H
+	sta VERA_ADDR_M
+
+	bcs @incrementH
+
+@resumeLoop16:
+	dex
+	bne @loop16bit
+	dec r0H
+	bne @loop16bit
+	bra fill_pixels_reset_increment_and_rts
+
+@incrementH:
+	inc VERA_ADDR_H
+	clc
+	bra @resumeLoop16
 
 ;---------------------------------------------------------------
 ; FB_filter_pixels

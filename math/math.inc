@@ -70,7 +70,7 @@ movef	= $fe81 ; ARG = FAC
 sgn	= $fe84 ; FAC = sgn(FAC)
 float	= $fe87 ; FAC = (u8).A
 floats	= $fe8a ; FAC = (s16)facho+1:facho
-qint	= $fe8d ; facho:facho+1:facho+2:facho+2 = u32(FAC)
+qint	= $fe8d ; facho:facho+1:facho+2:facho+3 = u32(FAC)
 finlog	= $fe90 ; FAC += (s8).A
 foutc	= $fe93 ; Convert FAC to ASCIIZ string at fbuffr - 1 + .Y
 polyx	= $fe96 ; Polynomial Evaluation 1 (SIN/COS/ATN/LOG)

@@ -135,6 +135,10 @@ stmdsp2	; statements
 	.word cbsave-1
 	.word cmenu-1
 	.word cren-1
+	.word linputn-1
+	.word linput-1
+	.word binputn-1
+	.word help-1
 
 	; functions
 ptrfunc	.word vpeek
@@ -145,6 +149,9 @@ ptrfunc	.word vpeek
 	.word hexd
 	.word bind
 	.word i2cpeek
+	.word pointer
+	.word strptr
+	.word rptd
 ptrend
 num_esc_statements = (ptrfunc - stmdsp2) / 2
 num_esc_functions = (ptrend - ptrfunc) / 2

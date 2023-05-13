@@ -1,11 +1,4 @@
 
-.macro bannex_call addr
-    jsr bjsrfar
-    .word addr
-    .byte BANK_BANNEX
-.endmacro
-
-.include "bannex.inc"
 
 VERA_BASE = $9F20
 
@@ -700,53 +693,6 @@ test:
 	jmp $0400
 @copy_end:
 
-rtc_address            = $6f
-nvram_base             = $40
-
-; This is a mirror of the internal kernal routine by the same name
-; but it only sets the fg color.  This is called after the splash
-; banner, which has messed with the colors itself
-screen_default_color_from_nvram:
-	ldy #nvram_base+0
-	ldx #rtc_address
-	jsr i2c_read_byte
-
-	and #1
-	beq :+
-	clc
-	adc #12 ; second profile (plus the #1 from above) = 13
-:
-	clc
-	adc #nvram_base+10 ; color offset
-	tay
-	ldx #rtc_address
-	jsr i2c_read_byte
-	bcc :+
-	lda #$61 ; hardcode value on i2c error
-:
-
-	sta facho ; tmp variable
-
-	; swap nibbles
-	asl
-	adc #$80
-	rol
-	asl
-	adc #$80
-	rol
-	cmp facho
-	lda facho
-	bne :+
-	; increment fg color to make it visible if it's the same as bg
-	inc
-:
-	and #$0f
-	tax
-	lda coltab,x
-	jsr bsout
-	clc
-	rts
-
 uc_address = $42
 
 ; reset/poweroff: trigger system reset/poweroff via i2c to smc
@@ -808,24 +754,7 @@ sleep:
 	ldy poker
 	ldx poker+1
 @slp:
-	.byte $cb ; wai
-	phx
-	phy
-	jsr stop
-	beq @pend
-	ply
-	plx
-	cpy #0
-	bne @decit
-	cpx #0
-	beq @end
-	dex
-@decit:
-	dey
-	bra @slp
-@pend:
-	ply
-	plx
+	bannex_call bannex_sleep_cont
 @end:
 	rts
 
@@ -934,6 +863,216 @@ cren:
 	jsr cleart
 	ldx #errov
 	jmp error
+
+;******************************************************************
+;
+; STRPTR(var_name) - return address of string for var_name
+;
+;******************************************************************
+strptr:
+	jsr pointer
+	lda poker       ; valtyp saved
+	beq type_err
+	jsr getadr0
+	cmp #0
+	beq @null
+	ldy #1
+	lda (poker),y
+	sta facho+1
+	iny
+	lda (poker),y
+	sta facho
+	bra ptr3
+@null:
+	rts             ;let the zero stand
+
+;******************************************************************
+;
+; POINTER(var_name) - return address of descriptor for var_name
+; adapted from BASIC_C128_04/pointer.src
+;
+;******************************************************************
+pointer:
+	jsr chrget
+	jsr chkopn      ;test for open paren
+	jsr isletc      ;test if character follows parens
+	bcc syntax_err  ;...syntax error if not.
+	jsr ptrget      ;look for this varname in table
+	ldx valtyp
+	stx poker       ;stashing it here temporariliy
+	cmp #>zero      ;is this a dummy pointer (system variable)?
+	bne ptr2
+	lda #0          ;if so, return 0
+	tay
+ptr2:
+	sty facho
+	sta facho+1
+	jsr chkcls      ;look for closing paren
+ptr3:
+	jmp gu16fc      ;get the unsigned PTR value into FAC
+
+line_delimeter = poker
+check_delimiter = poker+1
+err_on_max_string = poker+1
+
+syntax_err:
+	jmp snerr       ;syntax error
+type_err:
+	jmp chkerr      ;this calls error with errtm
+
+; utility subroutine with two entry points
+; for BINPUT#, LINPUT# and LINPUT
+ninput_common:
+	jsr getbyt
+	stx channl
+	jsr chkin
+	bcs gen_err
+	jsr chkcom
+linput_common:
+	jsr isletc      ;test for alpha character
+	bcc syntax_err  ;...syntax error if not.
+	jsr ptrget      ; get pointer of variable into A/Y
+	ldx valtyp      ; make sure it's a string variable
+	beq type_err    ; it's numeric, we don't handle that
+	sta forpnt
+	sty forpnt+1    ; stash variable pointer
+	lda #13
+	sta line_delimeter
+	lda #$c0
+	sta check_delimiter
+	rts
+
+
+;******************************************************************
+;
+; BINPUT# <channel>, <string var_name>, <size>
+; reads a block of text from an open file of at most <size> bytes
+;
+;******************************************************************
+binputn:
+	jsr ninput_common
+	stz check_delimiter
+
+	jsr chkcom
+	jsr getbyt
+	txa
+	beq iq_err
+	bra in2var
+
+;******************************************************************
+;
+; LINPUT# <channel>, <string var_name>[, <delimiter>]
+; reads a line of text from an open file, with an arbitrary
+; delimiter. 13 (CR) is the default delimiter.
+;
+;******************************************************************
+linputn:
+	jsr ninput_common
+	jsr chrgot
+	beq :+
+	jsr chkcom
+	jsr getbyt
+	stx line_delimeter
+:
+
+	lda #255
+	bra in2var
+
+iq_err:
+	lda #errfc
+gen_err:
+	tax
+	jmp error
+
+
+;******************************************************************
+;
+; LINPUT <string var_name> - reads a line of text via the keyboard
+; (or more specifically, calls `basin` to retrieve a line of text)
+;
+;******************************************************************
+linput:
+	jsr linput_common
+	lda #buflen
+
+in2var:             ; input (line or block) to var
+	sta size        ; store max length
+	jsr strspa      ; allocate string space
+
+	ldy #0
+in2varc:
+	jsr basin
+	bit check_delimiter
+	bvc in2sto
+	cmp line_delimeter
+	beq in2done
+in2sto:
+	sta (dsctmp+1),y
+	iny
+	ldx channl
+	beq in2noch
+	jsr readst
+	and #$40
+	bne in2done
+in2noch:
+	cpy size
+	bcc in2varc
+	bit err_on_max_string
+	bpl in2done
+
+	ldx #errls      ;string too long error
+	jmp error
+in2done:
+	tya
+	sta (forpnt)
+	ldy #1
+	lda dsctmp+1
+	sta (forpnt),y
+	iny
+	lda dsctmp+2
+	sta (forpnt),y
+	lda channl
+	beq :+
+	jsr clrch
+	stz channl
+	rts
+:	lda line_delimeter
+	jmp bsout
+
+
+;******************************************************************
+;
+; RPT$(<byte>,<count>) - returns a string comprised of
+; <byte> repeated <count> times.  Byte is a value from 0-255
+;
+;******************************************************************
+
+rptd:
+	jsr chrget
+	jsr chkopn      ;test for open paren
+	jsr getbyt
+	phx             ;preserve character byte
+	jsr chkcom
+	jsr getbyt
+	jsr chkcls
+	txa             ;count = A
+	beq iq_err      ;zero count makes no sense
+	jsr strspa      ;allocate the string of length A
+	ldy #0
+	pla             ;A = the byte to be repeated
+@1:
+	sta (dsctmp+1),y
+	iny
+	cpy dsctmp
+	bcc @1
+	pla
+	pla
+	jmp putnew      ;return the string literal to BASIC
+
+help:
+	bannex_call bannex_help
+	rts
+
 
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
