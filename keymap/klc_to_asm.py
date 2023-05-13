@@ -442,7 +442,9 @@ for iso_mode in [False, True]:
 		keytab[shiftstate][105] = '-'
 		keytab[shiftstate][106] = '+'
 		keytab[shiftstate][104] = '.'
-
+		keytab[shiftstate][95] = '/'
+		keytab[shiftstate][108] = chr(0x0d) # CR
+	
 	# stamp in Ctrl/Alt color codes
 	petscii_from_ctrl_scancode = [ # Ctrl
 		(2, 0x90),    # '1'
