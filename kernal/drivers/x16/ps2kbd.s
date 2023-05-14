@@ -302,7 +302,7 @@ mod_key_down:
 	lda modifier_shift_states,x
 	ora shflag
 	sta shflag
-	and #(MODIFIER_ALT | MODIFIER_SHIFT)
+	and #(~MODIFIER_TOGGLE_MASK)
 	jmp check_charset_switch
 
 is_reg_key:
