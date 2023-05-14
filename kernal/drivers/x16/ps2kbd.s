@@ -272,7 +272,7 @@ _kbd_scan:
 :	cmp modifier_key_codes,x
 	beq is_mod_key
 	inx
-	cpx #8			; Modifier key count = 8
+	cpx #9			; Modifier key count = 9
 	bne :-
 
 	; Is it Caps Lock down?
@@ -558,6 +558,7 @@ modifier_key_codes:
 	.byt KEYCODE_RALT
 	.byt KEYCODE_RCTRL
 	.byt KEYCODE_RGUI
+	.byt KEYCODE_PRTSCR
 
 modifier_shift_states:
 	.byt MODIFIER_SHIFT
@@ -568,3 +569,4 @@ modifier_shift_states:
 	.byt MODIFIER_ALTGR
 	.byt MODIFIER_CTRL
 	.byt MODIFIER_WIN
+	.byt MODIFIER_4080
