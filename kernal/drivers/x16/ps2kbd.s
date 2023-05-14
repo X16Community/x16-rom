@@ -255,7 +255,7 @@ _keymap:
 	rts
 
 ;---------------------------------------------------------------
-; Scan keyboard and handle
+; Scan keyboard and handle received key codes
 ;---------------------------------------------------------------
 _kbd_scan:
 	jsr fetch_key_code
@@ -302,7 +302,7 @@ mod_key_down:
 	lda modifier_shift_states,x
 	ora shflag
 	sta shflag
-	rts
+	jmp check_charset_switch
 
 is_reg_key:
 	pla 
