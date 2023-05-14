@@ -5,6 +5,7 @@
 
 .include "banks.inc"
 .include "io.inc"
+.include "keycode.inc"
 
 ; KERNAL API
 .export joystick_scan
@@ -194,99 +195,96 @@ joystick_from_ps2_init:
 ;
 joystick_from_ps2:
 	pha
-	phx
-	phy
-	php
-	cpx #0
-	bne @prefix
 
-; no prefix, use tables
-	ldx #intab-outtab
-:	cmp intab-1,x
-	beq :+
-	dex
-	bpl :-
-	bra @end
-:	ldy outtab-1,x
-	bmi @b1
-	lda #1
-:	cpy #0
-	beq @byte0 ; write into byte0
-	asl
-	dey
-	bra :-
-
-@b1:	ldx #1 ; write into byte1
-	tya
+	; Clear up/down bit
 	and #$7f
-	tay
-	lda #1
-:	cpy #0
-	beq @byte
-	asl
-	dey
-	bra :-
+	
+	; Search key code table 0
+	ldx #intab0_len
+:	cmp intab0-1,x
+	beq @match0
+	dex
+	bne :-
 
-@prefix:
-	cpx #$e0
-	bne @end
-	; E0-prefixed
-	tay
-	lda #1 << C_LT
-	cpy #$6b ; LEFT
-	beq @byte0
-:	lda #1 << C_RT
-	cpy #$74 ; RIGHT
-	beq @byte0
-:	lda #1 << C_UP
-	cpy #$75 ; UP
-	beq @byte0
-:	lda #1 << C_DN
-	cpy #$72 ; DOWN
-	bne @end
-@byte0:
-	ldx #0
-@byte:
-	plp ; C: 0 = down, 1 = up
-	php
-	bcc @down
+	; Search key code table 1
+	ldx #intab1_len
+:	cmp intab1-1,x
+	beq @match1
+	dex
+	bne :-
 
-	; up
-	ora joy0,x
-	bra @store
-
-	; down
-@down:	eor #$ff
-	sta j0tmp
-	lda joy0,x
-	and j0tmp
-
-@store:	sta joy0,x
-@end:	stz joy0+2 ; joy0 present
-	plp
-	ply
-	plx
+	; Exit
+@end:	stz joy0+2
 	pla
 	rts
 
-C_RT = 0
-C_LT = 1
-C_DN = 2
-C_UP = 3
-C_ST = 4
-C_SL = 5
-C_Y  = 6
-C_B  = 7
-C_R  = 4 | $80
-C_L  = 5 | $80
-C_X  = 6 | $80
-C_A  = 7 | $80
+@match0:
+	pla
+	pha
+	bmi :+		; key up
+
+	lda outtab0-1,x
+	eor #$ff
+	and joy0
+	sta joy0
+	bra @end
+
+:	lda outtab0-1,x
+	ora joy0
+	sta joy0
+	bra @end
+
+@match1:
+	pla
+	pha
+	bmi :+		; key up
+
+	lda outtab1-1,x
+	eor #$ff
+	and joy0+1
+	sta joy0+1
+	bra @end
+
+:	lda outtab1-1,x
+	ora joy0+1
+	sta joy0+1
+	bra @end
+
+
+C_RT = 1
+C_LT = 2
+C_DN = 4
+C_UP = 8
+C_ST = 16
+C_SL = 32
+C_Y  = 64
+C_B  = 128
+
+C_R  = 16
+C_L  = 32
+C_X  = 64
+C_A  = 128
+
 ;     SNES |   A   |   B  | X | Y | L | R | START  | SELECT |
 ; keyboard |   X   |   Z  | S | A | D | C | RETURN | LShift |
 ;          | LCtrl | LAlt |
-outtab:
-	.byte C_A, C_B, C_X, C_Y, C_L, C_R, C_ST, C_SL
-	.byte C_A, C_B
-intab:
-	.byte $22, $1A, $1B, $1C, $23, $21,  $5a,  $12
-	.byte $14, $11
+
+outtab0:
+	.byte C_RT, C_LT, C_DN, C_UP
+	.byte C_ST, C_SL, C_Y, C_B
+	.byte C_B	
+
+outtab1:
+	.byte C_R, C_L, C_X, C_A
+	.byte C_A
+
+intab0:
+	.byte KEYCODE_RIGHTARROW, KEYCODE_LEFTARROW, KEYCODE_DOWNARROW, KEYCODE_UPARROW
+	.byte KEYCODE_ENTER, KEYCODE_LSHIFT, KEYCODE_A, KEYCODE_Z
+	.byte KEYCODE_LALT
+intab0_len = *-intab0
+
+intab1:
+	.byte KEYCODE_C, KEYCODE_D, KEYCODE_S, KEYCODE_X
+	.byte KEYCODE_LCTRL
+intab1_len = *-intab1

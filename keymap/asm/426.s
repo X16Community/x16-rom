@@ -19,7 +19,6 @@ kbtab_426:
 ; ~~~~~~~
 ; C64 keyboard regressions:
 ;   chars: "#'@^£π←"
-;   codes: CURSOR_DOWN 
 ;   graph: '\xa4\xa6\xa8\xa9\xba' <--- *** THIS IS BAD! ***
 ; Keys outside of PETSCII:
 ;   '\_{|}~¨«­°±´»Õ×õĀāČčĒēĢģĪīĶķĻļŅņŖŗŠšŪūŽž–—’€'
