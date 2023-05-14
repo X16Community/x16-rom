@@ -524,16 +524,20 @@ for iso_mode in [False, True]:
 
 	# stamp in backspace and TAB
 	for shiftstate in keytab.keys():
-		if shiftstate == 0:
+		if shiftstate == REG:
 			keytab[shiftstate][15]   = chr(0x14) # backspace
 			keytab[shiftstate][16]   = chr(0x09) # TAB
 			keytab[shiftstate][43]   = chr(0x0d) # CR
 			keytab[shiftstate][61]   = chr(0x20) # SPACE
-		else:
+			keytab[shiftstate][80]	= chr(0x13) # Home
+			keytab[shiftstate][81]	= chr(0x04) # End
+		elif shiftstate == SHFT:
 			keytab[shiftstate][15]   = chr(0x94) # insert
 			keytab[shiftstate][16]   = chr(0x18) # shift-TAB
 			keytab[shiftstate][43]   = chr(0x8d) # shift-CR
 			keytab[shiftstate][61]   = chr(0xA0) # shift-SPACE
+			keytab[shiftstate][80]	= chr(0x93) # shift-Home
+			keytab[shiftstate][81]	= chr(0x84) # shift-End
 
 	# stamp in extended PS/2 set 1 scancodes
 	for shiftstate in keytab.keys():
@@ -543,9 +547,6 @@ for iso_mode in [False, True]:
 		keytab[shiftstate][89] 	= chr(0x1d) # Right arrow
 		keytab[shiftstate][85] 	= chr(0x82) # Page up
 		keytab[shiftstate][86] 	= chr(0x02) # Page down
-		keytab[shiftstate][80]	= chr(0x13) # Home
-		keytab[shiftstate][81]	= chr(0x04) # End
-		keytab[shiftstate][75]	= chr(0x94) # Insert
 		keytab[shiftstate][76]	= chr(0x19) # Delete
 		keytab[shiftstate][126] = chr(0x03) # Break
 
