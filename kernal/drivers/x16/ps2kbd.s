@@ -302,7 +302,7 @@ mod_key_down:
 	lda modifier_shift_states,x
 	ora shflag
 	sta shflag
-	and #(~MODIFIER_TOGGLE_MASK)
+	and #((~MODIFIER_TOGGLE_MASK) & $ff)
 	jmp check_charset_switch
 
 is_reg_key:
@@ -315,8 +315,19 @@ is_reg_key:
 	; Transfer key code to Y
 :	tay
 
+	; Pause/break key?
+	cmp #KEYCODE_PAUSEBRK
+	bne :+
+	
+	ldx #$03 * 2 ; stop (-> run)
+	lda shflag
+	lsr ; shift -> C
+	txa
+	ror
+	jmp kbdbuf_put
+
 	; Calculate shift state from mode and modifiers
-	lda mode
+:	lda mode
 	asl
 	asl ; bit 6 = ISO mode on off
 	php
