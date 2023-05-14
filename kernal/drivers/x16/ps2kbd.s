@@ -558,7 +558,7 @@ modifier_key_codes:
 	.byt KEYCODE_RALT
 	.byt KEYCODE_RCTRL
 	.byt KEYCODE_RGUI
-	.byt KEYCODE_PRTSCR
+	.byt KEYCODE_SCRLCK
 
 modifier_shift_states:
 	.byt MODIFIER_SHIFT
