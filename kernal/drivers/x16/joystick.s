@@ -200,14 +200,14 @@ joystick_from_ps2:
 	and #$7f
 	
 	; Search key code table 0
-	ldx #8
+	ldx #intab0_len
 :	cmp intab0-1,x
 	beq @match0
 	dex
 	bne :-
 
 	; Search key code table 1
-	ldx #4
+	ldx #intab1_len
 :	cmp intab1-1,x
 	beq @match1
 	dex
@@ -270,9 +270,21 @@ C_A  = 128
 ;          | LCtrl | LAlt |
 
 outtab0:
-	.byte C_RT, C_LT, C_DN, C_UP, C_ST, C_SL, C_Y, C_B
+	.byte C_RT, C_LT, C_DN, C_UP
+	.byte C_ST, C_SL, C_Y, C_B
+	.byte C_B	
+
 outtab1:
 	.byte C_R, C_L, C_X, C_A
+	.byte C_A
 
-intab0: .byte KEYCODE_RIGHTARROW, KEYCODE_LEFTARROW, KEYCODE_DOWNARROW, KEYCODE_UPARROW, KEYCODE_ENTER, KEYCODE_LSHIFT, KEYCODE_CAPSLOCK, KEYCODE_Z
-intab1: .byte KEYCODE_C, KEYCODE_D, KEYCODE_S, KEYCODE_X
+intab0:
+	.byte KEYCODE_RIGHTARROW, KEYCODE_LEFTARROW, KEYCODE_DOWNARROW, KEYCODE_UPARROW
+	.byte KEYCODE_ENTER, KEYCODE_LSHIFT, KEYCODE_A, KEYCODE_Z
+	.byte KEYCODE_LALT
+intab0_len = *-intab0
+
+intab1:
+	.byte KEYCODE_C, KEYCODE_D, KEYCODE_S, KEYCODE_X
+	.byte KEYCODE_LCTRL
+intab1_len = *-intab1
