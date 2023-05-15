@@ -2013,6 +2013,7 @@ dec_hour:
 	ldx #rtc_address
 	ldy #2
 	jsr i2c_read_byte
+	and #$3f
 	sed
 	sec
 	sbc #1
