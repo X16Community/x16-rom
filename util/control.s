@@ -454,7 +454,7 @@ exe6:	cmp #6          ;exit to basic
 	bne exe7
 	lda #147        ;clear the screen
 	jsr bsout
-	jmp clear_buffer
+	rts
 exe7:	jmp main_menu   ;we should never end up here.
 .endproc
 
@@ -2191,8 +2191,34 @@ td_update_display:
 	ldx #rtc_address
 	ldy #2
 	jsr i2c_read_byte
+	and #$7f
+	cmp #$40
+	bcc @24h
+	; if clock is stored in 12h am/pm mode, force it to 24h here and write it back to the RTC
 	and #$3f
-
+	sed
+	cmp #$12 ; 12 am -> 0
+	beq @is12
+	cmp #$32 ; 12 pm -> 0 + pm = 12
+	beq @is12
+	bra @not12
+@is12:
+	sec
+	sbc #$12
+@not12:
+	cmp #$20
+	bcc @nopm
+	and #$1f
+	clc
+	adc #$12
+@nopm:
+	cld
+	pha
+	ldx #rtc_address
+	ldy #2
+	jsr i2c_write_byte
+	pla
+@24h:
 	jsr hexwrite
 
 	; position for weekday
@@ -2559,21 +2585,6 @@ custom_palette:
 	.word $cc0,$0c0,$c0c,$00c,$024
 
 
-.endproc
-
-.proc clear_buffer: near
-	ldx #87
-	; This colon seems to give no side effects.
-	; filling will null caused it to forget
-	; that it was in direct/immediate mode for
-	; some reason
-	lda #':'
-cb1:
-	sta BSS_BASE,x
-	dex
-	bpl cb1
-	stz BSS_BASE+88
-	rts
 .endproc
 
 hex_table:
