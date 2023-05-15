@@ -328,9 +328,9 @@ FB_set_8_pixels_opaque:
 ;            a    color
 ;---------------------------------------------------------------
 FB_fill_pixels:
+	ldx r1L
 	ldy r1H
 	bne fill_pixels_with_step
-	ldx r1L
 	cpx #2
 	bcs fill_pixels_with_step
 
@@ -421,7 +421,6 @@ fill_pixels_non_accelerated:
 	trb VERA_ADDR_H
 
 	ldx r0L
-	inx
 	inc r0H
 	clc
 
