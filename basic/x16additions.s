@@ -792,7 +792,8 @@ cmenu:
 	jsr bjsrfar
 	.word $c000
 	.byte BANK_UTIL
-	rts
+	jsr stkini
+	jmp readyx
 
 ; REN [newstart[,increment[,oldstart]]]
 ; line renumber
