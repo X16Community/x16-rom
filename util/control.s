@@ -834,7 +834,10 @@ mod1b:
 	jmp mod1b
 mod2:	sec
 	jsr screen_mode ;get
-	sta menu_select
+	cmp #11
+	bcc :+
+	lda #0
+:	sta menu_select
 	jsr highlight_menu_option
 mod5:	jsr getin
 	cmp #$91        ;cursor up
@@ -2552,7 +2555,7 @@ custom_palette:
 .endproc
 
 .proc clear_buffer: near
-	ldx #79
+	ldx #87
 	; This colon seems to give no side effects.
 	; filling will null caused it to forget
 	; that it was in direct/immediate mode for
@@ -2562,6 +2565,7 @@ cb1:
 	sta BSS_BASE,x
 	dex
 	bpl cb1
+	stz BSS_BASE+88
 	rts
 .endproc
 
