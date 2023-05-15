@@ -547,6 +547,7 @@ for iso_mode in [False, True]:
 		keytab[shiftstate][89] 	= chr(0x1d) # Right arrow
 		keytab[shiftstate][85] 	= chr(0x82) # Page up
 		keytab[shiftstate][86] 	= chr(0x02) # Page down
+		keytab[shiftstate][75]  = chr(0x94) # Insert
 		keytab[shiftstate][76]	= chr(0x19) # Delete
 		keytab[shiftstate][126] = chr(0x03) # Break
 
