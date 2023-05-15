@@ -2013,9 +2013,15 @@ dec_hour:
 	ldx #rtc_address
 	ldy #2
 	jsr i2c_read_byte
-	and #$3f
-	bra dec_common
-
+	sed
+	sec
+	sbc #1
+	bpl @1
+	lda #$23
+@1:	cld
+	jsr i2c_write_byte	
+	rts
+	
 dec_min:
 	ldx #rtc_address
 	ldy #1
