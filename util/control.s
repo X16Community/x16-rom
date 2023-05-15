@@ -15,6 +15,7 @@
 .include "banks.inc"
 .include "kernal.inc"
 .include "io.inc"
+.include "regs.inc"
 
 ; We're borrowing the line editor buffer area.
 ; We must ensure to zero it out
@@ -129,7 +130,7 @@ dsm2:
 	lda screen_h
 	cmp #25
 	bcs :+
-	jmp dsm4
+	jmp dsm4a
 :	ldy #0
 dsm3:
 	lda infoscreen,y
@@ -205,6 +206,15 @@ dsm3b:
 	iny
 	bra :-
 dsm4:
+	lda #13
+	jsr bsout
+	ldy #0
+:	lda otherstuff,y
+	beq dsm4a
+	jsr bsout
+	iny
+	bra :-
+dsm4a:
 	jsr highlight_menu_option
 	jsr show_current_video_status
 dsm5:	jsr getin       ;get keyboard input
@@ -266,10 +276,14 @@ dsmd:	cmp #27			;Esc
 	lda #6
 	sta menu_select
 	jmp main_menu
-dsme:	cmp #13         ;return
+dsme:	cmp #'T'
 	bne dsmf
+	jsr smpte_bars
+	jmp main_menu
+dsmf:	cmp #13         ;return
+	bne dsmg
 	jmp execute_command
-dsmf:	jmp dsm5
+dsmg:	jmp dsm5
 menutext:
 	.byte 147       ;clear screen
 	.byte "X16 CONTROL PANEL",13
@@ -304,6 +318,8 @@ infoscreen:
 	.byte "VERA: ",13,0
 unknown:
 	.byte "UNKNOWN VER.",0
+otherstuff:
+	.byte "T = TEST PATTERN",13,0
 .endproc
 
 .proc menu_up: near
@@ -2262,6 +2278,277 @@ time_date_text:
 	.byte " START CLOCK",13
 	.byte " EXIT",13,13
 	.byte "ARROWS TO CHANGE",13,0
+.endproc
+
+.proc smpte_bars: near
+	; preserve previous mode params on stack
+	stz VERA_CTRL
+	lda VERA_DC_VSCALE
+	pha
+	lda VERA_DC_HSCALE
+	pha
+
+	lda #1
+	sta VERA_CTRL
+	lda VERA_DC_VSTOP
+	pha
+	lda VERA_DC_VSTART
+	pha
+	lda VERA_DC_HSTOP
+	pha
+	lda VERA_DC_HSTART
+	pha
+
+	stz VERA_CTRL
+
+	sec
+	jsr screen_mode
+	pha
+
+	; set bitmap graphics
+	lda #$80
+	jsr screen_mode
+
+
+	; preserve old palette on stack
+	lda #$e0
+	sta VERA_ADDR_L
+	lda #$fb
+	sta VERA_ADDR_M
+	lda #$11
+	sta VERA_ADDR_H
+
+	ldx #10
+:
+	lda VERA_DATA0
+	pha
+	dex
+	bne :-
+
+	; set custom palette
+	lda #$e0
+	sta VERA_ADDR_L
+	lda #$fb
+	sta VERA_ADDR_M
+	lda #$11
+	sta VERA_ADDR_H
+:
+	lda custom_palette,x
+	sta VERA_DATA0
+	inx
+	cpx #10
+	bcc :-
+
+	; draw the bars (x counts from 22 to 1 in loop)
+	ldx #22
+barloop:
+	phx
+	lda bars_l-1,x
+	sta ptr
+	lda bars_h-1,x
+	sta ptr+1
+
+	lda (ptr)
+	tax
+	ldy #0
+	jsr GRAPH_set_colors
+
+	; populate r0-r3 from (ptr),1 through (ptr),8
+	ldy #8
+:
+	lda (ptr),y
+	sta r0-1,y
+	dey
+	bne :-
+
+	stz r4L
+	stz r4H
+
+	sec
+	jsr GRAPH_draw_rect
+
+	plx
+	dex
+	bne barloop
+
+wait_for_key:
+	jsr getin
+	beq wait_for_key
+
+
+	; restore everything
+
+	; restore old palette from stack (auto-decrement DATA0)
+	lda #$e9
+	sta VERA_ADDR_L
+	lda #$fb
+	sta VERA_ADDR_M
+	lda #$19
+	sta VERA_ADDR_H
+
+	ldx #10
+:
+	pla
+	sta VERA_DATA0
+	dex
+	bne :-
+
+	; restore previous screen mode
+	clc
+	pla
+	jsr screen_mode
+
+
+	; restore previous mode params from stack
+	lda #1
+	sta VERA_CTRL
+
+	pla
+	sta VERA_DC_HSTART
+	pla
+	sta VERA_DC_HSTOP
+	pla
+	sta VERA_DC_VSTART
+	pla
+	sta VERA_DC_VSTOP
+
+	stz VERA_CTRL
+
+	pla
+	sta VERA_DC_HSCALE
+
+	pla
+	sta VERA_DC_VSCALE
+
+	rts
+
+
+bars_l:
+	.lobytes white75
+	.lobytes yellow75
+	.lobytes cyan75
+	.lobytes green75
+	.lobytes magenta75
+	.lobytes red75
+	.lobytes blue75
+
+	.lobytes blue75s
+	.lobytes black000s1
+	.lobytes magenta75s
+	.lobytes black000s2
+	.lobytes cyan75s
+	.lobytes black000s3
+	.lobytes white75s
+
+	.lobytes minusi
+	.lobytes white100
+	.lobytes plusq
+	.lobytes black000b1
+	.lobytes black000b
+	.lobytes black000b2
+	.lobytes gray111b
+	.lobytes black000b3
+bars_h:
+	.hibytes white75
+	.hibytes yellow75
+	.hibytes cyan75
+	.hibytes green75
+	.hibytes magenta75
+	.hibytes red75
+	.hibytes blue75
+
+	.hibytes blue75s
+	.hibytes black000s1
+	.hibytes magenta75s
+	.hibytes black000s2
+	.hibytes cyan75s
+	.hibytes black000s3
+	.hibytes white75s
+
+	.hibytes minusi
+	.hibytes white100
+	.hibytes plusq
+	.hibytes black000b1
+	.hibytes black000b
+	.hibytes black000b2
+	.hibytes gray111b
+	.hibytes black000b3
+
+
+white75:
+	.byte $1c
+	.word 0,0,45,160
+yellow75:
+	.byte $f0
+	.word 45,0,46,160
+cyan75:
+	.byte $aa
+	.word 91,0,45,160
+green75:
+	.byte $f1
+	.word 136,0,46,160
+magenta75:
+	.byte $f2
+	.word 182,0,46,160
+red75:
+	.byte $3a
+	.word 228,0,46,160
+blue75:
+	.byte $f3
+	.word 274,0,46,160
+
+blue75s:
+	.byte $f3
+	.word 0,160,45,20
+black000s1:
+	.byte $00
+	.word 45,160,46,20
+magenta75s:
+	.byte $f2
+	.word 91,160,45,20
+black000s2:
+	.byte $00
+	.word 136,160,46,20
+cyan75s:
+	.byte $aa
+	.word 182,160,46,20
+black000s3:
+	.byte $00
+	.word 228,160,46,20
+white75s:
+	.byte $1c
+	.word 274,160,46,20
+
+minusi:
+	.byte $f4
+	.word 0,180,57,60
+white100:
+	.byte $1f
+	.word 57,180,57,60
+plusq:
+	.byte $df
+	.word 114,180,57,60
+black000b1:
+	.byte $00
+	.word 171,180,56,60
+black000b:
+	.byte $10
+	.word 227,180,16,60
+black000b2:
+	.byte $00
+	.word 243,180,15,60
+gray111b:
+	.byte $11
+	.word 258,180,16,60
+black000b3:
+	.byte $00
+	.word 274,180,46,60
+
+
+custom_palette:
+	.word $cc0,$0c0,$c0c,$00c,$024
+
+
 .endproc
 
 .proc clear_buffer: near
