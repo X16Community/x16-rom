@@ -66,6 +66,7 @@ MODIFIER_SHIFT = 1
 .import screen_set_char_color
 .import screen_get_char_color
 .import screen_set_position
+.import screen_get_position
 .import screen_copy_line
 .import screen_clear_line
 .import screen_save_state
@@ -657,7 +658,7 @@ ntcn	ldx insrt
 cnc3y	jmp nc3
 cnc3x	cmp #$14
 	bne ntcn1
-	tya
+cnc3w	tya
 	bne bak1up
 	jsr bkln
 	jmp bk2
@@ -681,7 +682,8 @@ bk2	lda #' '
 	jsr screen_set_char
 	lda color
 	jsr screen_set_color
-	bpl jpl3
+	bmi ntcn1
+	jmp jpl3
 ntcn1	ldx qtsw
 	beq nc3w
 	bit mode
@@ -694,14 +696,35 @@ nc3w	cmp #$12
 	bvs nc1         ;ISO
 	sta rvs
 nc1	cmp #$13
-	bne nc2
+	bne nc15
 	jsr nxtd
 	jmp loop2
-nc2	cmp #$04        ;END
+nc15	cmp #$19        ;DEL (not backspace)
+	bne nc2
+	iny
+	jsr chkdwn
+	sty pntr
+	dey
+	cpy lnmx
+	bcc nc16
+	dec tblx
+	jsr nxln
+	stz pntr
+nc16	ldy pntr
+	jmp cnc3w
+nc2	cmp #$04        ;END (go to end of line)
 	bne nc25
-	stz pntr        ;column
-	lda nlinesm1
-	sta tblx        ;line
+	ldy lnmx
+nc21	jsr screen_get_char
+	cmp #' '
+	bne nc23
+	dey
+	bne nc21
+	dey
+nc23	iny
+	sty pntr        ;column
+	jsr screen_get_position
+	stx tblx        ;row
 	jsr stupt       ;move cursor to tblx,pntr
 	jmp loop2
 nc25	cmp #$1d        ;CSR RIGHT
@@ -907,9 +930,16 @@ nxt6	cmp #$1d
 bakbak	jsr bkln
 	jmp loop2
 nxt61	cmp #$13
-	bne sccl
+	bne shend
 	jsr clsr
 jpl2	jmp loop2
+shend	cmp #$04        ;Shift+End (go to bottom of screen)
+	bne sccl
+	stz pntr        ;column
+	lda nlinesm1
+	sta tblx        ;line
+	jsr stupt       ;move cursor to tblx,pntr
+	jmp loop2
 sccl
 	ora #$80        ;make it upper case
 	jsr chkcol      ;try for color
@@ -1148,7 +1178,7 @@ scrd22
 ;
 ;put a char on the screen
 ;
-dspp	ldy #2
+dspp	ldy #1
 	sty blnct       ;blink cursor
 	ldy pntr
 	jmp screen_set_char_color

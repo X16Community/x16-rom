@@ -18,6 +18,7 @@
 .export screen_set_char_color
 .export screen_get_char_color
 .export screen_set_position
+.export screen_get_position
 .export screen_copy_line
 .export screen_clear_line
 .export screen_save_state
@@ -339,6 +340,16 @@ trows:	.byte  60,  30,  60,  30,  15,  30,  15,  23,  50,  25,  50,  25,  30
 screen_set_position:
 	stz pnt
 	stx pnt+1
+	rts
+
+;---------------------------------------------------------------
+; Retrieve start of line
+;
+;   In:   pmt  line
+;   Out:  .x   line
+;---------------------------------------------------------------
+screen_get_position:
+	ldx pnt+1
 	rts
 
 ;---------------------------------------------------------------
