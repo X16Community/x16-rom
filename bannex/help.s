@@ -24,7 +24,7 @@ uc_address = $42
 	bpl :+
 	eor #$ff
 	inc
-:   cmp #10
+:	cmp #10
 	bcc :+
 	sbc #10
 	iny
@@ -164,7 +164,7 @@ final:
 .proc print_decimal: near
 	ldy #0
 	ldx #0
-:   cmp #100
+:	cmp #100
 	bcc c100
 	sec
 	sbc #100
@@ -182,7 +182,7 @@ c100:
 	pla
 s10:
 	ldy #0
-:   cmp #10
+:	cmp #10
 	bcc c10
 	sec
 	sbc #10
@@ -193,7 +193,7 @@ c10:
 	bne :+
 	cpx #0
 	beq s1
-:   inx
+:	inx
 	pha
 	tya
 	clc
