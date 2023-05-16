@@ -83,6 +83,7 @@ keyhandler2:
 	bne @not_f3
 ; F3
 @scroll_up:
+	jsr clear_cursor
 	jsr cursor_top
 	jsr LB75E
 	lda #0
@@ -95,6 +96,7 @@ keyhandler2:
 
 ; F5
 @scroll_down:
+	jsr clear_cursor
 	jsr cursor_bottom
 	jsr LB75E
 	lda #0
@@ -381,4 +383,22 @@ LB913:	sec
 	dec tmp13
 	bne LB913
 :	rts
+
+clear_cursor:
+ 	lda #$FF
+ 	sta BLNSW
+ 	lda BLNON
+ 	beq LB8EB ; rts
+ 	lda GDBLN
+ 	ldy $380
+ 	jsr jsrfar 
+	.word $CA1C
+	.byt 0
+ 	lda #0
+ 	sta BLNON
+ LB8EB:	rts
+
+ BLNSW = $37b
+ BLNON = $37e
+ GDBLN = $37d
 
