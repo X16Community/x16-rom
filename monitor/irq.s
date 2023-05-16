@@ -1,5 +1,6 @@
 plot = $fff0
 
+.include "keycode.inc"
 .export enable_f_keys
 .export disable_f_keys
 
@@ -45,26 +46,25 @@ keyhandler:
 .segment "monitor"
 
 keyhandler2:
-	bcc :+ ; down
+	and #$ff
+	bpl :+ ; down
+
 @ret:	rts
 :	bit f_keys_disabled
 	bmi @ret
 
-	cpx #0
-	bne @not_prefix_00
-
-	cmp #$05 ; F1
+	cmp #KEYCODE_F1 ; F1
 	beq @eat
-	cmp #$06 ; F2
+	cmp #KEYCODE_F2 ; F2
 	beq @eat
-	cmp #$0C ; F4
+	cmp #KEYCODE_F4 ; F4
 	beq @eat
-	cmp #$0B ; F6
+	cmp #KEYCODE_F6 ; F6
 	beq @eat
-	cmp #$0A ; F8
+	cmp #KEYCODE_F8 ; F8
 	beq @eat
 
-	cmp #$83
+	cmp #KEYCODE_F7
 	bne @not_f7
 
 	lda #'@'
@@ -79,7 +79,7 @@ keyhandler2:
 	rts
 
 @not_f7:
-	cmp #4 ; F3
+	cmp #KEYCODE_F3 ; F3
 	bne @not_f3
 ; F3
 @scroll_up:
@@ -90,8 +90,9 @@ keyhandler2:
 	rts
 
 @not_f3:
-	cmp #3 ; F5
-	bne @ret2
+	cmp #KEYCODE_F5 ; F5
+	bne @not_f5
+
 ; F5
 @scroll_down:
 	jsr cursor_bottom
@@ -103,11 +104,8 @@ keyhandler2:
 @ret2:	clc
 	rts
 
-@not_prefix_00:
-	cpx #$e0
-	bne @ret2
-
-	cmp #$72 ; DOWN
+@not_f5:
+	cmp #KEYCODE_DOWNARROW ; DOWN
 	bne @not_down
 
 	pha
@@ -122,7 +120,7 @@ keyhandler2:
 	bra @scroll_down
 
 @not_down:
-	cmp #$75 ; UP
+	cmp #KEYCODE_UPARROW ; UP
 	bne @ret2
 
 	pha
