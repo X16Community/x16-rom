@@ -386,19 +386,20 @@ LB913:	sec
 
 clear_cursor:
  	lda #$FF
- 	sta BLNSW
- 	lda BLNON
+ 	sta k_blnsw
+ 	lda k_blnon
  	beq LB8EB ; rts
- 	lda GDBLN
- 	ldy $380
+ 	lda k_gdbln
+ 	ldy k_pntr
  	jsr jsrfar 
-	.word $CA1C
-	.byt 0
+	.word k_screen_set_char
+	.byt BANK_KERNAL
  	lda #0
- 	sta BLNON
+ 	sta k_blnon
  LB8EB:	rts
 
- BLNSW = $37b
- BLNON = $37e
- GDBLN = $37d
-
+.import k_blnsw
+.import k_blnon
+.import k_gdbln
+.import k_pntr
+.import k_screen_set_char
