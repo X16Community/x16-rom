@@ -118,15 +118,19 @@ indx	.res 1           ;$C8
 lsxp	.res 1           ;$C9 x pos at start
 lstp	.res 1           ;$CA
 .assert * = $037B, error, "cc65 depends on CURS_FLAG = $037B, change with caution"
+.assert * = $037B, error, "a hack in monitor/irq.s depends on BLNSW = $037B."
 blnsw	.res 1           ;$CC cursor blink enab
 .assert * = $037C, error, "cc65 depends on CURS_BLINK = $037C, change with caution"
 blnct	.res 1           ;$CD count to toggle cur
 .assert * = $037D, error, "cc65 depends on CURS_CHAR = $037D, change with caution"
+.assert * = $037D, error, "a hack in monitor/irq.s depends on GDBLN = $037D."
 gdbln	.res 1           ;$CE char before cursor
 .assert * = $037E, error, "cc65 depends on CURS_STATE = $037E, change with caution"
+.assert * = $037E, error, "a hack in monitor/irq.s depends on BLNON = $037E."
 blnon	.res 1           ;$CF on/off blink flag
 crsw	.res 1           ;$D0 input vs get flag
 .assert * = $0380, error, "cc65 depends on CURS_X = $0380, change with caution"
+.assert * = $0380, error, "a hack in monitor/irq.s depends on PNTR = $0380"
 pntr	.res 1           ;$D3 pointer to column
 qtsw	.res 1           ;$D4 quote switch
 lnmx	.res 1           ;$D5 40/80 max positon

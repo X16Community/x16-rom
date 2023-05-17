@@ -385,20 +385,23 @@ LB913:	sec
 :	rts
 
 clear_cursor:
- 	lda #$FF
- 	sta BLNSW
- 	lda BLNON
- 	beq LB8EB ; rts
- 	lda GDBLN
- 	ldy $380
- 	jsr jsrfar 
-	.word $CA1C
+	lda #$FF
+	sta BLNSW
+	lda BLNON
+	beq LB8EB ; rts
+	lda GDBLN
+	ldy PNTR
+	; XXX we should remove this hack after refactoring
+	; XXX how the monitor's navigation works
+	; -MooingLemur 2023-05-16
+	jsr jsrfar
+	.word $CA1C ; screen_set_char
 	.byt 0
- 	lda #0
- 	sta BLNON
+	lda #0
+	sta BLNON
  LB8EB:	rts
 
  BLNSW = $37b
  BLNON = $37e
  GDBLN = $37d
-
+ PNTR = $380
