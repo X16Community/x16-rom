@@ -104,6 +104,9 @@ This is the second release of x16-rom by the X16Community team
 		* Bugfix: fix joysticks always being detected
 	* Editor/Display
 		* New bordered screen modes to support CRTs
+		* New behavior for the END key. END will go to the end of the current line. Shift+END will go to the last line on the screen.
+		* PS/2 Delete key now deletes the character underneath the cursor.
+		* Blinking cursor should be more visible during movement.
 		* Support for automatically setting 240p in NTSC and RGB modes for screen modes that are scaled 2x vertically.
 		* New skinny PET style PETSCII and ISO charsets.
 		* Replace bold ISO charset [akumanatt]
@@ -124,7 +127,7 @@ This is the second release of x16-rom by the X16Community team
 			* `LINPUT` - Read line from keyboard
 			* `LINPUT#` - Read delimited data from file
 			* `BINPUT#` - Read fixed-length data from file
-			* `HELP` - Show short help blurb.
+			* `HELP` - Show short help blurb and hardware versions.
 		* New functions:
 			* `POINTER()` - return pointer to variable structure
 			* `STRPTR()` - return pointer to string variable's data
