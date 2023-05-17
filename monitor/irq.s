@@ -75,7 +75,6 @@ keyhandler2:
 	jsr kbdbuf_put
 
 @eat:	lda #0
-	clc
 	rts
 
 @not_f7:
@@ -87,7 +86,6 @@ keyhandler2:
 	jsr cursor_top
 	jsr LB75E
 	lda #0
-	clc
 	rts
 
 @not_f3:
@@ -100,11 +98,9 @@ keyhandler2:
 	jsr cursor_bottom
 	jsr LB75E
 	lda #0
-	clc
 	rts
 
-@ret2:	clc
-	rts
+@ret2:	rts
 
 @not_f5:
 	cmp #KEYCODE_DOWNARROW ; DOWN
@@ -135,8 +131,6 @@ keyhandler2:
 
 @restore:
 	pla
-	ldx #$e0
-	clc
 	rts
 
 cursor_top:
