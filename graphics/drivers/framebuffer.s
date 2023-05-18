@@ -384,24 +384,42 @@ fill_y:	sta VERA_DATA0
 	bne fill_y
 	rts
 
+
+FP_LUT_H: .byte $00, $00, $00, $00, $00, $00, $00, $01, $02, $00, $00, $00, $01 ;$02 at the end, removed as it can overlap with next byte
+FP_LUT_L: .byte $02, $04, $08, $10, $20, $40, $80, $00, $00, $28, $50, $A0, $40, $80
+
 fill_pixels_with_step:
+	; Look for accelerated values: 2, 4, 8, 16, 32, 64, 128, 256, 512, 40, 80, 160, 320, 640
+	; Implementation: Inverse table lookup (size optimized)
 
-	; Is the step size equal to 320?
-	cpy #(320 >> 8)
-	bne fill_pixels_non_accelerated
-	cpx #(320 - 256)
-	bne fill_pixels_non_accelerated
+	pha
+	txa
+	ldy #14
+@1:
+	dey
+	bmi fill_pixels_non_accelerated_pla
+	cmp FP_LUT_L,y ; Check low byte
+	bne @1
+	ldx FP_LUT_H,y ; Check high byte
+	cpx r1H
+	bne @1
 
-	; Step size is 320, fill using HW accelerated increment setting in VERA
-
-	; Temporarily set ADDR_H to use increment 14 (320)
-	tay
-	lda VERA_ADDR_H
-	and #$01
-	ora #$E0
-	sta VERA_ADDR_H
+	; match to an accelerated value
 	tya
+	inc
+	inc
+	asl
+	asl
+	asl
+	asl
+	eor #$10
 
+	; NB: This optimization assumes that increment is initially set to 1, and that decrement is set to 0
+	eor VERA_ADDR_H
+	sta VERA_ADDR_H
+
+	; restore A (color)
+	pla
 	jsr fill_pixels_hw_accelerated
 
 fill_pixels_reset_increment_and_rts:
@@ -412,8 +430,9 @@ fill_pixels_reset_increment_and_rts:
 	sta VERA_ADDR_H
 	rts
 
-fill_pixels_non_accelerated:
 
+fill_pixels_non_accelerated_pla:
+	pla
 	tay
 
 	; temporarily set increment to 0
