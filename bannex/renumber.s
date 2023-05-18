@@ -4,6 +4,8 @@ gosutk = $8d
 runtk  = $8a
 thentk = $a7
 
+esctk = $ce
+
 ram_bank = 0
 rom_bank = 1
 
@@ -57,7 +59,12 @@ openquote:
 	cmp #'"' ; close quote
 	bne openquote
 	bra culoop
+skiptk:
+	iny
+	bra culoop
 tokenchk:
+	cmp #esctk
+	beq skiptk
 	cmp #gototk
 	beq istoken
 	cmp #gosutk
@@ -317,7 +324,12 @@ openquote:
 	cmp #'"' ; close quote
 	bne openquote
 	bra tagloop
+skiptk:
+	iny
+	bra tagloop
 tokenchk:
+	cmp #esctk
+	beq skiptk
 	cmp #gototk
 	beq istoken
 	cmp #gosutk
@@ -599,7 +611,12 @@ openquote:
 	cmp #'"' ; close quote
 	bne openquote
 	bra tagloop
+skiptk:
+	iny
+	bra tagloop
 tokenchk:
+	cmp #esctk
+	beq skiptk
 	cmp #gototk
 	beq istoken
 	cmp #gosutk
