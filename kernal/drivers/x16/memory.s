@@ -307,7 +307,8 @@ __banked_nmi:
 
 
 .segment "VECB0"
-; This is a routine in ROM that responds (or not) to a keystroke from the editor
+; This is a routine in RAM that calls another routine
+; that responds (or not) to a keystroke from the editor
 callkbvec:
 	jsr jsrfar
 .assert * = edkeyvec, error, "edkeyvec not found in memory where it's supposed to be"
