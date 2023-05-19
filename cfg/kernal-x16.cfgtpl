@@ -55,6 +55,7 @@ SEGMENTS {
 	VERA_DRV: load = KERNAL,   type = ro;
 	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
+	VECB0:    load = KERNAL,   run = VECB0, type = ro, define = yes;
 	JMPTBL:   load = JMPTBL,   type = ro;
 	VECTORS:  load = VECTORS,  type = ro;
 }

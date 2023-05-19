@@ -30,6 +30,10 @@ status     = $029F
 imparm     = $E2
 .endif
 
+; editor keystroke vectors (currently used by MONITOR)
+edkeyvec   = $ac03
+edkeybk    = $ac05
+
 ; RAM banks
 ; 0:   KVARS
 ; 1-9: GEOS BG SCREEN (320x200) [not currently enabled]
