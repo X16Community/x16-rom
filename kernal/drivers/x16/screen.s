@@ -444,7 +444,6 @@ screen_set_color:
 ;         pnt      line location
 ;   Out:  -
 ;---------------------------------------------------------------
-.assert * = $CA1C, error, "a hack in monitor/irqs depends on screen_set_char = $CA1C"
 screen_set_char:
 	pha
 	phx ; preserve X

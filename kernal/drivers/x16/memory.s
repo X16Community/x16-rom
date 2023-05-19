@@ -9,9 +9,12 @@
 .import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KVARSB0_LOAD__, __KVARSB0_RUN__, __KVARSB0_SIZE__
+.import __VECB0_LOAD__, __VECB0_RUN__, __VECB0_SIZE__
 .import memtop
 .import membot
 .import nminv
+
+.import defcb
 
 .import ieeeswitch_init
 
@@ -24,6 +27,8 @@
 .export indfet
 .export stash
 .export stavec
+
+.export callkbvec
 
 .export jsrfar
 
@@ -87,6 +92,15 @@ ramtas:
 	ldx #<__KERNRAM2_SIZE__
 :	lda __KERNRAM2_LOAD__-1,x
 	sta __KERNRAM2_RUN__-1,x
+	dex
+	bne :-
+
+;
+; copy editor basin vectoring code (and perhaps other extended vectors)
+;
+	ldx #<__VECB0_SIZE__
+:	lda __VECB0_LOAD__-1,x
+	sta __VECB0_RUN__-1,x
 	dex
 	bne :-
 
@@ -291,6 +305,18 @@ __banked_nmi:
 	stz rom_bank
 	jmp (nminv)
 
+
+.segment "VECB0"
+; This is a routine in RAM that calls another routine
+; that responds (or not) to a keystroke from the editor
+callkbvec:
+	jsr jsrfar
+.assert * = edkeyvec, error, "edkeyvec not found in memory where it's supposed to be"
+	.word defcb
+.assert * = edkeybk, error, "edkeybk not found in memory where it's supposed to be"
+	.byte 0
+
+	rts
 
 .segment "MEMDRV"
 
