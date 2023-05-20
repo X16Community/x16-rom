@@ -47,30 +47,54 @@ joystick_scan:
 	and #$ff-bit_data1-bit_data2-bit_data3-bit_data4
 	ora #bit_latch+bit_jclk
 	sta nes_ddr
-	lda #bit_latch+bit_jclk
+	lda #bit_latch
 	trb nes_data
+	lda #bit_jclk
+	tsb nes_data
 
 	; pulse latch
 	lda #bit_latch
 	tsb nes_data
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
 	trb nes_data
 
 	; read 3x 8 bits
 	ldx #0
 l2:	ldy #8
-l1:	lda nes_data
-	rol
-	rol joy1,x ;If top bit was set, carry will be set rotate that into joy1
-	rol
-	rol joy2,x ;rol into joy2
-	rol
-	rol joy3,x
-	rol
-	rol joy4,x
+l1:	lda #bit_jclk
+	trb nes_data  ; Drive NES clock low (NES controller doesn't change when low)
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
 
+	lda nes_data ; Read all controller bits
+	pha
 	lda #bit_jclk
-	tsb nes_data
-	trb nes_data
+	tsb nes_data ; Drive NES clock high
+	pla
+
+				; process while NES clock is high (bits change)
+	rol        ; Move bit 7 into C
+	rol joy1,x ; Roll C into joy1
+	rol        ; Move bit 6 into C
+	rol joy2,x ; Roll C into joy2
+	rol        ; Roll bit 5 into C
+	rol joy3,x ; Roll C into joy3
+	rol        ; Roll bit 4 into C
+	rol joy4,x ; Roll C into joy4
+
 	dey
 	bne l1
 	inx
