@@ -70,14 +70,6 @@ joystick_scan:
 l2:	ldy #8
 l1:	lda #bit_jclk
 	trb nes_data  ; Drive NES clock low (NES controller doesn't change when low)
-	pha
-	pla
-	pha
-	pla
-	pha
-	pla
-	pha
-	pla
 
 	lda nes_data ; Read all controller bits
 	pha
@@ -222,7 +214,7 @@ joystick_from_ps2:
 
 	; Clear up/down bit
 	and #$7f
-	
+
 	; Search key code table 0
 	ldx #intab0_len
 :	cmp intab0-1,x
@@ -296,7 +288,7 @@ C_A  = 128
 outtab0:
 	.byte C_RT, C_LT, C_DN, C_UP
 	.byte C_ST, C_SL, C_Y, C_B
-	.byte C_B	
+	.byte C_B
 
 outtab1:
 	.byte C_R, C_L, C_X, C_A
