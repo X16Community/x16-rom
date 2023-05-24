@@ -421,7 +421,11 @@ fill_pixels_non_accelerated:
 	trb VERA_ADDR_H
 
 	ldx r0L
+	beq @1
+	; Increment r0H, as the outer loop terminates when decrementing it to 0.
+	; Skip if r0L is 0, as the inner loop decrements until it becomes 0.
 	inc r0H
+@1:
 	clc
 
 	; increment larger than 255?
