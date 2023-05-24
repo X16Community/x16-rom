@@ -71,7 +71,3 @@ jmp (I_FB_set_8_pixels_opaque)  ;C057
 jmp (I_FB_fill_pixels)          ;C05A
 jmp (I_FB_filter_pixels)        ;C05D
 jmp (I_FB_move_pixels)          ;C060
-
-.include "banks.inc"
-.segment "VECTORS" 
- .byt <banked_nmi, >banked_nmi, $ff, $ff, <banked_irq, >banked_irq
