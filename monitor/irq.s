@@ -1,6 +1,5 @@
 plot = $fff0
 
-.include "keycode.inc"
 .export enable_f_keys
 .export disable_f_keys
 .export enable_basin_callback
