@@ -3,6 +3,7 @@ plot = $fff0
 .include "keycode.inc"
 .export enable_f_keys
 .export disable_f_keys
+.export enable_basin_callback
 
 .import decode_mnemo
 
@@ -10,61 +11,55 @@ plot = $fff0
 ; Handle F keys and scrolling
 ; ----------------------------------------------------------------
 enable_f_keys:
-	sei
-	lda $032e
-	sta irq_lo
-	lda $032f
-	sta irq_hi
-	lda #<keyhandler
-	sta $032e
-	lda #>keyhandler
-	sta $032f
-	cli
+	stz f_keys_disabled
 	rts
 
 disable_f_keys:
+	lda #$ff
+	sta f_keys_disabled
+	rts
+
+enable_basin_callback:
+	lda ram_bank
+	pha
+	stz ram_bank
+	php
 	sei
-	lda irq_lo
-	sta $032e
-	lda irq_hi
-	sta $032f
-	cli
+	lda #<keyhandler
+	sta edkeyvec
+	lda #>keyhandler
+	sta edkeyvec+1
+	lda #BANK_MONITOR
+	sta edkeybk
+	plp
+	pla
+	sta ram_bank
 	rts
 
 .segment "monitor_ram_code"
 
-keyhandler:
-	ldy rom_bank
-	phy
-	ldy #BANK_MONITOR
-	sty rom_bank
-	jsr keyhandler2
-	ply
-	sty rom_bank
+dummy_func:
 	rts
 
 .segment "monitor"
 
-keyhandler2:
-	and #$ff
-	bpl :+ ; down
+keyhandler:
+	bit f_keys_disabled
+	bmi @unhandled
+	bcs @affirm_handle
 
-@ret:	rts
-:	bit f_keys_disabled
-	bmi @ret
-
-	cmp #KEYCODE_F1 ; F1
+	cmp #PETSCII_CODE_F1
 	beq @eat
-	cmp #KEYCODE_F2 ; F2
+	cmp #PETSCII_CODE_F2
 	beq @eat
-	cmp #KEYCODE_F4 ; F4
+	cmp #PETSCII_CODE_F4
 	beq @eat
-	cmp #KEYCODE_F6 ; F6
+	cmp #PETSCII_CODE_F6
 	beq @eat
-	cmp #KEYCODE_F8 ; F8
+	cmp #PETSCII_CODE_F8
 	beq @eat
 
-	cmp #KEYCODE_F7
+	cmp #PETSCII_CODE_F7
 	bne @not_f7
 
 	lda #'@'
@@ -74,12 +69,17 @@ keyhandler2:
 	lda #CR
 	jsr kbdbuf_put
 
+@affirm_handle:
 @eat:	lda #0
 	clc
 	rts
 
+@unhandled:
+	sec
+	rts
+
 @not_f7:
-	cmp #KEYCODE_F3 ; F3
+	cmp #PETSCII_CODE_F3
 	bne @not_f3
 ; F3
 @scroll_up:
@@ -90,7 +90,7 @@ keyhandler2:
 	rts
 
 @not_f3:
-	cmp #KEYCODE_F5 ; F5
+	cmp #PETSCII_CODE_F5
 	bne @not_f5
 
 ; F5
@@ -105,7 +105,7 @@ keyhandler2:
 	rts
 
 @not_f5:
-	cmp #KEYCODE_DOWNARROW ; DOWN
+	cmp #PETSCII_CODE_DOWN
 	bne @not_down
 
 	pha
@@ -120,7 +120,7 @@ keyhandler2:
 	bra @scroll_down
 
 @not_down:
-	cmp #KEYCODE_UPARROW ; UP
+	cmp #PETSCII_CODE_UP
 	bne @ret2
 
 	pha
@@ -381,4 +381,3 @@ LB913:	sec
 	dec tmp13
 	bne LB913
 :	rts
-

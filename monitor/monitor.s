@@ -36,6 +36,7 @@
 .feature labels_without_colons
 
 .include "kernal.i"
+.include "petsciicode.inc"
 
 ; common
 .export get_hex_byte
@@ -299,15 +300,15 @@ print_cr_then_input_loop
 input_loop:
 	ldx reg_s
 	txs
-	lda #0
-	sta disable_f_keys
 	jsr print_cr_dot
 input_loop2:
+	jsr enable_basin_callback
+input_loop2a:
 	jsr basin_if_more
 	cmp #'.'
-	beq input_loop2 ; skip dots
+	beq input_loop2a ; skip dots
 	cmp #' '
-	beq input_loop2 ; skip spaces
+	beq input_loop2a ; skip spaces
 	ldx #command_names_end - command_names - 1
 LAC27:	cmp command_names,x
 	bne LAC3B

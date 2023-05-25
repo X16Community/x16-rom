@@ -56,6 +56,8 @@ MODIFIER_SHIFT = 1
 .export tblx
 .export pntr
 
+.export defcb
+
 ; screen driver
 .import screen_mode
 .import screen_set_charset
@@ -85,6 +87,8 @@ MODIFIER_SHIFT = 1
 .import emulator_get_data
 
 .import fetch_keymap_from_nvram
+
+.import callkbvec
 
 .include "banks.inc"
 .include "mac.inc"
@@ -196,7 +200,8 @@ cint	jsr iokeys
 ;
 	jsr panic       ;set up vic
 
-	; XXX this is too specific
+	; this is likely going to be overridden almost immediately
+	; if the call to cint is part of init at reset
 	lda #0          ;80x60
 	clc
 	jsr screen_mode ;set screen mode to default
@@ -275,8 +280,7 @@ loop4	jsr prt
 loop3
 	lda ram_bank    ;Check if 40/80 column modifier key bit is set
 	pha
-	lda #BANK_KERNAL
-	sta ram_bank
+	stz ram_bank
 	lda shflag
 	and #MODIFIER_4080
 	beq loop3b
@@ -288,10 +292,6 @@ loop3
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
-	tsx
-	lda $106,x
-	cmp #4 ; only if we came from BASIC do we print READY.
-	beq doredy
 	bra loop3b
 scrpnc
 	; screen panic, cycle through VGA/composite/RGB modes
@@ -309,18 +309,32 @@ scrpnc
 	sta VERA_DC_VIDEO
 	bra loop3b
 
-doredy
-	ldx #0          ;Print READY.
-:	lda redy,x
-	beq loop3b
-	jsr prt
-	inx
-	bra :-
-redy:	.byte "READY.", 13, 0
-
 loop3b:	pla
 	sta ram_bank
 	jsr kbdbuf_get
+	beq nochr
+	pha
+	KVARS_START_TRASH_X_NZ
+	sec
+	jsr callkbvec
+	KVARS_END_TRASH_X_NZ
+	bcs nokbo ; no override wanted, continue as normal
+	jsr clear_cursor
+	pla
+	KVARS_START_TRASH_X_NZ
+	clc
+	jsr callkbvec ; allow override
+	KVARS_END_TRASH_X_NZ
+	pha
+	lda #1
+	sta blnct
+	php
+	sei
+	jsr cursor_blink
+	plp
+nokbo
+	pla
+nochr
 	sta blnsw
 	sta autodn      ;turn on auto scroll down
 .ifp02
@@ -466,6 +480,19 @@ lop53
 	bne clp1
 clp2	lda #0
 	sta crsw
+	; we're almost done here so we need to
+	; reset the keystroke callback vectors to defaults
+	lda ram_bank
+	pha
+	stz ram_bank
+	stz edkeybk ; bank
+	lda #<defcb
+	sta edkeyvec ; low
+	lda #>defcb
+	sta edkeyvec+1 ; high
+	pla
+	sta ram_bank
+
 	lda #$d
 	ldx dfltn       ;fix gets from screen
 	cpx #3          ;is it the screen?
@@ -1228,6 +1255,23 @@ check_charset_switch:
 	sta mode
 	jmp screen_set_charset
 @skip	rts
+
+
+defcb: ; default basin callback vector
+	sec
+	rts
+
+clear_cursor:
+	lda #$FF
+	sta blnsw
+	lda blnon
+	beq @1 ; rts
+	lda gdbln
+	ldy pntr
+	jsr screen_set_char
+	lda #0
+	sta blnon
+@1:	rts
 
 runtb	.byt "LOAD",$d,"RUN:",$d
 runtb_end:
