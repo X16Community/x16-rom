@@ -1,7 +1,7 @@
 
-                                ; PS/2                      PS/2                            USB         In US keyboard
-                                ; Set 1                     Set 2                           HID         layout
-                                ; -------------------------------------------------------------------------------------
+;		    IBM		  PS/2                      PS/2                            USB         Keycap in US
+; 		    keynumber	  Set 1                     Set 2                           HID         keyboard layout
+; ----------------------------------------------------------------------------------------------------------------------
 
 KEYCODE_BACKTICK    = $01       ; 29                        0E                              07 35       `
 KEYCODE_1           = $02       ; 02                        16                              07 1E       1
@@ -64,6 +64,7 @@ KEYCODE_SPACE       = $3D       ; 39                        29                  
 KEYCODE_RALT        = $3E       ; E0 38                     E0 11                           07 E6       Right Alt
 KEYCODE_RGUI        = $3F       ; E0 5C                     E0 27                           07 E7       Right GUI
 KEYCODE_RCTRL       = $40       ; E0 1D                     E0 14                           07 E4       Right Ctrl
+KEYCODE_MENU        = $41       ; ---			    E0 2F			    07 76	Menu
 KEYCODE_INSERT      = $4B       ; E0 52                     E0 70                           07 49       Insert
 KEYCODE_DELETE      = $4C       ; E0 4B                     E0 71                           07 4C       Delete
 KEYCODE_LEFTARROW   = $4F       ; E0 4B                     E0 6B                           07 50       Left Arrow
