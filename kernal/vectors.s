@@ -27,9 +27,11 @@
 
 .import entropy_get
 
-.import restor, memtop, membot, vector, puls, start, nmi, iobase, primm
+.import restor, memtop, membot, vector, start, iobase, primm
 
 .import savehl
+
+.include "banks.inc"
 
 	.segment "JMPTBL"
 
@@ -191,5 +193,5 @@ jiobas	jmp iobase      ;return i/o base
 	.segment "VECTORS"
 	.word nmi        ;program defineable
 	.word start      ;initialization code
-	.word puls       ;interrupt handler
+	.word irq        ;interrupt handler
 

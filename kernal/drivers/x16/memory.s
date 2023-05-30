@@ -13,6 +13,8 @@
 .import memtop
 .import membot
 .import nminv
+.import cinv
+.import cbinv
 
 .import defcb
 
@@ -205,28 +207,29 @@ __jmpfr:
 
 .segment "KERNRAM2"
 
-.assert * = banked_irq, error, "banked_irq must be at specific address"
-.export __banked_irq
-__banked_irq:
+.assert * = irq, error, "irq must be at specific address"
+.export __irq
+__irq:
 	pha
-	phx
 	lda rom_bank    ;save ROM bank
 	pha
-	lda #BANK_KERNAL
-	sta rom_bank
-	lda #>@l1       ;put RTI-style
+	stz rom_bank	;set KERNAL bank
+	lda #>__irq_ret ;put RTI-style
 	pha             ;return-address
-	lda #<@l1       ;onto the
+	lda #<__irq_ret ;onto the
 	pha             ;stack
+	php
+
+	pha		;set up CBM IRQ stack frame
+	phx
+	phy
 	tsx
-	lda $0106,x     ;fetch status
-	pha             ;put it on the stack at the right location
-	jmp ($fffe)     ;execute other bank's IRQ handler
-@l1:	pla
-	sta rom_bank    ;restore ROM bank
-	plx
-	pla
-	rti
+	lda $109,x      ;get old p status
+	and #$10        ;break flag?
+	bne __brk       ;...yes
+	jmp (cinv)      ;...no...irq
+
+	.res 2
 
 .segment "MEMDRV"
 
@@ -297,14 +300,22 @@ __stavec	=*+1
 	stx ram_bank
 	rts
 
-.assert * = banked_nmi, error, "banked_nmi must be at specific address"
-__banked_nmi:
+.assert * = nmi, error, "nmi must be at specific address"
+__nmi:
 	pha
 	lda rom_bank
 	pha
 	stz rom_bank
 	jmp (nminv)
 
+__brk:
+	jmp (cbinv)
+
+__irq_ret:
+	pla
+	sta rom_bank    ;restore ROM bank
+	pla
+	rti
 
 .segment "VECB0"
 ; This is a routine in RAM that calls another routine

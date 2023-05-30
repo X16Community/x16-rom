@@ -8,7 +8,7 @@
 
 .import dfltn, dflto, kbd_scan, clock_update, cinv, cbinv
 
-.export puls, key
+.export key
 
 .segment "IRQ"
 
@@ -23,32 +23,6 @@
 .include "banks.inc"
 
 rom_bank = 1
-
-
-; puls - checks for real irq's or breaks
-;
-puls	pha
-	lda rom_bank
-	beq :+
-	pla
-	jmp banked_irq
-:
-.ifp02
-	txa
-	pha
-	tya
-	pha
-	cld
-.else
-	phx
-	phy
-.endif
-	tsx
-	lda $104,x      ;get old p status
-	and #$10        ;break flag?
-	beq puls1       ;...no
-	jmp (cbinv)     ;...yes...break instr
-puls1	jmp (cinv)      ;...irq
 
 ; VBLANK IRQ handler
 ;

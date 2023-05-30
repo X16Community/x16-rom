@@ -545,11 +545,3 @@ dos_macptr:
 
 @1:	sec ; error: unsupported
 	bra @end
-
-
-;---------------------------------------------------------------
-.segment "IRQB"
-	.word banked_nmi
-	.word $ffff
-	.word banked_irq
-

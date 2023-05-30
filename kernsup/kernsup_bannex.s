@@ -33,7 +33,3 @@ bajsrfar:
 .include "kernsup.inc"
 
 	.byte 0, 0, 0, 0 ; signature
-
-	.word banked_nmi ; nmi
-	.word $ffff ; reset
-	.word banked_irq

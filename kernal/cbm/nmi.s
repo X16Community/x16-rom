@@ -11,15 +11,9 @@ monitor = $fecc
 .import enter_basic, cint, ioinit, restor, nminv
 .import call_audio_init, screen_set_defaults_from_nvram
 
-.export nmi, nnmi, timb
+.export nnmi, timb
 
 .segment "NMI"
-
-; sets up the stack just like the RAM trampoline does
-nmi	pha
-	lda rom_bank
-	pha
-	jmp (nminv)
 
 ; warm reset, ctrl+alt+restore, default value for (nminv)
 nnmi	jsr ioinit           ;go initilize i/o devices
