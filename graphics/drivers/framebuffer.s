@@ -330,7 +330,7 @@ FB_set_8_pixels_opaque:
 FB_fill_pixels:
 	ldx r1L
 	ldy r1H
-	bne fill_pixels_step_256_or_more
+	bne fill_pixels_step_256_or_more_jmp
 	cpx #2
 	bcs fill_pixels_step_below_256
 
@@ -384,46 +384,102 @@ fill_y:	sta VERA_DATA0
 	bne fill_y
 	rts
 
-
-	; Look for accelerated values: 2, 4, 8, 16, 32, 64, 128, 256, 512, 40, 80, 160, 320, 640
-	; Implementation: Lookup table, 3 x 256 bytes (speed optimized)
-fill_pixels_step_256_or_more:
-
-	dey
-	beq below512
-	dey
-	beq below768
-	tay
-	bra fill_pixels_non_accelerated
+fill_pixels_step_256_or_more_jmp:
+	jmp fill_pixels_step_256_or_more
+fill_pixels_non_accelerated_jmp:
+	jmp fill_pixels_non_accelerated
 
 fill_pixels_step_below_256:
-	tay
-	lda LUT1,x
-	bne fill_pixels_accelerated_custom_step_no_shift
-	bra fill_pixels_non_accelerated
+	; Binary search algorithm
+	; Tradeoff between speed and code size
+	; Look for these values: 2 4 8 16 32 40 64 80 128 160
+	; 2 4   8 16 32 40 64 80 128 160
+	; 2   4   8 16 32 40   64 80 128 160
+	; 2   4   8 16   32 40   64 80   128 160
 
-below512:
 	tay
-	lda LUT2,x
-	bne fill_pixels_accelerated_custom_step_no_shift
-	bra fill_pixels_non_accelerated
+	; 2-4 or 8-16-32-40-64-80-128-160
+	cpx #8
+	bcs is8OrLarger
+	; 2-4
+	cpx #2
+	beq is2
+	cpx #4
+	bne fill_pixels_non_accelerated_skip_tay
 
-below768:
-	tay
-	lda LUT3,x
-	bne fill_pixels_accelerated_custom_step_no_shift
-	bra fill_pixels_non_accelerated
+	; is4
+	lda #((3 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is2:
+	lda #((2 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
 
-fill_pixels_accelerated_custom_step_no_shift:
+is8OrLarger:
+	; 8-16-32-40 or 64-80-128-160
+	cpx #64
+	bcs is64OrLarger
+	; check 8-16 or 32-40
+	cpx #32
+	bcs is32OrLarger
+	; 8-16
+	cpx #8
+	beq is8
+	cpx #16
+	bne fill_pixels_non_accelerated
+	; is16
+	lda #((5 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is8:
+	lda #((4 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is32OrLarger:
+	; 32-40
+	; cpx #32 not necessary to repeat
+	beq is32
+	cpx #40
+	bne fill_pixels_non_accelerated
+	; is40
+	lda #((11 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is32:
+	lda #((6 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is64OrLarger:
+	; 64-80-128-160
+	cpx #128
+	bcs is128OrLarger
+	; 64-80
+	cpx #64
+	beq is64
+	cpx #80
+	bne fill_pixels_non_accelerated
+	; is80
+	lda #((12 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is64:
+	lda #((7 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is128OrLarger:
+	; 128-160
+	; cpx #128 not necessary to repeat
+	beq is128
+	cpx #160
+	bne fill_pixels_non_accelerated
+	; is160
+	lda #((13 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is128:
+	lda #((8 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
 
 	; NB: This optimization assumes that increment is initially set to 1, and that decrement is set to 0
-	eor #$10
+fill_pixels_accelerated_custom_step:
 	eor VERA_ADDR_H
 	sta VERA_ADDR_H
-
-	; restore A (color)
 	tya
-
 	jsr fill_pixels_hw_accelerated
 
 fill_pixels_reset_increment_and_rts:
@@ -435,7 +491,8 @@ fill_pixels_reset_increment_and_rts:
 	rts
 
 fill_pixels_non_accelerated:
-	; color in y
+	tay
+fill_pixels_non_accelerated_skip_tay:
 
 	; temporarily set increment to 0
 	lda #$FE
@@ -508,59 +565,46 @@ fill_pixels_non_accelerated_16bit:
 	clc
 	bra @resumeLoop16
 
-LUT1:
-	.byte $00,$10,$20,$00,$30,$00,$00,$00,$40,$00,$00,$00,$00,$00,$00,$00 ; $00  (1-2-4-8)
-	.byte $50,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $10  (16)
-	.byte $60,$00,$00,$00,$00,$00,$00,$00,$B0,$00,$00,$00,$00,$00,$00,$00 ; $20  (32-40)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $30
-	.byte $70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $40  (64)
-	.byte $C0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $50  (80)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $60
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $70
-	.byte $80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $80  (128)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $90
-	.byte $D0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $A0  (160)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $B0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $C0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $D0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $E0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $F0
 
-LUT2:
-	.byte $90,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $00  (256)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $10
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $20
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $30
-	.byte $E0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $40  (320)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $50
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $60
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $70
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $80
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $90
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $A0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $B0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $C0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $D0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $E0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $F0
 
-LUT3:
-	.byte $A0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $00  (512)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $10
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $20
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $30
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $40
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $50
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $60
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $70
-	.byte $F0,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $80  (640)
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $90
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $A0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $B0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $C0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $D0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $E0
-	.byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 ; $F0
+fill_pixels_step_256_or_more:
+	; Look for accelerated values: 256, 512, 320, 640 (0x0100 0x0200 0x0140 0x0280)
+	dey
+	beq isBelow512
+	dey
+	bne fill_pixels_non_accelerated
+	; 512-767
+	tay
+
+	; is 640? (0x280)
+	cpx #$80
+	beq is640
+	; is 512? (0x200)
+	cpx #$00
+	bne fill_pixels_non_accelerated_skip_tay
+	; 512
+	lda #((10 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+is640:
+	lda #((15 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+
+isBelow512:
+	; 256-511
+	tay
+	; is 320? (0x140)
+	cpx #$40
+	beq is320
+	; is 256? (0x100)
+	cpx #$00
+	bne fill_pixels_non_accelerated_skip_tay
+	; 256
+	lda #((9 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+is320:
+	; 320
+	lda #((14 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
 
 
 ;---------------------------------------------------------------
