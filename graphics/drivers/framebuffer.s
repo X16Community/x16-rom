@@ -330,9 +330,9 @@ FB_set_8_pixels_opaque:
 FB_fill_pixels:
 	ldx r1L
 	ldy r1H
-	bne fill_pixels_with_step
+	bne fill_pixels_step_256_or_more_jmp
 	cpx #2
-	bcs fill_pixels_with_step
+	bcs fill_pixels_step_below_256
 
 fill_pixels_hw_accelerated:
 
@@ -384,24 +384,102 @@ fill_y:	sta VERA_DATA0
 	bne fill_y
 	rts
 
-fill_pixels_with_step:
+fill_pixels_step_256_or_more_jmp:
+	jmp fill_pixels_step_256_or_more
+fill_pixels_non_accelerated_jmp:
+	jmp fill_pixels_non_accelerated
 
-	; Is the step size equal to 320?
-	cpy #(320 >> 8)
-	bne fill_pixels_non_accelerated
-	cpx #(320 - 256)
-	bne fill_pixels_non_accelerated
+fill_pixels_step_below_256:
+	; Binary search algorithm
+	; Tradeoff between speed and code size
+	; Look for these values: 2 4 8 16 32 40 64 80 128 160
+	; 2 4   8 16 32 40 64 80 128 160
+	; 2   4   8 16 32 40   64 80 128 160
+	; 2   4   8 16   32 40   64 80   128 160
 
-	; Step size is 320, fill using HW accelerated increment setting in VERA
-
-	; Temporarily set ADDR_H to use increment 14 (320)
 	tay
-	lda VERA_ADDR_H
-	and #$01
-	ora #$E0
+	; 2-4 or 8-16-32-40-64-80-128-160
+	cpx #8
+	bcs is8OrLarger
+	; 2-4
+	cpx #2
+	beq is2
+	cpx #4
+	bne fill_pixels_non_accelerated_skip_tay
+
+	; is4
+	lda #((3 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is2:
+	lda #((2 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is8OrLarger:
+	; 8-16-32-40 or 64-80-128-160
+	cpx #64
+	bcs is64OrLarger
+	; check 8-16 or 32-40
+	cpx #32
+	bcs is32OrLarger
+	; 8-16
+	cpx #8
+	beq is8
+	cpx #16
+	bne fill_pixels_non_accelerated
+	; is16
+	lda #((5 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is8:
+	lda #((4 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is32OrLarger:
+	; 32-40
+	; cpx #32 not necessary to repeat
+	beq is32
+	cpx #40
+	bne fill_pixels_non_accelerated
+	; is40
+	lda #((11 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is32:
+	lda #((6 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is64OrLarger:
+	; 64-80-128-160
+	cpx #128
+	bcs is128OrLarger
+	; 64-80
+	cpx #64
+	beq is64
+	cpx #80
+	bne fill_pixels_non_accelerated
+	; is80
+	lda #((12 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is64:
+	lda #((7 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+is128OrLarger:
+	; 128-160
+	; cpx #128 not necessary to repeat
+	beq is128
+	cpx #160
+	bne fill_pixels_non_accelerated
+	; is160
+	lda #((13 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+is128:
+	lda #((8 << 4) ^ $10)
+	bra fill_pixels_accelerated_custom_step
+
+	; NB: This optimization assumes that increment is initially set to 1, and that decrement is set to 0
+fill_pixels_accelerated_custom_step:
+	eor VERA_ADDR_H
 	sta VERA_ADDR_H
 	tya
-
 	jsr fill_pixels_hw_accelerated
 
 fill_pixels_reset_increment_and_rts:
@@ -413,15 +491,19 @@ fill_pixels_reset_increment_and_rts:
 	rts
 
 fill_pixels_non_accelerated:
-
 	tay
+fill_pixels_non_accelerated_skip_tay:
 
 	; temporarily set increment to 0
 	lda #$FE
 	trb VERA_ADDR_H
 
 	ldx r0L
+	beq @1
+	; Increment r0H, as the outer loop terminates when decrementing it to 0.
+	; Skip if r0L is 0, as the inner loop decrements until it becomes 0.
 	inc r0H
+@1:
 	clc
 
 	; increment larger than 255?
@@ -482,6 +564,48 @@ fill_pixels_non_accelerated_16bit:
 	inc VERA_ADDR_H
 	clc
 	bra @resumeLoop16
+
+
+
+fill_pixels_step_256_or_more:
+	; Look for accelerated values: 256, 512, 320, 640 (0x0100 0x0200 0x0140 0x0280)
+	dey
+	beq isBelow512
+	dey
+	bne fill_pixels_non_accelerated
+	; 512-767
+	tay
+
+	; is 640? (0x280)
+	cpx #$80
+	beq is640
+	; is 512? (0x200)
+	cpx #$00
+	bne fill_pixels_non_accelerated_skip_tay
+	; 512
+	lda #((10 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+is640:
+	lda #((15 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+
+isBelow512:
+	; 256-511
+	tay
+	; is 320? (0x140)
+	cpx #$40
+	beq is320
+	; is 256? (0x100)
+	cpx #$00
+	bne fill_pixels_non_accelerated_skip_tay
+	; 256
+	lda #((9 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+is320:
+	; 320
+	lda #((14 << 4) ^ $10)
+	jmp fill_pixels_accelerated_custom_step
+
 
 ;---------------------------------------------------------------
 ; FB_filter_pixels
