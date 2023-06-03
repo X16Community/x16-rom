@@ -300,14 +300,19 @@ loop2:
 
 	sta psgtmp1
 
+	txa
+	lsr
+	lsr
+	tax
+
 	; Shadow the raw value
 	tya
 	and #$3F
-	sta psg_volshadow,y
+	sta psg_volshadow,x
 
 	; Apply attenuation
 	sec
-	sbc psg_atten,y
+	sbc psg_atten,x
 	bpl :+
 	lda #$00
 :	ora psgtmp1
