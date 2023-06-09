@@ -288,6 +288,11 @@ loop3
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
+	jsr fetch_keymap_from_nvram ; since we toggled profiles, perhaps this one has a different keymap
+	beq :+
+	dec
+	jsr kbd_config
+:
 	bra loop3b
 scrpnc
 	; screen panic, cycle through VGA/composite/RGB modes

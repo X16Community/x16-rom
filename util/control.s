@@ -1385,8 +1385,8 @@ save_to_nvram1:
 	lda layout_changed
 	beq :+
 	lda layout
-:	sta nvram_buffer+24
-	; fall through
+	sta nvram_buffer+24
+:	; fall through
 
 write_to_nvram:
 	;now create checksum
