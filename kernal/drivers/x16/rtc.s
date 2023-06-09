@@ -238,9 +238,14 @@ rtc_check_nvram_checksum:
 
 
 fetch_keymap_from_nvram:
+	; Verify NVRAM checksum
+	jsr rtc_check_nvram_checksum
+	bcs @exit ; I2C error
+	bne @exit ; Checksum mismatch
+
 	ldy #0
 	jsr rtc_get_nvram
-	bcs @exit
+	bcs @exit ; I2C error
 
 	and #1
 	beq :+
@@ -250,7 +255,11 @@ fetch_keymap_from_nvram:
 	clc
 	adc #11 ; layout byte
 	tay
-	jmp rtc_get_nvram
+	jsr rtc_get_nvram
+	bcs @exit ; I2C error
+	clc
+	rts
+
 @exit:
 	lda #0
 	rts
