@@ -1,5 +1,8 @@
 .segment "KBDMETA"
 
+; Be mindful of the order as the NVRAM layout preference byte
+; uses this order
+
 ; result from survey, ordered by frequency
 .include "asm/99409.s"  ; United States-Extended (Mac)
 .include "asm/20409.s"  ; United States-International (Win)
@@ -24,16 +27,22 @@
 .include "asm/1009.s"   ; Canadian French
 .include "asm/40F.s"    ; Icelandic
 .include "asm/816.s"    ; Portuguese
-; nobody asked for these, but they may be useful
-;.include "asm/Colemak.s"; US - Colemak
-;.include "asm/413.s"    ; Dutch
 .include "asm/41A.s"    ; Croatian
 .include "asm/41B.s"    ; Slovak
-;.include "asm/41C.s"    ; Albanian
 .include "asm/424.s"    ; Slovenian
 .include "asm/426.s"    ; Latvian
 .include "asm/427.s"    ; Lithuanian IBM
+; nobody asked for these, but they may be useful
+;.include "asm/Colemak.s"; US - Colemak
+;.include "asm/413.s"    ; Dutch
+
+;.include "asm/41C.s"    ; Albanian
 ;.include "asm/80A.s"    ; Latin American Spanish
 
 .segment "KBDMETA"
-	.byte 0 ; terminator
+	; terminator, fills out the 32 "metadata" slots.
+	; if another layout is added above, remove one of these
+	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
