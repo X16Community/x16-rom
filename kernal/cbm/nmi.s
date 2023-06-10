@@ -9,7 +9,7 @@
 rom_bank = 1
 monitor = $fecc
 .import enter_basic, cint, ioinit, restor, nminv
-.import call_audio_init, screen_set_defaults_from_nvram
+.import call_audio_init
 
 .export nnmi, timb
 
@@ -21,7 +21,6 @@ nnmi	jsr ioinit           ;go initilize i/o devices
 ;
 	jsr cint             ;go initilize screen
 	jsr call_audio_init  ;initialize audio API and HW.
-	jsr screen_set_defaults_from_nvram
 
 	clc
 	jmp enter_basic
@@ -33,7 +32,6 @@ timb	jsr restor      ;restore system indirects
 	jsr ioinit      ;restore i/o for basic
 	jsr cint        ;restore screen for basic
 	jsr call_audio_init  ;initialize audio API and HW.
-	jsr screen_set_defaults_from_nvram
 
 	clc
 	jmp monitor

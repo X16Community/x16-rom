@@ -74,6 +74,7 @@ MODIFIER_SHIFT = 1
 .import screen_save_state
 .import screen_restore_state
 .import screen_toggle_default_nvram
+.import screen_set_defaults_from_nvram
 .export llen
 .export scnsiz
 .export color
@@ -200,12 +201,7 @@ cint	jsr iokeys
 ;
 	jsr panic       ;set up vic
 
-	; this is likely going to be overridden almost immediately
-	; if the call to cint is part of init at reset
-	lda #0          ;80x60
-	clc
-	jsr screen_mode ;set screen mode to default
-;
+	jsr screen_set_defaults_from_nvram
 	lda #2          ;uppercase PETSCII, not locked
 	sta mode
 	stz blnon       ;we dont have a good char from the screen yet
@@ -292,6 +288,11 @@ loop3
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
+	jsr fetch_keymap_from_nvram ; since we toggled profiles, perhaps this one has a different keymap
+	beq :+
+	dec
+	jsr kbd_config
+:
 	bra loop3b
 scrpnc
 	; screen panic, cycle through VGA/composite/RGB modes
