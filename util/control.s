@@ -452,7 +452,15 @@ exe5:	cmp #5          ;save_menu
 	jmp save_menu
 exe6:	cmp #6          ;exit to basic
 	bne exe7
-	lda #147        ;clear the screen
+
+	ldx #rtc_address	;Enable battery backup, bit 3 (VBATEN) of RTC internal address 0x03
+	ldy #3
+	jsr i2c_read_byte
+	bcs :+
+	ora #8
+	jsr i2c_write_byte
+
+:	lda #147        ;clear the screen
 	jsr bsout
 	rts
 exe7:	jmp main_menu   ;we should never end up here.
