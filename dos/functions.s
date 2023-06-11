@@ -34,6 +34,7 @@
 .import create_unix_path_only_dir, create_unix_path_only_name, append_unix_path_only_name
 
 .import buffer
+.import krn_ptr1, bank_save
 
 .macro FAT32_CONTEXT_START
 	jsr alloc_context
@@ -594,6 +595,11 @@ copy_start:
 ;---------------------------------------------------------------
 copy_do:
 @context_src = tmp0
+	; Buffers used by copy function in RAM bank 0
+	lda bank_save
+	pha
+	stz bank_save
+
 	jsr alloc_context
 	bcc @error_70
 	sta @context_src
@@ -616,6 +622,9 @@ copy_do:
 	stz fat32_size
 	lda #1
 	sta fat32_size + 1
+	lda krn_ptr1			; krn_ptr1 bit 7 = 0 => disable that fat32_read stores to all data to same destination address
+	and #%01111111
+	sta krn_ptr1
 	jsr fat32_read
 	bcs :+
 	lda fat32_errno
@@ -648,10 +657,18 @@ copy_do:
 	lda @context_src
 	jsr free_context
 
+	; restore bank_save
+	pla
+	sta bank_save
+
 	lda #0
 	rts
 
 @error_70:
+	; restore bank_save
+	pla
+	sta bank_save
+	
 	lda #$70
 	rts
 
@@ -664,6 +681,11 @@ copy_do:
 	lda @context_src
 	jsr free_context
 	pla
+
+	; restore bank_save
+	pla
+	sta bank_save
+	
 	rts
 
 ;---------------------------------------------------------------
