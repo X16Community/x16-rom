@@ -139,6 +139,7 @@ stmdsp2	; statements
 	.word linput-1
 	.word binputn-1
 	.word help-1
+	.word banner-1
 
 	; functions
 ptrfunc	.word vpeek

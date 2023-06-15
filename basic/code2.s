@@ -195,8 +195,11 @@ runc	jsr stxtpt
 	lda #0
 clear	bne stkrts
 clearc	jsr ccall       ;moved for v2 orig for rs-232
-cleart	lda memsiz      ;entry for open & close memsiz changes
-	ldy memsiz+1
+cleart	sec
+	jsr $ff99
+	txa
+	sta memsiz      ;entry for open & close memsiz changes
+	sty memsiz+1
 	sta fretop
 	sty fretop+1
 	lda vartab

@@ -118,6 +118,7 @@ reslst3
 	.byt "LINPU", 'T' + $80
 	.byt "BINPUT", '#' + $80
 	.byt "HEL", 'P' + $80
+	.byt "BANNE", 'R' + $80
 
 	; add new statements before this line
 

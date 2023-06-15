@@ -1074,6 +1074,9 @@ help:
 	bannex_call bannex_help
 	rts
 
+banner:
+	bannex_call bannex_splash
+	rts
 
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
