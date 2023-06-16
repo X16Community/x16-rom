@@ -181,8 +181,11 @@ garbag	ldx #errom
 	sta garbfl
 	pla
 	bne tryag2
-garba2	ldx memsiz
-	lda memsiz+1
+garba2	sec
+	jsr memtop
+	stx memsiz
+	tya
+	sta memsiz+1
 fndvar	stx fretop
 	sta fretop+1
 	ldy #0

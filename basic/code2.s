@@ -196,9 +196,9 @@ runc	jsr stxtpt
 clear	bne stkrts
 clearc	jsr ccall       ;moved for v2 orig for rs-232
 cleart	sec
-	jsr $ff99
+	jsr memtop
 	txa
-	sta memsiz      ;entry for open & close memsiz changes
+	sta memsiz
 	sty memsiz+1
 	sta fretop
 	sty fretop+1
