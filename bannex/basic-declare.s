@@ -88,7 +88,7 @@ strend	.res 2           ;$31end of storage in use.
                          ;    or simple variable is encountered.
                          ;    set to [vartab] by "clearc".
 fretop	.res 2           ;$33 top of string free space
-.assert * = $03E9, error, "cc65 depends on MEMSIZ = $03E9, change with caution"
+; This instance of `memsiz` is deprecated, and BASIC should now be querying the kernal via `memtop` instead
 memsiz	.res 2           ;$37 highest location in memory
 
 ; --- line numbers and textual pointers ---:

@@ -74,11 +74,13 @@ initm3:
 	clc
 	jsr plot
 
-	lda memsiz
+	sec
+	jsr memtop
+	txa
 	sec
 	sbc txttab
 	tax
-	lda memsiz+1
+	tya
 	sbc txttab+1
 	jsr numout
 
@@ -124,11 +126,13 @@ inib40: ; screen is smaller than 40, use compact banner
 	clc
 	jsr plot
 
-	lda memsiz
+	sec
+	jsr memtop
+	txa
 	sec
 	sbc txttab
 	tax
-	lda memsiz+1
+	tya
 	sbc txttab+1
 	jsr numout
 

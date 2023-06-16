@@ -1,12 +1,6 @@
 ;most references to kernal are defined here
 ;
-erexit	cmp #$f0        ;check for special case
-	bne erexix
-; top of memory has changed
-	sty memsiz+1
-	stx memsiz
-	jmp cleart      ;act as if he typed clear
-erexix	tax             ;set termination flags
+erexit	tax             ;set termination flags
 	bne erexiy
 	ldx #erbrk      ;break error
 erexiy	jmp error       ;normal error

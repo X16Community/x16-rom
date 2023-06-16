@@ -15,6 +15,7 @@
 .segment "KVAR"
 
 memstr	.res 2           ; start of memory
+.assert * = $0259, error, "cc65 depends on MEMSIZ = $0259, change with caution"
 memsiz	.res 2           ; top of memory
 rambks	.res 1           ; X16: number of ram banks (0 means 256)
 
