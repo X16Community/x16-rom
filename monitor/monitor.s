@@ -152,6 +152,9 @@ entry_type	:= ram_code_end + 14
 command_index	:= ram_code_end + 15 ; index from "command_names", or 'C'/'S' in EC/ES case
 .assert command_index < $0200 + 2*40+1, error, "must not overflow KERNAL editor's buffer"
 
+.segment "MONBACK"
+monitor_zpbackup: .res 16
+
 .segment "monitor"
 
 .import __monitor_ram_code_LOAD__
@@ -200,6 +203,14 @@ brk_entry2:
 .ifp02
 	cld
 .endif
+	; Backup zero page addresses used by the monitor
+	stz ram_bank
+	ldy #11
+:	lda $22,y
+	sta monitor_zpbackup,y
+	dey
+	bpl :-
+	
 	pla
 	sta reg_y
 	pla
@@ -843,6 +854,14 @@ LB19B:	jsr print_up_dot
 ; "X" - exit monitor
 ; ----------------------------------------------------------------
 cmd_x:
+	; Restore zero page addresses used by the monitor
+	stz ram_bank
+	ldy #11
+:	lda monitor_zpbackup,y
+	sta $22,y
+	dey
+	bpl :-
+	
 	jsr disable_f_keys
 	ldx reg_s
 	txs

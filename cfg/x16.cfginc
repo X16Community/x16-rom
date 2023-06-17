@@ -41,7 +41,8 @@ BVARS:    start = $03D3, size = $002D; # BASIC
 KEYMAP:   start = $A000, size = $0800; # the current keyboard mapping table
 KVARSB0:  start = $A800, size = $0400; # there is some space free here
 VECB0:    start = $AC00, size = $0020; # for misc vectors, stable addresses
-BVARSB0:  start = $AD00, size = $00C0; # BASIC expansion variables, few used
+BVARSB0:  start = $AD00, size = $00B0; # BASIC expansion variables, few used
+MONBACK:  start = $ADB0, size = $0010; # MONITOR zero page backup buffer
 AUDIOBSS: start = $ADC0, size = $0040; # audio bank scratch space and misc state
 BAUDIO:   start = $AE00, size = $0100; # YM2151 shadow for audio routines
 DOSDAT:   start = $B000, size = $0F00; # there is some space free here, too
