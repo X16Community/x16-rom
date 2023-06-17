@@ -99,6 +99,7 @@ movch2	lda inrndx,x
 	lda #0
 	sta bits
 	sta channl
+	sta lastpt      ;fix for GC bug: https://c65gs.blogspot.com/2021/03/guest-post-from-bitshifter-fixing.html
 	sta lastpt+1
 	ldx #1
 	stx buf-3
