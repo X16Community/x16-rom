@@ -308,6 +308,13 @@ scrpnc
 	and #$7c
 	ora tmp2
 	sta VERA_DC_VIDEO
+	; beep code to indicate which mode we switched to
+	ldx tmp2
+	ldy beephi-1,x
+	lda beeplo-1,x
+	tax
+	lda #1
+	jsr beep
 	bra loop3b
 
 loop3b:	pla
@@ -345,7 +352,7 @@ nochr
 	; cannot arrive before the next timer IRQ
 	bne ploop3
         .byte $cb       ; WAI instruction
-	bra loop3
+	jmp loop3
 ploop3
 .endif
 	pha
@@ -857,6 +864,9 @@ isosto	sta mode
 bell
 	cmp #$07        ;bell?
 	bne outhre      ;branch if not
+	ldx #<1181      ; freq
+	ldy #>1181
+	lda #4          ; duration
 	jsr beep
 	jmp loop2
 
@@ -1285,3 +1295,6 @@ fkeytb	.byt "LIST:", 13, 0
 	.byt "MONITOR:", 13, 0
 	.byt "DOS",'"', "$",13, 0
 	.byt "DOS", '"', 0
+
+beeplo: .lobytes 526,885,1404
+beephi: .hibytes 526,885,1404
