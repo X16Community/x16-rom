@@ -6,8 +6,6 @@
 
 psg_address = $1f9c0
 
-frequency = 1181 ; 440 Hz
-
 	; x y = frequency (1181 = 440)
 	; a = duration specified in no. of 64k loops
 beep:
