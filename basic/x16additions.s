@@ -265,7 +265,7 @@ old1	lda txttab+1
 	lda index+1
 	adc #0
 	sta vartab+1
-	jmp init2
+	jmp ready
 
 ; ----------------------------------------------------------------
 ; XXX This is very similar to the code in MONITOR. When making
