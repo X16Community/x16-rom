@@ -5,6 +5,7 @@
 fbuffr= $0100
 
 .include "kernal.inc"
+.include "io.inc"
 
 plot = $fff0
 
@@ -154,6 +155,21 @@ iniend:
 	clc
 	jsr plot
 
+	; check vera version
+	php
+	sei
+	lda #%01111110
+	sta VERA_CTRL
+	lda $9f29
+	stz VERA_CTRL
+	cmp #'V'
+	beq :+
+	lda #<updatevera
+	ldy #>updatevera
+	jsr strout
+:	plp
+
+
 	rts
 .endproc
 
@@ -255,3 +271,8 @@ l6msg20:
 	.byte " BASIC",0
 l7msg20:
 	.byte "BYTES FREE",0
+
+updatevera:
+	.byte 13,"IMPORATANT! VERA FIRMWARE MUST BE",13
+	.byte "UPDATED TO VERSION 0.1.1 OR LATER.",13
+	.byte "LATER ROMS WILL NOT BOOT WITH YOUR VERA VERSION.",13,0
