@@ -28,6 +28,8 @@
 .export audio_prev_bank
 .export audio_bank_refcnt
 
+.export ym_chip_type
+
 ; declare 3 bytes of ZP space for audio routines
 .segment "ZPAUDIO": zeropage
 	azp0:   .res 2  ; 16bit pointer (in the style of r0, r0L, r0H in ABI)
@@ -73,6 +75,9 @@
 	; shared (for bank mgmt)
 	audio_bank_refcnt: .res 1
 	audio_prev_bank: .res 1	
+
+	; for chip detection
+	ym_chip_type: .res 1
 
 ; YM2151 is write-only. The library will keep a RAM shadow of writes in order
 ; to facilitate functionalities like modifying the active values of the chip.
