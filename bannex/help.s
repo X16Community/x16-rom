@@ -1,9 +1,13 @@
 .include "kernal.inc"
 .include "banks.inc"
+.include "audio.inc"
 .include "io.inc"
+
+.import bajsrfar
 
 .importzp poker
 .export help
+
 
 uc_address = $42
 
@@ -144,10 +148,37 @@ check_smc:
 	lda #13
 	jsr bsout
 
-	bra final
+	bra ym2151
 smc_unknown:
 	jsr printstring
 	.byte "UNKNOWN FIRMWARE",13,0
+
+
+ym2151:
+	jsr printstring
+	.byte "YM VARIANT: ",0
+
+	jsr bajsrfar
+	.word ym_get_chip_type
+	.byte BANK_AUDIO
+
+	cmp #$01
+	beq ym_isopp
+	cmp #$02
+	beq ym_isopm
+
+	jsr printstring
+	.byte "UNKNOWN",13,0
+	bra final
+
+ym_isopm:
+	jsr printstring
+	.byte "YM2151 (OPM)",13,0
+	bra final
+
+ym_isopp:
+	jsr printstring
+	.byte "YM2164 (OPP)",13,0
 
 final:
 	jsr printstring

@@ -86,11 +86,26 @@
 .import bas_fmchordstring
 .import bas_psgchordstring
 
+; imports from memory.s
+.import ym_chip_type
+
 .segment "CODE"
 .proc audio_init: near
 	jsr ym_init
 	jsr psg_init
 	jmp ym_loaddefpatches
+.endproc
+
+ram_bank = $00
+
+.proc ym_get_chip_type: near
+	ldx ram_bank
+	phx
+	stz ram_bank
+	lda ym_chip_type
+	plx
+	stx ram_bank
+	rts
 .endproc
 
 .segment "API"
@@ -149,3 +164,4 @@
 	jmp ym_getpan             ; $C09C
 	jmp audio_init            ; $C09F
 	jmp psg_write_fast        ; $C0A2
+	jmp ym_get_chip_type      ; $C0A5

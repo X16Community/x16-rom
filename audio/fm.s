@@ -15,6 +15,7 @@ readst = $ffb7 ; for some reason this one is commented out in kernal.inc
 .import ymshadow, returnbank, _PMD
 .import ymtmp1, ymtmp2, ym_atten
 .import audio_bank_refcnt, audio_prev_bank
+.import ym_chip_type
 
 .import playstring_len
 .import playstring_defnotelen
@@ -651,6 +652,58 @@ fail:
 	lda #1
 	sta playstring_art
 
+	; reset chip type to 0 (unknown/missing)
+	stz ym_chip_type
+
+	; test the chip type
+
+	; set CLKA to 960
+	; (4096/phi m)
+	lda #$f0
+	ldx #$10
+	jsr ym_write
+	bcs end_detect
+
+	lda #$00
+	ldx #$11
+	jsr ym_write
+	bcs end_detect
+
+	; set CLKB to 253
+	;(3072/phi m on OPM)
+	;(6144/phi m on OPP)
+	lda #$fd
+	ldx #$12
+	jsr ym_write
+	bcs end_detect
+
+	; load both timers, w/ (currently masked) IRQ
+	lda #%00111111
+	ldx #$14
+	jsr ym_write
+	bcs end_detect
+
+	ldy #0
+	ldx #0
+detect_loop:
+	lda YM_DATA
+	and #$03
+	bne detect_eval
+	dex
+	bne detect_loop
+	dey
+	bne detect_loop
+detect_eval:
+	sta ym_chip_type ; 0 for undetected, 1 for OPP, 2 for OPM, 3 for "HUH?"
+end_detect:
+	; reset timers and clear IRQ
+	lda #%00110000
+	ldx #$14
+	jsr ym_write
+	jsr ym_write ; do it twice to make sure we wait long enough
+	             ; for the IRQ assertion to clear before restoring
+				 ; interrupts
+
 	plp ; restore interrupt flag
 
 	; zero out the channel attenuation
@@ -679,8 +732,13 @@ i2:
 	bpl i2
 
 	; reset lfo
-	lda #$02
-	ldx #$01
+	
+	ldx #$01 ; OPM
+	lda ym_chip_type
+	cmp #$01
+	bne :+
+	ldx #$09 ; OPP
+:	lda #$02
 	jsr ym_write    ; disable LFO
 	lda #$80
 	ldx #$19
@@ -705,8 +763,12 @@ i3b:
 	bne i3
 
 	; re-enable LFO
-	lda #$00
-	ldx #$01
+	ldx #$01 ; OPM
+	lda ym_chip_type
+	cmp #$01
+	bne :+
+	ldx #$09 ; OPP	
+:	lda #$00
 	jsr ym_write
 abort:
 	rts
