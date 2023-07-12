@@ -1,7 +1,7 @@
 MEMORY {
 	#include "x16.cfginc"
 
-	DOS:      start = $C000, size = $3FFF, fill=yes, fillval=$AA;
+	DOS:      start = $C000, size = $4000, fill=yes, fillval=$AA;
 }
 
 SEGMENTS {

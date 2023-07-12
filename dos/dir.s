@@ -21,7 +21,7 @@
 .import file_type, filter0, filter1, medium
 
 .include "fat32/fat32.inc"
-.include "fat32/regs.inc"
+.include "fat32/lib.inc"
 
 DIRSTART = $0801 ; load address of directory
 
@@ -44,7 +44,7 @@ part_index:
 	.byte 0
 show_timestamps:
 	.byte 0
-show_sizes:
+show_long:
 	.byte 0
 show_cwd:
 	.byte 0
@@ -61,7 +61,7 @@ dir_open:
 
 	stz show_timestamps
 	stz show_cwd
-	stz show_sizes
+	stz show_long
 
 	ply ; filename length
 	lda #0
@@ -78,8 +78,8 @@ dir_open:
 	beq @part_dir
 	cmp #'C'
 	beq @cwd
-	cmp #'S'
-	beq @sizes
+	cmp #'L'
+	beq @long
 	cmp #'T'
 	bne @files_dir
 	lda #$80
@@ -90,9 +90,11 @@ dir_open:
 	jsr fat32_open_tree
 	inc show_cwd
 	bra @cont1
-@sizes:
+@long:
 	lda #$80
-	sta show_sizes
+	sta show_timestamps
+	sta show_long
+	ldx #3 ; skip "=L"
 	bra @cont1
 @part_dir:
 	stz part_index
@@ -342,8 +344,9 @@ read_dir_entry:
 	stz num_blocks + 1
 	bra @file1_cont
 
-@file1:	tya
-	tax
+@file1:
+	bit show_long
+	bmi @real_size
 	lda fat32_dirent + dirent::size + 0
 	clc
 	adc #255
@@ -359,8 +362,35 @@ read_dir_entry:
 	lda #$ff ; overflows 65535 blocks, so show 65535
 	sta num_blocks
 	sta num_blocks + 1
-:	txa
-	tay
+:	bra @file1_cont
+@real_size:
+	lda fat32_dirent + dirent::size + 1 
+	sta fat32_size + 0
+	lda fat32_dirent + dirent::size + 2
+	sta fat32_size + 1
+	lda fat32_dirent + dirent::size + 3
+	sta fat32_size + 2
+	stz fat32_size + 3
+
+	ldx #2
+:	shr32 fat32_size
+	dex
+	bne :-
+
+	jsr @get_units
+	pha
+	lda fat32_size + 0
+	sta num_blocks + 0
+	jsr storedir
+	lda fat32_size + 1
+	sta num_blocks + 1
+	jsr storedir
+	pla
+	jsr storedir
+	lda #'B'
+	jsr storedir
+	bra @file1_cont2
+
 
 @file1_cont:
 	lda num_blocks
@@ -368,6 +398,7 @@ read_dir_entry:
 	lda num_blocks + 1
 	jsr storedir
 
+@file1_cont2:
 	; find out how many spaces to print
 	lda num_blocks
 	sec
@@ -472,19 +503,16 @@ read_dir_entry:
 
 @read_dir_eol:
 	bit part_index
-	bpl @not_part3
+	bpl @bra_not_part3
 
-	bit show_sizes
-	bpl :+
-	jmp @sizes
-
-:	bit show_timestamps
-	bpl @not_part3
+@timestamps:
+	bit show_timestamps
+	bpl @check_long
 
 	; timestamp
 	lda fat32_dirent + dirent::mtime_year
 	cmp #$ff
-	beq @not_part3 ; no timestamp
+	beq @bra_not_part3 ; no timestamp
 	pha
 	lda #' '
 	jsr storedir
@@ -532,6 +560,32 @@ read_dir_entry:
 	lda #' '
 	jsr storedir
 
+
+@check_long:
+	bit show_long
+	bmi @show_long
+@bra_not_part3:
+	bra @not_part3
+
+@show_long:
+	; show attribute byte
+	lda fat32_dirent + dirent::attributes
+	jsr storehex8
+	lda #' '
+	jsr storedir
+	; show size
+	lda fat32_dirent + dirent::size + 3
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 2
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 1
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 0
+	jsr storehex8
+	lda #' '
+	jsr storedir
+
+
 @not_part3:
 
 	lda #0 ; end of line
@@ -544,21 +598,6 @@ read_dir_entry:
 	clc ; ok
 	rts
 
-@sizes:
-	lda #' '
-	jsr storedir
-	lda fat32_dirent + dirent::size + 3
-	jsr storehex8
-	lda fat32_dirent + dirent::size + 2
-	jsr storehex8
-	lda fat32_dirent + dirent::size + 1
-	jsr storehex8
-	lda fat32_dirent + dirent::size + 0
-	jsr storehex8
-	lda #' '
-	jsr storedir
-	bra @not_part3
-
 @read_dir_entry_end:
 	ldy #0
 	lda #1
@@ -566,26 +605,8 @@ read_dir_entry:
 	jsr storedir
 
 	jsr fat32_get_free_space
-	lda fat32_size + 2
-	ora fat32_size + 3
-	bne @not_kb
+	jsr @get_units
 
-	lda #'K'
-	bra @print_free
-
-@not_kb:
-	jsr shr10
-	lda fat32_size + 2
-	bne @not_mb
-
-	lda #'M'
-	bra @print_free
-
-@not_mb:
-	jsr shr10
-	lda #'G'
-
-@print_free:
 	pha
 	lda fat32_size + 0
 	jsr storedir
@@ -609,6 +630,24 @@ read_dir_entry:
 	sty dirbuffer_w
 	stz dirbuffer_r
 	clc ; ok
+	rts
+
+@get_units:
+	lda fat32_size + 2
+	ora fat32_size + 3
+	bne @not_kb
+	lda #'K'
+	bra @done_units
+@not_kb:
+	jsr shr10
+	lda fat32_size + 2
+	bne @not_mb
+	lda #'M'
+	bra @done_units
+@not_mb:
+	jsr shr10
+	lda #'G'
+@done_units:
 	rts
 
 has_filter:

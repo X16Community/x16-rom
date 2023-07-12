@@ -149,8 +149,7 @@ DOS_SOURCES = \
 	dos/cmdch.s \
 	dos/dir.s \
 	dos/parser.s \
-	dos/functions.s \
-	dos/geos.s
+	dos/functions.s
 
 GEOS_SOURCES= \
 	geos/kernal/bitmask/bitmask2.s \
