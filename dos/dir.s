@@ -44,6 +44,8 @@ part_index:
 	.byte 0
 show_timestamps:
 	.byte 0
+show_sizes:
+	.byte 0
 show_cwd:
 	.byte 0
 
@@ -59,6 +61,7 @@ dir_open:
 
 	stz show_timestamps
 	stz show_cwd
+	stz show_sizes
 
 	ply ; filename length
 	lda #0
@@ -75,6 +78,8 @@ dir_open:
 	beq @part_dir
 	cmp #'C'
 	beq @cwd
+	cmp #'S'
+	beq @sizes
 	cmp #'T'
 	bne @files_dir
 	lda #$80
@@ -85,7 +90,10 @@ dir_open:
 	jsr fat32_open_tree
 	inc show_cwd
 	bra @cont1
-
+@sizes:
+	lda #$80
+	sta show_sizes
+	bra @cont1
 @part_dir:
 	stz part_index
 
@@ -466,7 +474,11 @@ read_dir_entry:
 	bit part_index
 	bpl @not_part3
 
-	bit show_timestamps
+	bit show_sizes
+	bpl :+
+	jmp @sizes
+
+:	bit show_timestamps
 	bpl @not_part3
 
 	; timestamp
@@ -532,6 +544,20 @@ read_dir_entry:
 	clc ; ok
 	rts
 
+@sizes:
+	lda #' '
+	jsr storedir
+	lda fat32_dirent + dirent::size + 3
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 2
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 1
+	jsr storehex8
+	lda fat32_dirent + dirent::size + 0
+	jsr storehex8
+	lda #' '
+	jsr storedir
+	bra @not_part3
 
 @read_dir_entry_end:
 	ldy #0
