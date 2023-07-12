@@ -1,8 +1,7 @@
 MEMORY {
 	#include "x16.cfginc"
 
-	DOS:      start = $C000, size = $3FFA, fill=yes, fillval=$AA;
-	IRQB:     start = $FFFA, size = $0006, fill=yes, fillval=$AA;
+	DOS:      start = $C000, size = $4000, fill=yes, fillval=$AA;
 }
 
 SEGMENTS {
@@ -10,7 +9,6 @@ SEGMENTS {
 
 	dos_jmptab:   load = DOS,      type = ro;
 	CODE:         load = DOS,      type = ro;
-	IRQB:         load = IRQB,     type = ro;
 
 	BSS:          load = DOSDAT,   type = bss;
 }
