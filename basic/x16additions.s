@@ -457,14 +457,10 @@ disk_dir
 	beq @d30qtsw    ; quotation mark
 	cpy #0
 	beq @d30out     ; not inside of quotes
-	cmp #$20
-	bcc @d30ques    ; unprintable, show ? 
 	cmp #$60
 	bcc @d30out     ; is unshifted character
 	cmp #$80
 	bcc @d30sub20   ; shifted character, subtract $20
-	cmp #$a0
-	bcc @d30ques    ; unprintable, show ?
 	cmp #$e0
 	bcs @d30ques    ; unprintable, show ?
 	bra @d30out     ; the rest are valid PETSCII
