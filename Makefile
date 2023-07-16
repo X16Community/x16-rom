@@ -21,8 +21,6 @@ LD           = ld65
 
 # global includes
 ASFLAGS     += -I inc
-# for GEOS
-ASFLAGS     += -D bsw=1 -D drv1541=1 -I geos/inc -I geos
 # for monitor
 ASFLAGS     += -D CPU_65C02=1
 # KERNAL version number
@@ -151,111 +149,8 @@ DOS_SOURCES = \
 	dos/parser.s \
 	dos/functions.s
 
-GEOS_SOURCES= \
-	geos/kernal/bitmask/bitmask2.s \
-	geos/kernal/conio/conio1.s \
-	geos/kernal/conio/conio2.s \
-	geos/kernal/conio/conio3a.s \
-	geos/kernal/conio/conio4.s \
-	geos/kernal/conio/conio6.s \
-	geos/kernal/dlgbox/dlgbox1a.s \
-	geos/kernal/dlgbox/dlgbox1b.s \
-	geos/kernal/dlgbox/dlgbox1c.s \
-	geos/kernal/dlgbox/dlgbox1d.s \
-	geos/kernal/dlgbox/dlgbox1e1.s \
-	geos/kernal/dlgbox/dlgbox1e2.s \
-	geos/kernal/dlgbox/dlgbox1f.s \
-	geos/kernal/dlgbox/dlgbox1g.s \
-	geos/kernal/dlgbox/dlgbox1h.s \
-	geos/kernal/dlgbox/dlgbox1i.s \
-	geos/kernal/dlgbox/dlgbox1j.s \
-	geos/kernal/dlgbox/dlgbox1k.s \
-	geos/kernal/dlgbox/dlgbox2.s \
-	geos/kernal/files/files10.s \
-	geos/kernal/files/files1a2a.s \
-	geos/kernal/files/files1a2b.s \
-	geos/kernal/files/files1b.s \
-	geos/kernal/files/files2.s \
-	geos/kernal/files/files3.s \
-	geos/kernal/files/files6a.s \
-	geos/kernal/files/files6b.s \
-	geos/kernal/files/files6c.s \
-	geos/kernal/files/files7.s \
-	geos/kernal/files/files8.s \
-	geos/kernal/graph/clrscr.s \
-	geos/kernal/graph/inlinefunc.s \
-	geos/kernal/graph/graphicsstring.s \
-	geos/kernal/graph/graph2l1.s \
-	geos/kernal/graph/pattern.s \
-	geos/kernal/graph/inline.s \
-	geos/kernal/header/header.s \
-	geos/kernal/hw/hw1a.s \
-	geos/kernal/hw/hw1b.s \
-	geos/kernal/hw/hw2.s \
-	geos/kernal/hw/hw3.s \
-	geos/kernal/icon/icon1.s \
-	geos/kernal/icon/icon2.s \
-	geos/kernal/init/init1.s \
-	geos/kernal/init/init2.s \
-	geos/kernal/init/init3.s \
-	geos/kernal/init/init4.s \
-	geos/kernal/irq/irq.s \
-	geos/kernal/jumptab/jumptab.s \
-	geos/kernal/keyboard/keyboard1.s \
-	geos/kernal/keyboard/keyboard2.s \
-	geos/kernal/keyboard/keyboard3.s \
-	geos/kernal/load/deskacc.s \
-	geos/kernal/load/load1a.s \
-	geos/kernal/load/load1b.s \
-	geos/kernal/load/load1c.s \
-	geos/kernal/load/load2.s \
-	geos/kernal/load/load3.s \
-	geos/kernal/load/load4b.s \
-	geos/kernal/mainloop/mainloop.s \
-	geos/kernal/math/shl.s \
-	geos/kernal/math/shr.s \
-	geos/kernal/math/muldiv.s \
-	geos/kernal/math/neg.s \
-	geos/kernal/math/dec.s \
-	geos/kernal/math/random.s \
-	geos/kernal/math/crc.s \
-	geos/kernal/memory/memory1a.s \
-	geos/kernal/memory/memory1b.s \
-	geos/kernal/memory/memory2.s \
-	geos/kernal/memory/memory3.s \
-	geos/kernal/menu/menu1.s \
-	geos/kernal/menu/menu2.s \
-	geos/kernal/menu/menu3.s \
-	geos/kernal/misc/misc.s \
-	geos/kernal/mouse/mouse1.s \
-	geos/kernal/mouse/mouse2.s \
-	geos/kernal/mouse/mouse3.s \
-	geos/kernal/mouse/mouse4.s \
-	geos/kernal/mouse/mouseptr.s \
-	geos/kernal/panic/panic.s \
-	geos/kernal/patterns/patterns.s \
-	geos/kernal/process/process.s \
-	geos/kernal/reu/reu.s \
-	geos/kernal/serial/serial1.s \
-	geos/kernal/serial/serial2.s \
-	geos/kernal/sprites/sprites.s \
-	geos/kernal/time/time1.s \
-	geos/kernal/time/time2.s \
-	geos/kernal/tobasic/tobasic2.s \
-	geos/kernal/vars/vars.s \
-	geos/kernal/start/start64.s \
-	geos/kernal/bitmask/bitmask1.s \
-	geos/kernal/bitmask/bitmask3.s \
-	geos/kernal/conio/conio5.s \
-	geos/kernal/files/files9.s \
-	geos/kernal/graph/bitmapclip.s \
-	geos/kernal/graph/bitmapup.s \
-	geos/kernal/graph/graph_bridge.s \
-	geos/kernal/ramexp/ramexp1.s \
-	geos/kernal/ramexp/ramexp2.s \
-	geos/kernal/rename.s \
-	geos/kernal/tobasic/tobasic1.s \
-	geos/kernal/drvcbdos.s
+FAT32_SOURCES = \
+	fat32/main.s
 
 BASIC_SOURCES= \
 	kernsup/kernsup_basic.s \
@@ -340,18 +235,8 @@ DOS_DEPS = \
 	dos/functions.inc \
 	dos/vera.inc
 
-GEOS_DEPS= \
-	$(GENERIC_DEPS) \
-	geos/config.inc \
-	geos/inc/printdrv.inc \
-	geos/inc/gkernal.inc \
-	geos/inc/inputdrv.inc \
-	geos/inc/diskdrv.inc \
-	geos/inc/const.inc \
-	geos/inc/jumptab.inc \
-	geos/inc/geosmac.inc \
-	geos/inc/geossym.inc \
-	geos/inc/c64.inc
+FAT32_DEPS = \
+	$(GENERIC_DEPS)
 
 BASIC_DEPS= \
 	$(GENERIC_DEPS) \
@@ -378,7 +263,7 @@ BANNEX_DEPS= \
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
 DOS_OBJS     = $(addprefix $(BUILD_DIR)/, $(DOS_SOURCES:.s=.o))
-GEOS_OBJS    = $(addprefix $(BUILD_DIR)/, $(GEOS_SOURCES:.s=.o))
+FAT32_OBJS   = $(addprefix $(BUILD_DIR)/, $(FAT32_SOURCES:.s=.o))
 BASIC_OBJS   = $(addprefix $(BUILD_DIR)/, $(BASIC_SOURCES:.s=.o))
 MONITOR_OBJS = $(addprefix $(BUILD_DIR)/, $(MONITOR_SOURCES:.s=.o))
 CHARSET_OBJS = $(addprefix $(BUILD_DIR)/, $(CHARSET_SOURCES:.s=.o))
@@ -395,7 +280,7 @@ else
 		$(BUILD_DIR)/kernal.bin \
 		$(BUILD_DIR)/keymap.bin \
 		$(BUILD_DIR)/dos.bin \
-		$(BUILD_DIR)/geos.bin \
+		$(BUILD_DIR)/fat32.bin \
 		$(BUILD_DIR)/basic.bin \
 		$(BUILD_DIR)/monitor.bin \
 		$(BUILD_DIR)/charset.bin \
@@ -462,11 +347,11 @@ $(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-$(MACHINE).cfg
 	$(LD) -C $(CFG_DIR)/dos-$(MACHINE).cfg $(DOS_OBJS) -o $@ -m $(BUILD_DIR)/dos.map -Ln $(BUILD_DIR)/dos.sym
 	./scripts/relist.py $(BUILD_DIR)/dos.map $(BUILD_DIR)/dos
 
-# Bank 3 : GEOS
-$(BUILD_DIR)/geos.bin: $(GEOS_OBJS) $(GEOS_DEPS) $(CFG_DIR)/geos-$(MACHINE).cfg
+# Bank 3 : FAT32
+$(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-$(MACHINE).cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/geos-$(MACHINE).cfg $(GEOS_OBJS) -o $@ -m $(BUILD_DIR)/geos.map -Ln $(BUILD_DIR)/geos.sym
-	./scripts/relist.py $(BUILD_DIR)/geos.map $(BUILD_DIR)/geos
+	$(LD) -C $(CFG_DIR)/fat32-$(MACHINE).cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym
+	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC
 $(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-$(MACHINE).cfg
@@ -523,7 +408,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
 	./scripts/symbolize.sh 1 build/x16/keymap.sym  >> $@
 	./scripts/symbolize.sh 2 build/x16/dos.sym     >> $@
-	./scripts/symbolize.sh 3 build/x16/geos.sym    >> $@
+	./scripts/symbolize.sh 3 build/x16/fat32.sym   >> $@
 	./scripts/symbolize.sh 4 build/x16/basic.sym   >> $@
 	./scripts/symbolize.sh 5 build/x16/monitor.sym >> $@
 	./scripts/symbolize.sh 6 build/x16/charset.sym >> $@
@@ -534,7 +419,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
 	./scripts/trace_lst.py 2 `find build/x16/dos/ -name \*.rlst`     >> $@
-	./scripts/trace_lst.py 3 `find build/x16/geos/ -name \*.rlst`    >> $@
+	./scripts/trace_lst.py 3 `find build/x16/fat32/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst` >> $@
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@

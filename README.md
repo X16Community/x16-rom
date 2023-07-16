@@ -1,7 +1,7 @@
-Commander X16 BASIC/KERNAL/DOS/GEOS ROM
+Commander X16 BASIC/KERNAL/DOS ROM
 =======================================
 
-This is the Commander X16 ROM containing BASIC, KERNAL, DOS and GEOS. BASIC and KERNAL are derived from the [Commodore 64 versions](https://github.com/mist64/c64rom). GEOS is derived from the [C64/C128 version](https://github.com/mist64/geos).
+This is the Commander X16 ROM containing BASIC, KERNAL, and DOS. BASIC and KERNAL are derived from the [Commodore 64 versions](https://github.com/mist64/c64rom).
 
 * BASIC is fully compatible with Commodore BASIC V2, with some additions.
 * KERNAL
@@ -9,7 +9,6 @@ This is the Commander X16 ROM containing BASIC, KERNAL, DOS and GEOS. BASIC and 
 	* adds lots of new API, including joystick, mouse and bitmap graphics.
 	* supports the same $0300-$0332 vectors as the C64.
 	* does not support tape (device 1) or software RS-232 (device 2).
-* GEOS is fully compatible with the C64 version.
 * DOS
 	* is compatible with Commodore DOS (`$`, `SCRATCH`, `NEW`, ...).
 	* works on SD cards with FAT32 filesystems.

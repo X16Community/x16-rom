@@ -65,12 +65,9 @@ codex:
 	; does not return
 
 ;***************
-geos:
-	sei
-	jsr bjsrfar
-	.word $c000 ; entry
-	.byte BANK_GEOS
-	; does not return
+geos: ; syntax error now that GEOS is gone
+	ldx #errsn
+	jmp error
 
 ;***************
 color	jsr getcol ; fg

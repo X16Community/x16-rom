@@ -1,6 +1,6 @@
 MEMORY {
 	// zero page
-	//        start = $0000, size = $0080; // available to the user (or GEOS)
+	//        start = $0000, size = $0080; // available to the user
 	ZPKERNAL: start = $00E0, size = $0016; // KERNAL
 
 	// $0200-$02FF: always-available variables and RAM code
@@ -12,7 +12,7 @@ MEMORY {
 	// $0300-$0333: vectors
 	KVECTORS: start = $0314, size = $0020; // KERNAL vectors
 	
-	// $0334-$03FF: variables and RAM code (not available for *legacy* GEOS apps)
+	// $0334-$03FF: variables and RAM code
 	KVAR2:    start = $0334, size = $0057; // KERNAL: screen editor table
 	KERNRAM2: start = $038B, size = $003F; // KERNAL: banked IRQ, fetch, stash
 	//        start = $03CA, size = $0002; // reserved for KERNAL growth
