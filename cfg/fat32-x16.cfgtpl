@@ -1,0 +1,10 @@
+MEMORY {
+	#include "x16.cfginc"
+
+	FAT32:     start = $C000, size = $4000, fill=yes, fillval=$AA;
+}
+
+SEGMENTS {
+	API:          load = FAT32,      type = ro;
+	CODE:         load = FAT32,      type = ro;
+}
