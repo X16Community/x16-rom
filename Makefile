@@ -1,8 +1,4 @@
 
-MACHINE     ?= x16
-# also supported:
-# * c64
-
 CORE_SOURCE_BASE ?= CBM
 SERIAL_SOURCE_BASE ?= CBM
 # for both also supported
@@ -28,15 +24,11 @@ ASFLAGS     +=  $(VERSION_DEFINE)
 # put all symbols into .sym files
 ASFLAGS     += -g
 
-ifeq ($(MACHINE),x16)
 ASFLAGS     += -D MACHINE_X16=1
 # all files are allowed to use 65SC02 features
 ASFLAGS     += --cpu 65SC02
-else # c64
-ASFLAGS     += -D MACHINE_C64=1
-endif
 
-BUILD_DIR=build/$(MACHINE)
+BUILD_DIR=build/x16
 
 CFG_DIR=$(BUILD_DIR)/cfg
 
@@ -84,52 +76,32 @@ KERNAL_GRAPH_SOURCES = \
 	kernal/fonts/fonts.s \
 	kernal/graph/console.s
 
-ifeq ($(MACHINE),c64)
-	KERNAL_DRIVER_SOURCES = \
-		kernal/drivers/c64/c64.s \
-		kernal/drivers/c64/clock.s \
-		kernal/drivers/c64/entropy.s \
-		kernal/drivers/c64/joystick.s \
-		kernal/drivers/c64/kbd.s \
-		kernal/drivers/c64/memory.s \
-		kernal/drivers/c64/mouse.s \
-		kernal/drivers/c64/rs232.s \
-		kernal/drivers/c64/screen.s \
-		kernal/drivers/c64/sprites.s \
-		kernal/drivers/generic/softclock_timer.s \
-		kernal/drivers/generic/softclock_time.s \
-		kernal/drivers/generic/softclock_date.s
-else ifeq ($(MACHINE),x16)
-	KERNAL_DRIVER_SOURCES = \
-		kernal/drivers/x16/x16.s \
-		kernal/drivers/x16/memory.s \
-		kernal/drivers/x16/screen.s \
-		kernal/drivers/x16/ps2kbd.s \
-		kernal/drivers/x16/ps2mouse.s \
-		kernal/drivers/x16/joystick.s \
-		kernal/drivers/x16/clock.s \
-		kernal/drivers/x16/rs232.s \
-		kernal/drivers/x16/framebuffer.s \
-		kernal/drivers/x16/sprites.s \
-		kernal/drivers/x16/entropy.s \
-		kernal/drivers/x16/beep.s \
-		kernal/drivers/x16/i2c.s \
-		kernal/drivers/x16/smc.s \
-		kernal/drivers/x16/rtc.s \
-		kernal/drivers/generic/softclock_timer.s
-else
-$(error Illegal value for MACHINE)
-endif
+
+KERNAL_DRIVER_SOURCES = \
+	kernal/drivers/x16/x16.s \
+	kernal/drivers/x16/memory.s \
+	kernal/drivers/x16/screen.s \
+	kernal/drivers/x16/ps2kbd.s \
+	kernal/drivers/x16/ps2mouse.s \
+	kernal/drivers/x16/joystick.s \
+	kernal/drivers/x16/clock.s \
+	kernal/drivers/x16/rs232.s \
+	kernal/drivers/x16/framebuffer.s \
+	kernal/drivers/x16/sprites.s \
+	kernal/drivers/x16/entropy.s \
+	kernal/drivers/x16/beep.s \
+	kernal/drivers/x16/i2c.s \
+	kernal/drivers/x16/smc.s \
+	kernal/drivers/x16/rtc.s \
+	kernal/drivers/generic/softclock_timer.s
 
 KERNAL_SOURCES = \
 	$(KERNAL_CORE_SOURCES) \
 	$(KERNAL_DRIVER_SOURCES)
 
-ifneq ($(MACHINE),c64)
-	KERNAL_SOURCES += \
-		$(KERNAL_GRAPH_SOURCES) \
-		kernal/ieee_switch.s
-endif
+KERNAL_SOURCES += \
+	$(KERNAL_GRAPH_SOURCES) \
+	kernal/ieee_switch.s
 
 KEYMAP_SOURCES = \
 	keymap/keymap.s
@@ -273,34 +245,24 @@ AUDIO_OBJS   = $(addprefix $(BUILD_DIR)/, $(AUDIO_SOURCES:.s=.o))
 UTIL_OBJS    = $(addprefix $(BUILD_DIR)/, $(UTIL_SOURCES:.s=.o))
 BANNEX_OBJS  = $(addprefix $(BUILD_DIR)/, $(BANNEX_SOURCES:.s=.o))
 
-ifeq ($(MACHINE),c64)
-	BANK_BINS = $(BUILD_DIR)/kernal.bin
-else
-	BANK_BINS = \
-		$(BUILD_DIR)/kernal.bin \
-		$(BUILD_DIR)/keymap.bin \
-		$(BUILD_DIR)/dos.bin \
-		$(BUILD_DIR)/fat32.bin \
-		$(BUILD_DIR)/basic.bin \
-		$(BUILD_DIR)/monitor.bin \
-		$(BUILD_DIR)/charset.bin \
-		$(BUILD_DIR)/codex.bin \
-		$(BUILD_DIR)/graph.bin \
-		$(BUILD_DIR)/demo.bin \
-		$(BUILD_DIR)/audio.bin \
-		$(BUILD_DIR)/util.bin \
-		$(BUILD_DIR)/bannex.bin
-endif
+BANK_BINS = \
+	$(BUILD_DIR)/kernal.bin \
+	$(BUILD_DIR)/keymap.bin \
+	$(BUILD_DIR)/dos.bin \
+	$(BUILD_DIR)/fat32.bin \
+	$(BUILD_DIR)/basic.bin \
+	$(BUILD_DIR)/monitor.bin \
+	$(BUILD_DIR)/charset.bin \
+	$(BUILD_DIR)/codex.bin \
+	$(BUILD_DIR)/graph.bin \
+	$(BUILD_DIR)/demo.bin \
+	$(BUILD_DIR)/audio.bin \
+	$(BUILD_DIR)/util.bin \
+	$(BUILD_DIR)/bannex.bin
 
-ifeq ($(MACHINE),x16)
-	ROM_LABELS=$(BUILD_DIR)/rom_labels.h
-	ROM_LST=$(BUILD_DIR)/rom_lst.h
-	GIT_SIGNATURE=$(BUILD_DIR)/../signature.bin
-else
-	ROM_LABELS=
-	ROM_LST=
-	GIT_SIGNATURE=
-endif
+ROM_LABELS=$(BUILD_DIR)/rom_labels.h
+ROM_LST=$(BUILD_DIR)/rom_lst.h
+GIT_SIGNATURE=$(BUILD_DIR)/../signature.bin
 
 all: $(BUILD_DIR)/rom.bin $(ROM_LABELS) $(ROM_LST)
 
@@ -331,47 +293,47 @@ $(BUILD_DIR)/%.o: %.s
 
 # TODO: Need a way to control relist generation; don't try to do it if lst files haven't been generated!
 # Bank 0 : KERNAL
-$(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-$(MACHINE).cfg
+$(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/kernal-$(MACHINE).cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym
+	$(LD) -C $(CFG_DIR)/kernal-x16.cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym
 	./scripts/relist.py $(BUILD_DIR)/kernal.map $(BUILD_DIR)/kernal
 
 # Bank 1 : KEYMAP
-$(BUILD_DIR)/keymap.bin: $(KEYMAP_OBJS) $(KEYMAP_DEPS) $(CFG_DIR)/keymap-$(MACHINE).cfg
+$(BUILD_DIR)/keymap.bin: $(KEYMAP_OBJS) $(KEYMAP_DEPS) $(CFG_DIR)/keymap-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/keymap-$(MACHINE).cfg $(KEYMAP_OBJS) -o $@ -m $(BUILD_DIR)/keymap.map -Ln $(BUILD_DIR)/keymap.sym
+	$(LD) -C $(CFG_DIR)/keymap-x16.cfg $(KEYMAP_OBJS) -o $@ -m $(BUILD_DIR)/keymap.map -Ln $(BUILD_DIR)/keymap.sym
 
 # Bank 2 : DOS
-$(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-$(MACHINE).cfg
+$(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/dos-$(MACHINE).cfg $(DOS_OBJS) -o $@ -m $(BUILD_DIR)/dos.map -Ln $(BUILD_DIR)/dos.sym
+	$(LD) -C $(CFG_DIR)/dos-x16.cfg $(DOS_OBJS) -o $@ -m $(BUILD_DIR)/dos.map -Ln $(BUILD_DIR)/dos.sym
 	./scripts/relist.py $(BUILD_DIR)/dos.map $(BUILD_DIR)/dos
 
 # Bank 3 : FAT32
-$(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-$(MACHINE).cfg
+$(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/fat32-$(MACHINE).cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym
+	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym
 	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC
-$(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-$(MACHINE).cfg
+$(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/basic-$(MACHINE).cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode`
+	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode`
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
 
 # Bank 5 : MONITOR
-$(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-$(MACHINE).cfg
+$(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/monitor-$(MACHINE).cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
+	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
 	./scripts/relist.py $(BUILD_DIR)/monitor.map $(BUILD_DIR)/monitor
 
 # Bank 6 : CHARSET
-$(BUILD_DIR)/charset.bin: $(CHARSET_OBJS) $(CHARSET_DEPS) $(CFG_DIR)/charset-$(MACHINE).cfg
+$(BUILD_DIR)/charset.bin: $(CHARSET_OBJS) $(CHARSET_DEPS) $(CFG_DIR)/charset-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/charset-$(MACHINE).cfg $(CHARSET_OBJS) -o $@ -m $(BUILD_DIR)/charset.map -Ln $(BUILD_DIR)/charset.sym
+	$(LD) -C $(CFG_DIR)/charset-x16.cfg $(CHARSET_OBJS) -o $@ -m $(BUILD_DIR)/charset.map -Ln $(BUILD_DIR)/charset.sym
 
 # Bank 7 : CodeX
-$(BUILD_DIR)/codex.bin: $(CFG_DIR)/codex-$(MACHINE).cfg
+$(BUILD_DIR)/codex.bin: $(CFG_DIR)/codex-x16.cfg
 	$(MAKE) -C codex
 
 # Bank 8 : Graphics
@@ -380,27 +342,27 @@ $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
 	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position`
 
 # Bank 9 : DEMO
-$(BUILD_DIR)/demo.bin: $(DEMO_OBJS) $(DEMO_DEPS) $(CFG_DIR)/demo-$(MACHINE).cfg
+$(BUILD_DIR)/demo.bin: $(DEMO_OBJS) $(DEMO_DEPS) $(CFG_DIR)/demo-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/demo-$(MACHINE).cfg $(DEMO_OBJS) -o $@ -m $(BUILD_DIR)/demo.map -Ln $(BUILD_DIR)/demo.sym
+	$(LD) -C $(CFG_DIR)/demo-x16.cfg $(DEMO_OBJS) -o $@ -m $(BUILD_DIR)/demo.map -Ln $(BUILD_DIR)/demo.sym
 	./scripts/relist.py $(BUILD_DIR)/demo.map $(BUILD_DIR)/demo
 
 # Bank A : Audio
-$(BUILD_DIR)/audio.bin: $(AUDIO_OBJS) $(AUDIO_DEPS) $(CFG_DIR)/audio-$(MACHINE).cfg
+$(BUILD_DIR)/audio.bin: $(AUDIO_OBJS) $(AUDIO_DEPS) $(CFG_DIR)/audio-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/audio-$(MACHINE).cfg $(AUDIO_OBJS) -o $@ -m $(BUILD_DIR)/audio.map -Ln $(BUILD_DIR)/audio.sym
+	$(LD) -C $(CFG_DIR)/audio-x16.cfg $(AUDIO_OBJS) -o $@ -m $(BUILD_DIR)/audio.map -Ln $(BUILD_DIR)/audio.sym
 	./scripts/relist.py $(BUILD_DIR)/audio.map $(BUILD_DIR)/audio
 
 # Bank B : Utilities
-$(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-$(MACHINE).cfg
+$(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/util-$(MACHINE).cfg $(UTIL_OBJS) -o $@ -m $(BUILD_DIR)/util.map -Ln $(BUILD_DIR)/util.sym
+	$(LD) -C $(CFG_DIR)/util-x16.cfg $(UTIL_OBJS) -o $@ -m $(BUILD_DIR)/util.map -Ln $(BUILD_DIR)/util.sym
 	./scripts/relist.py $(BUILD_DIR)/util.map $(BUILD_DIR)/util
 
 # Bank C : BASIC Annex
-$(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-$(MACHINE).cfg
+$(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/bannex-$(MACHINE).cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym
+	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 
