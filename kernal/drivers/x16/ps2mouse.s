@@ -3,6 +3,8 @@
 ;----------------------------------------------------------------------
 ; (C)2019 Michael Steil, License: 2-clause BSD
 
+.macpack longbranch
+
 .include "banks.inc"
 .include "io.inc"
 .include "regs.inc"
@@ -49,7 +51,7 @@ mouse_config:
 _mouse_config:
 	pha
 	cpx #0
-	beq @skip
+	jeq @skip
 
 	; scale
 	lda #0
@@ -95,6 +97,20 @@ _mouse_config:
 @skip2:
 	DecW mousemx
 	DecW mousemy
+	; center the pointer
+	lda mousemx+1
+	lsr
+	sta mousex+1
+	lda mousemx
+	ror
+	sta mousex
+
+	lda mousemy+1
+	lsr
+	sta mousey+1
+	lda mousemy
+	ror
+	sta mousey
 
 @skip:
 	pla
