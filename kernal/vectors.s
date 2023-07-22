@@ -14,7 +14,7 @@
 .import mouse_config; [mouse]
 .import joystick_scan, joystick_get; [joystick]
 .import clock_update, clock_get_timer, clock_set_timer, clock_get_date_time, clock_set_date_time; [time]
-.import i2c_read_byte, i2c_write_byte
+.import i2c_read_byte, i2c_write_byte, i2c_batch_read, i2c_batch_write
 
 .import GRAPH_init, GRAPH_clear, GRAPH_set_window, GRAPH_set_colors, GRAPH_draw_line, GRAPH_draw_rect, GRAPH_move_rect, GRAPH_draw_oval, GRAPH_draw_image, GRAPH_set_font, GRAPH_get_char_size, GRAPH_put_char
 
@@ -43,8 +43,8 @@
 	.byte 0,0,0                    ; $FEAB
 	.byte 0,0,0                    ; $FEAE
 	.byte 0,0,0                    ; $FEB1
-	.byte 0,0,0                    ; $FEB4
-	.byte 0,0,0                    ; $FEB7
+	jmp i2c_batch_read             ; $FEB4
+	jmp i2c_batch_write            ; $FEB7
 	jmp savehl                     ; $FEBA
 
 	jmp kbdbuf_peek                ; $FEBD

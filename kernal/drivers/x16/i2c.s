@@ -5,6 +5,7 @@
 ; License: 2-clause BSD
 
 .include "io.inc"
+.include "regs.inc"
 
 pr  = d1pra
 ddr = d1ddra
@@ -13,7 +14,7 @@ SCL = (1 << 1)
 
 .segment "I2C"
 
-.export i2c_read_byte, i2c_write_byte
+.export i2c_read_byte, i2c_write_byte, i2c_batch_read, i2c_batch_write
 .export i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
 .export i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
 
@@ -652,4 +653,169 @@ i2c_brief_delay:
 	pla
 	pha
 	pla
+	rts
+
+;---------------------------------------------------------------
+; i2c_batch_read
+;
+; Function:
+;   Read a batch of data into a RAM buffer
+;
+; Pass:      x    7-bit device address
+;	     r0   Pointer to start of data buffer
+;            r1   Number of bytes to read
+;            c    0: Advance buffer pointer on each byte
+;                 1: Buffer pointer not advanced
+;
+; Return:    x    device (preserved)
+;            c    1 on error (NAK)
+;---------------------------------------------------------------
+i2c_batch_read:
+	; Save input values on stack
+	phx
+	php
+
+	; Exit if number of bytes to read is 0
+	lda r1
+	ora r1+1
+	bne @1
+
+	plp
+	plx
+	clc
+	rts
+
+	; Init I2C transmission
+@1:	jsr i2c_init
+	jsr i2c_start
+	txa                ; 7 bit device address
+	asl                ; device * 2
+	inc                ; set read bit
+	jsr i2c_write
+	bcc i2c_batch_read_loop
+
+@err:
+	jsr i2c_stop
+	plp
+	plx
+	sec
+	rts
+
+i2c_batch_read_loop:
+	; Read one byte and store it in the buffer
+	jsr i2c_read
+	sta (r0)
+	i2c_ack
+
+	; Advance buffer pointer, if so requested (function called with C=0)
+	plp
+	php
+	bcs @3
+
+	inc r0
+	bne @2
+	inc r0+1
+
+	; Rewind buffer pointer and increment RAM bank if address >= $C000
+@2:	lda r0+1
+	cmp #$c0
+	bcc @3
+	lda #$a0
+	sta r0+1
+	inc ram_bank
+
+	; Decrement byte request counter
+@3:	lda r1
+	bne @4
+	dec r1+1
+@4:	dec r1
+
+	; Check if requested number of bytes have been read
+	lda r1
+	ora r1+1
+	bne i2c_batch_read_loop
+
+@exit:
+	jsr i2c_stop
+	plp
+	plx
+	clc
+	rts
+
+;---------------------------------------------------------------
+; i2c_batch_write
+;
+; Function:
+;   Write a batch of data from a RAM buffer
+;
+; Pass:      x    7-bit device address
+;	     r0   Pointer to start of data buffer
+;            r1   Number of bytes to write
+;
+; Return:    x    device (preserved)
+;            r2   Number of bytes written
+;            c    1 on error (NAK)
+;---------------------------------------------------------------
+i2c_batch_write:
+	; Reset counter
+	stz r2
+	stz r2+1
+
+	; Exit if number of bytes to write is 0
+	lda r1
+	ora r1+1
+	bne @1
+	rts
+
+	; Save input on stack
+@1:	phx
+
+	; Init I2C transmission
+	jsr i2c_init
+	jsr i2c_start
+	txa                ; 7 bit device address
+	asl                ; device * 2
+
+@loop:	; Write one byte
+	lda (r0)
+	jsr i2c_write
+	bcs @err
+
+	; Increment byte count written
+	inc r2
+	bne @2
+	inc r2+1
+
+@2:	; Advance buffer pointer
+	inc r0
+	bne @3
+	inc r0+1
+
+@3:	; Rewind buffer pointer if address >= $C000
+	lda r0+1
+	cmp #$c0
+	bcc @4
+	lda #$a0
+	sta r0
+	inc ram_bank
+
+@4:	; Decrement bytes to write counter
+	lda r1
+	bne @5
+	dec r1+1
+@5:	dec r1
+
+	; Check if all requested bytes have been written
+	lda r0
+	ora r1
+	bne @loop
+
+@exit:	jsr i2c_stop
+	plx
+	clc
+	rts
+
+@err:	jsr i2c_stop
+	plx
+	sec
 	rts
