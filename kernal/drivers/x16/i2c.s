@@ -662,32 +662,49 @@ i2c_brief_delay:
 ;   Read a batch of data into a RAM buffer
 ;
 ; Pass:      x    7-bit device address
-;	     r0   Pointer to start of data buffer
-;            r1   Number of bytes to read
+;	     r0   pointer to start of data buffer
+;            r1   number of bytes to read
 ;            c    0: Advance buffer pointer on each byte
 ;                 1: Buffer pointer not advanced
 ;
 ; Return:    x    device (preserved)
+;            r0   pointer to start of data buffer (preserved)
+;            r1   number of bytes to read (preserved)
 ;            c    1 on error (NAK)
 ;---------------------------------------------------------------
 i2c_batch_read:
-	; Save input values on stack
-	phx
+	; Preserve input values on stack
+	lda r0
+	pha
+	lda r0+1
+	pha
+	lda r1
+	pha
+	lda r1+1
+	pha
+
 	php
+	phx
 
 	; Exit if number of bytes to read is 0
 	lda r1
 	ora r1+1
 	bne @1
 
-	plp
 	plx
+	plp
 	clc
-	rts
+	bra i2c_batch_read_restore
 
 	; Init I2C transmission
 @1:	jsr i2c_init
 	jsr i2c_start
+	
+	plx
+	plp
+	php
+	phx
+	
 	txa                ; 7 bit device address
 	asl                ; device * 2
 	inc                ; set read bit
@@ -699,7 +716,7 @@ i2c_batch_read:
 	plp
 	plx
 	sec
-	rts
+	bra i2c_batch_read_restore
 
 i2c_batch_read_loop:
 	; Read one byte and store it in the buffer
@@ -740,6 +757,16 @@ i2c_batch_read_loop:
 	plp
 	plx
 	clc
+
+i2c_batch_read_restore:
+	pla
+	sta r1+1
+	pla
+	sta r1
+	pla
+	sta r0+1
+	pla
+	sta r0
 	rts
 
 ;---------------------------------------------------------------
@@ -749,11 +776,13 @@ i2c_batch_read_loop:
 ;   Write a batch of data from a RAM buffer
 ;
 ; Pass:      x    7-bit device address
-;	     r0   Pointer to start of data buffer
-;            r1   Number of bytes to write
+;	     r0   pointer to start of data buffer
+;            r1   number of bytes to write
 ;
 ; Return:    x    device (preserved)
-;            r2   Number of bytes written
+;            r0   pointer to start of data buffer (preserved)
+;            r1   number of bytes to write (preserved)
+;            r2   number of bytes written
 ;            c    1 on error (NAK)
 ;---------------------------------------------------------------
 i2c_batch_write:
@@ -767,14 +796,30 @@ i2c_batch_write:
 	bne @1
 	rts
 
-	; Save input on stack
-@1:	phx
+	; Preserve input on stack
+@1:	lda r0
+	pha
+	lda r0+1
+	pha
+	lda r1
+	pha
+	lda r1+1
+	pha
+
+	php
+	phx
+
+	; Disable interrupts
+	sei
 
 	; Init I2C transmission
 	jsr i2c_init
 	jsr i2c_start
-	txa                ; 7 bit device address
+	pla                ; 7 bit device address
+	pha
 	asl                ; device * 2
+	jsr i2c_write
+	bcs @err
 
 @loop:	; Write one byte
 	lda (r0)
@@ -812,10 +857,22 @@ i2c_batch_write:
 
 @exit:	jsr i2c_stop
 	plx
+	plp                ; Restore interrupt
 	clc
-	rts
+	bra @restore
 
 @err:	jsr i2c_stop
 	plx
+	plp                ; Restore interrupt
 	sec
+
+@restore:
+	pla
+	sta r1+1
+	pla
+	sta r1
+	pla
+	sta r0+1
+	pla
+	sta r0
 	rts
