@@ -15,6 +15,7 @@ SEGMENTS {
 	KVAR:       load = KVAR,     type = bss;
 	VARCHANNEL: load = KVAR,     type = bss;
 	VARFONTS:   load = KVAR,     type = bss;
+	I2CMUTEX: 	load = I2CMUTEX, type = bss;
 	KVAR2:      load = KVAR2,    type = bss;
 
 	GDRVVEC:    load = GDRVVEC,  type = bss;
