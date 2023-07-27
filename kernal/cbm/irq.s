@@ -7,7 +7,6 @@
 .feature labels_without_colons
 
 .import dfltn, dflto, kbd_scan, clock_update, cinv, cbinv
-
 .export key
 
 .segment "IRQ"
@@ -28,7 +27,7 @@ rom_bank = 1
 ;
 key
 	jsr mouse_scan  ;scan mouse (do this first to avoid sprite tearing)
-	jsr joystick_scan
+	;jsr joystick_scan
 	jsr clock_update
 	jsr cursor_blink
 	jsr kbd_scan

@@ -20,7 +20,7 @@ i2c_mutex: .res 1
 .export i2c_read_byte, i2c_write_byte, i2c_batch_read, i2c_batch_write
 .export i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
 .export i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
-.export i2c_restore
+.export i2c_restore, i2c_mutex
 
 __I2C_USE_INLINE_FUNCTIONS__=1
 
@@ -739,6 +739,7 @@ i2c_batch_read:
 	lda #1
 	sta i2c_mutex
 
+	sei
 	jsr i2c_init
 	jsr i2c_start
 	
@@ -749,6 +750,7 @@ i2c_batch_read:
 
 	asl                ; device * 2
 	ina                ; set read bit
+	sei
 	jsr i2c_write
 	bcc i2c_batch_read_loop
 
@@ -796,6 +798,7 @@ i2c_batch_read_loop:
 	bra i2c_batch_read_loop
 
 i2c_batch_read_exit:
+	sei
 	i2c_nack
 	jsr i2c_stop
 	
