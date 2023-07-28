@@ -436,9 +436,6 @@ i2c_write_first_byte:
 	lda i2c_mutex
 	bne @error
 
-	pla
-	pha
-
 	jsr i2c_init
 	jsr i2c_start
 	txa                ; device
@@ -476,8 +473,7 @@ i2c_write_next_byte:
 	ldx i2c_mutex
 	beq :+
 	rts
-
-	jmp i2c_write
+:	jmp i2c_write
 
 ;---------------------------------------------------------------
 ; i2c_write_stop
@@ -750,11 +746,11 @@ i2c_batch_read:
 
 	asl                ; device * 2
 	ina                ; set read bit
-	sei
 	jsr i2c_write
 	bcc i2c_batch_read_loop
 
-@err:	jsr i2c_stop
+@err:	sei
+	jsr i2c_stop
 	plp
 	plx
 	sec
@@ -798,8 +794,8 @@ i2c_batch_read_loop:
 	bra i2c_batch_read_loop
 
 i2c_batch_read_exit:
-	sei
 	i2c_nack
+	sei
 	jsr i2c_stop
 	
 	plp
@@ -845,6 +841,7 @@ i2c_batch_write:
 	lda r1+1
 	pha
 	phx
+	php
 
 	; Reset counter
 	stz r2
@@ -854,7 +851,7 @@ i2c_batch_write:
 	lda r1
 	ora r1+1
 	bne @1
-	plx
+	plp
 	clc
 	bra @restore
 
@@ -862,10 +859,13 @@ i2c_batch_write:
 	lda #1
 	sta i2c_mutex
 
+	sei
 	jsr i2c_init
 	jsr i2c_start
+	plp
 	pla                ; 7 bit device address
 	pha
+	php
 	asl                ; device * 2
 	jsr i2c_write
 	bcs @err
@@ -904,16 +904,19 @@ i2c_batch_write:
 	ora r1+1
 	bne @loop
 
-@exit:	jsr i2c_stop
-	plx
+@exit:	sei
+	jsr i2c_stop
+	plp
 	clc
 	bra @restore
 
-@err:	jsr i2c_stop
-	plx
+@err:	sei
+	jsr i2c_stop
+	plp
 	sec
 
 @restore:
+	plx
 	pla
 	sta r1+1
 	pla

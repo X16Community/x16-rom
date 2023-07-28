@@ -13,6 +13,8 @@
 ; called by ps2 keyboard driver
 .export joystick_from_ps2_init, joystick_from_ps2
 
+.import i2c_mutex
+
 nes_data = d1pra
 nes_ddr  = d1ddra
 
@@ -41,12 +43,19 @@ joy4:	.res 3           ;    joystick 4 status
 ;
 ;---------------------------------------------------------------
 joystick_scan:
-	KVARS_START_TRASH_A_NZ
+	; Abort if I2C batch command is running, as accessing VIA port A
+	; will cause read or write errors
+	lda i2c_mutex
+	beq :+
+	rts
 
-	lda nes_ddr
-	and #$ff-bit_data1-bit_data2-bit_data3-bit_data4
-	ora #bit_latch+bit_jclk
-	sta nes_ddr
+:	KVARS_START_TRASH_A_NZ
+
+	lda #bit_data1+bit_data2+bit_data3+bit_data4
+	trb nes_ddr
+	lda #bit_latch+bit_jclk
+	tsb nes_ddr
+
 	lda #bit_latch
 	trb nes_data
 	lda #bit_jclk
