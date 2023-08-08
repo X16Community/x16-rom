@@ -207,13 +207,11 @@ monitor:
 @end:
 
 	php
-	pha
 	sei
 	lda #<brk_entry
 	sta cbinv
 	lda #>brk_entry
 	sta cbinv + 1 ; BRK vector
-	pla
 	plp
 	
 	bra brk_entry2
