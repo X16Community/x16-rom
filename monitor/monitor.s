@@ -160,21 +160,63 @@ command_index	:= ram_code_end + 15 ; index from "command_names", or 'C'/'S' in E
 
 
 monitor:
-	lda #<brk_entry
-	sta cbinv
-	lda #>brk_entry
-	sta cbinv + 1 ; BRK vector
 	lda #'C'
 	sta entry_type
-	lda #DEFAULT_BANK
-	sta bank
 	stz bank_flags
 	ldx #<(__monitor_ram_code_SIZE__ - 1)
 :	lda __monitor_ram_code_LOAD__,x
 	sta __monitor_ram_code_RUN__,x
 	dex
 	bpl :-
-	brk ; <- nice!
+	; we were almost certainly called by jsrfar, pop these off
+	pla ; jsrfar return LSB
+	pla ; jsrfar return MSB
+	pla ; caller bank
+	sta bank
+	plx ; kernsup return LSB
+	ply ; kernsup return MSB
+	; if we were called by BASIC, the caller bank will be 4
+	cmp #BANK_BASIC
+	bne @end
+@basic:
+	; We were called from BASIC
+	; in the case of BRK, the RAM __irq pushes things in this order
+	;   (original real RTI-style return)
+	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
+	; load the values from BASIC as this is our best guess
+	; which assumes MONITOR was called explicitly rather than
+	; via a BRK instruction.
+	; Populate the stack as described above
+	phy
+	phx
+	lda $030f
+	pha
+	lda $030c
+	pha
+	lda bank
+	pha
+	phy
+	phx
+	php
+	lda $030f
+	pha
+	ldx $030d
+	phx
+	ldy $030e
+	phy
+@end:
+
+	php
+	pha
+	sei
+	lda #<brk_entry
+	sta cbinv
+	lda #>brk_entry
+	sta cbinv + 1 ; BRK vector
+	pla
+	plp
+	
+	bra brk_entry2
 
 .segment "monitor_ram_code"
 ; code that will be copied to $0220
@@ -200,14 +242,32 @@ brk_entry2:
 .ifp02
 	cld
 .endif
+	; in the case of BRK, the RAM __irq pushes things in this order
+	;   (original real RTI-style return)
+	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
+	; let's pull them off in reverse order
 	pla
 	sta reg_y
 	pla
 	sta reg_x
 	pla
-	sta reg_a
+	; dummy A
+	
+	; pull off RTI style return (which includes fake P flags)
 	pla
-	sta reg_p
+	pla
+	pla
+
+	; pull off preserved rom bank
+	pla
+	sta bank
+
+	pla
+	sta reg_a ; real preserved A from __irq
+
+	pla
+	sta reg_p ; this is the real processor flag reg at BRK
+
 	pla
 	sta reg_pc_lo
 	pla
