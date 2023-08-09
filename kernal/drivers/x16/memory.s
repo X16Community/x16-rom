@@ -210,6 +210,9 @@ __jmpfr:
 .assert * = irq, error, "irq must be at specific address"
 .export __irq
 __irq:
+	; If this stack preserve order is ever changed, check
+	; and update the MONITOR entry code as it makes assumptions
+	; about what happens here upon BRK.
 	pha
 	lda rom_bank    ;save ROM bank
 	pha
