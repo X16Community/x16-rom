@@ -13,11 +13,10 @@
 ; called by ps2 keyboard driver
 .export joystick_from_ps2_init, joystick_from_ps2
 
-.import i2c_mutex
-
 nes_data = d1pra
 nes_ddr  = d1ddra
 
+bit_i2c   = $03 ; I2C SDA and SCL pins
 bit_latch = $04 ; PA2 LATCH (both controllers)
 bit_jclk  = $08 ; PA3 CLK   (both controllers)
 bit_data4 = $10 ; PA4 DATA  (controller #4)
@@ -43,27 +42,21 @@ joy4:	.res 3           ;    joystick 4 status
 ;
 ;---------------------------------------------------------------
 joystick_scan:
-	; Abort if I2C batch command is running, as accessing VIA port A
-	; will cause read or write errors
-	lda i2c_mutex
-	beq :+
-	rts
-
-:	KVARS_START_TRASH_A_NZ
+	KVARS_START_TRASH_A_NZ
 
 	lda #bit_data1+bit_data2+bit_data3+bit_data4
 	trb nes_ddr
 	lda #bit_latch+bit_jclk
 	tsb nes_ddr
 
-	lda #bit_latch
-	trb nes_data
-	lda #bit_jclk
-	tsb nes_data
+	clc
+	jsr set_latch
+	sec
+	jsr set_clock
 
 	; pulse latch
-	lda #bit_latch
-	tsb nes_data
+	sec
+	jsr set_clock
 	pha
 	pla
 	pha
@@ -72,18 +65,19 @@ joystick_scan:
 	pla
 	pha
 	pla
-	trb nes_data
+	clc
+	jsr set_clock
 
 	; read 3x 8 bits
 	ldx #0
 l2:	ldy #8
-l1:	lda #bit_jclk
-	trb nes_data  ; Drive NES clock low (NES controller doesn't change when low)
+l1:	clc ; Drive NES clock low (NES controller doesn't change when low)
+	jsr set_clock
 
 	lda nes_data ; Read all controller bits
 	pha
-	lda #bit_jclk
-	tsb nes_data ; Drive NES clock high
+	sec
+	jsr set_clock ; Drive NES clock high
 	pla
 
 				; process while NES clock is high (bits change)
@@ -127,6 +121,22 @@ l1:	lda #bit_jclk
 :
 
 	KVARS_END_TRASH_A_NZ
+	rts
+
+set_latch:
+	lda nes_data
+	and #(~(bit_latch + bit_i2c) & $0f)
+	bcc :+
+	ora #bit_latch
+:	sta nes_data
+	rts
+
+set_clock:
+	lda nes_data
+	and #(~(bit_jclk + bit_i2c) & $0f)
+	bcc :+
+	ora #bit_jclk
+:	sta nes_data
 	rts
 
 ;---------------------------------------------------------------

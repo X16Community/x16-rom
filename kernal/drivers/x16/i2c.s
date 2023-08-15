@@ -370,7 +370,7 @@ i2c_read_next_byte_after_ack:
 ;---------------------------------------------------------------
 i2c_read_stop:
 	lda i2c_mutex
-	bne :+
+	beq :+
 	rts
 :	i2c_nack
 	jmp i2c_stop
