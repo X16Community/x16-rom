@@ -1,5 +1,7 @@
 .feature labels_without_colons
+; kernal syms
 .import shflag
+.import mode
 
 .include "banks.inc"
 .include "kernal.inc"

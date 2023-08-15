@@ -10,7 +10,6 @@ The following components are based on non-open source projects, and their base c
 |---------------------------------------------|-----------------|-----------|
 | Commodore KERNAL                            | `kernal/cbm`    | &copy;1983 Commodore Business Machines (CBM) |
 | Microsoft BASIC (with Commodore extensions) | `basic`,`math`  | &copy;1977 Microsoft Corp.<br/>&copy;1983 Commodore Business Machines (CBM) |
-| GEOS                                        | `geos`          | &copy;1985 Berkeley Softworks |
 
 The X16 project has a license to use this code in the context of the X16 computer. If you want to use these components outside of the context of the X16, please contaxt [Cloanto](https://www.amigaforever.com) (KERNAL and BASIC) and [Click Here Software](https://clickheresoftware.com) (GEOS) for details.
 
@@ -51,7 +50,6 @@ All code outside of the subdirectories above as well as *additions* to legacy co
 |-------------------------------------------|--------------|---------------|
 | BASIC *additions*                         | `basic`      | 2-clause BSD  |
 | KERNAL *additions*                        | `kernal`     | 2-clause BSD  |
-| GEOS *additions*                          | `geos`       | 2-clause BSD  |
 | CMDR-DOS and FAT32 for 6502               | `dos`        | 2-clause BSD  |
 | CodeX Interactive Assembly Environment    | `codex`      | 2-clause BSD  |
 | Audio API and library                     | `audio`      | 2-clause BSD  |

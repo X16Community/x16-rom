@@ -75,6 +75,10 @@ console_init:
 	stz inbufidx
 	stz override_height
 	stz override_height+1
+	stz px
+	stz px+1
+	stz py
+	stz py+1
 
 	LoadW r0, 0
 	jsr console_set_paging_message

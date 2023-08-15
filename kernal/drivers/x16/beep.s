@@ -19,12 +19,16 @@ beep:
 
 	stx VERA_DATA0
 	sty VERA_DATA0
+	ldx VERA_DATA0 ; store old pan value in X
+	lda #<psg_address + 2
+	sta VERA_ADDR_L
 	lda #%11111111 ; max volume, output left & right
 	sta VERA_DATA0
 	lda #%00111111 ; pulse, max width
 	sta VERA_DATA0
 
 	pla ; restore the length of the beep
+	phx ; save the old pan value here
 	ldy #0
 	ldx #0
 :	dex
@@ -36,5 +40,7 @@ beep:
 
 	lda #<psg_address + 2
 	sta VERA_ADDR_L
-	stz VERA_DATA0 ; disable voice 0
+	pla
+	and #$C0
+	sta VERA_DATA0 ; disable voice 0, restoring the pan
 	rts

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "uint16_t addresses_bank$1[] = {"
 for i in $(cat $2 | sort | uniq | grep "^.....[ABCDEF]" | cut -c 6-9); do

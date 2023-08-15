@@ -1151,7 +1151,6 @@ mlp4	nop             ;delay
 	sec
 	sbc #1
 	bne mlp4
-	jsr kbdbuf_clear
 ;
 mlp42	ldx tblx
 ;

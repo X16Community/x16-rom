@@ -3,6 +3,8 @@
 ;----------------------------------------------------------------------
 ; (C)2019 Michael Steil, License: 2-clause BSD
 
+.macpack longbranch
+
 .include "banks.inc"
 .include "io.inc"
 .include "regs.inc"
@@ -49,13 +51,16 @@ mouse_config:
 _mouse_config:
 	pha
 	cpx #0
-	beq @skip
+	jeq @skip
 
 	; scale
-	lda #1
-	cpx #40
-	bne :+
-	lda #2
+	lda #0
+	cpx #41
+	bcs :+
+	ora #2
+:	cpy #31
+	bcs :+
+	ora #1
 :	sta msepar ;  set scale
 	pha
 
@@ -77,17 +82,35 @@ _mouse_config:
 	rol mousemy+1
 	sta mousemy
 
-	; 320w and less: double the size
+	; 320w and less: double the width
+	; 240h and less: double the height
 	pla
-	dec
-	beq @skip2
+	and #2
+	beq :+
 	asl mousemx
 	rol mousemx+1
+:	lda msepar
+	and #1
+	beq @skip2
 	asl mousemy
 	rol mousemy+1
 @skip2:
 	DecW mousemx
 	DecW mousemy
+	; center the pointer
+	lda mousemx+1
+	lsr
+	sta mousex+1
+	lda mousemx
+	ror
+	sta mousex
+
+	lda mousemy+1
+	lsr
+	sta mousey+1
+	lda mousemy
+	ror
+	sta mousey
 
 @skip:
 	pla
@@ -269,33 +292,40 @@ mouse_get:
 
 _mouse_get:
 	lda msepar
-	and #$7f
-	cmp #2 ; scale
-	beq :+
-
+	and #2
+	; x scale
+	bne @x1
 	lda mousex
 	sta 0,x
 	lda mousex+1
 	sta 1,x
+@cy:
+	lda msepar
+	and #1
+	; y scale
+	bne @y1
 	lda mousey
 	sta 2,x
 	lda mousey+1
 	sta 3,x
-	bra @s1
-:
+	lda mousebt
+	rts
+@x1:
 	lda mousex+1
 	lsr
 	sta 1,x
 	lda mousex
 	ror
 	sta 0,x
+	bra @cy
+@y1:
 	lda mousey+1
 	lsr
 	sta 3,x
 	lda mousey
 	ror
 	sta 2,x
-@s1:	lda mousebt
+	lda mousebt
 	rts
 
 ; This is the Susan Kare mouse pointer

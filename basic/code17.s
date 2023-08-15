@@ -27,7 +27,7 @@ val2	stx index2+1
 	tya             ;a=0
 	sta (index2),y
 	jsr chrgot
-	jsr fin
+	jsr finh
 	pla
 	ldy #0
 	sta (index2),y

@@ -1,7 +1,7 @@
-Commander X16 BASIC/KERNAL/DOS/GEOS ROM
+Commander X16 BASIC/KERNAL/DOS ROM
 =======================================
 
-This is the Commander X16 ROM containing BASIC, KERNAL, DOS and GEOS. BASIC and KERNAL are derived from the [Commodore 64 versions](https://github.com/mist64/c64rom). GEOS is derived from the [C64/C128 version](https://github.com/mist64/geos).
+This is the Commander X16 ROM containing BASIC, KERNAL, and DOS. BASIC and KERNAL are derived from the [Commodore 64 versions](https://github.com/mist64/c64rom).
 
 * BASIC is fully compatible with Commodore BASIC V2, with some additions.
 * KERNAL
@@ -9,7 +9,6 @@ This is the Commander X16 ROM containing BASIC, KERNAL, DOS and GEOS. BASIC and 
 	* adds lots of new API, including joystick, mouse and bitmap graphics.
 	* supports the same $0300-$0332 vectors as the C64.
 	* does not support tape (device 1) or software RS-232 (device 2).
-* GEOS is fully compatible with the C64 version.
 * DOS
 	* is compatible with Commodore DOS (`$`, `SCRATCH`, `NEW`, ...).
 	* works on SD cards with FAT32 filesystems.
@@ -83,6 +82,56 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 44 ("Milan")
+
+This is the third release of x16-rom by the X16Community team
+
+* KERNAL
+	* **BREAKING CHANGE**
+		* The first batch of X16 developer boards were originally shipped without VPB support. The VPB bodge will need to be done before upgrading to ROM version R44 or later. Most of the board owners have been walked through doing the bodge. If you have such an early board (DEV0004-DEV0014) and have not performed the modification, please reach out on the Commander X16 forums or on Discord.
+	* Implement a custom callback from the screen editor to intercept, suppress, or remap key events. This is used by the MONITOR to handle scrolling off the top and bottom of the screen when viewing disassembly or memory, but it is also available to [user programs](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2002%20-%20Editor.md#custom-basin-petscii-code-override-handler).
+	* Move NMI/IRQ handler entry into low RAM, which now requires hardware or emulator VPB support. Prior to this change, VPB was optional. [akumanatt]
+	* Add PS/2 Menu key to keycode.inc [stefan-b-jakobsson]
+	* Validate nvram checksum before fetching keyboard layout [stefan-b-jakobsson]
+	* Improve bounds checking when loading the keymap from nvram
+	* In the screen editor, pressing Shift+40/80 (Shift+ScrLock) to change outputs now emits a beep code to indicate which output is selected.  (Low=VGA, Mid=NTSC, High=RGB)
+	* Depending on VERA version, kernal ISR now preserves the FX_CTRL register when doing screen updates (cursor blink, mouse sprite).
+	* VERA firmwares without a version number or those older than v0.1.1 will display a deprecation warning at boot.
+	* Change joystick scan timing to support more third party SNES controllers. [jburks]
+	* Prevent the scroll delay when holding Ctrl from clearing the keyboard buffer. This was resulting in dropped characters after pasting code into the emulator on PC.
+	* Scale mouse H/V separately based on screen mode.
+	* Set mouse pointer to center of display when activating.
+	* Preserve L+R outputs for PSG voice 0 around beep function
+* CHARSET
+	* revert accidental deletion of the butterfly glyph from the main ISO character set.
+* DOS
+	* Fix bug in `C` copy command [stefan-b-jakobsson]
+	* Add `$=L` long directory output, which includes both a human readable size (e.g. "16 KB") and a machine readable exact file size (e.g. `0003fa30`). The line also includes the FAT attribute byte (e.g. `10`), and the modified timestamp in ISO format.
+	* Treat `,` comma as an invalid CMDR-DOS filename character, show as `?` in listings.
+* BASIC
+	* Fix bug with overbroad REN(UMBER) line number parsing
+	* new `BANNER` statement
+	* Honor new end-of-basic address after call to `MEMTOP`
+	* Fix old BASIC garbage collect bug [XarkLabs]
+	* Change `OLD` so that it doesn't try to load `AUTOBOOT.X16` [stefan-b-jakobsson]
+	* Add YM variant field in the output of the `HELP` command.
+	* The `DOS` directory listing command will now case-fold any filename characters which appear as shifted PETSCII if the screen editor is in PETSCII mode, which should mitigate most of the problems with lowercase filenames.
+	* `VAL()` can now parse hex (`$xxxx`) and binary (`%xxxxxxxx`) literals
+* MONITOR
+	* When triggering entry into the monitor via BRK, the displayed PC and registers should now reflect the state upon BRK. The PC will be show as one byte after the BRK instruction.
+* GRAPH
+	* Accelerate fb_fill_pixels [stople]
+	* Fix uninitialized px/py state in console_init
+* AUDIO
+	* Fix logic bug in `psg_write_fast` routine.
+	* Add YM chip type detection logic. `ym_init` can distinguish between a YM2151 and a YM2164.
+* UTIL
+	* Always enable nvram battery backup when exiting `MENU` [stefan-b-jakobsson]
+* BUILD
+	* Portability enhancements [dressupgeekout]
+	* Drop GEOS bank
+	* Remove stale C64 target
+
 ### Release 43 ("Stockholm")
 
 This is the second release of x16-rom by the X16Community team

@@ -65,12 +65,9 @@ codex:
 	; does not return
 
 ;***************
-geos:
-	sei
-	jsr bjsrfar
-	.word $c000 ; entry
-	.byte BANK_GEOS
-	; does not return
+geos: ; syntax error now that GEOS is gone
+	ldx #errsn
+	jmp error
 
 ;***************
 color	jsr getcol ; fg
@@ -442,6 +439,7 @@ disk_dir
 	lda #' '
 	jsr bsout       ;print space  (to match loaded directory display)
 
+	ldy #0
 @d30	jsr basin       ;read & print filename & filetype
 	beq @d40        ;...branch if eol
 	pha
@@ -450,14 +448,41 @@ disk_dir
 	pla
 	cpx #0
 	bne disk_done   ;...branch if error
+	bit mode
+	bvs @d30out     ; ISO mode
+	cmp #$22
+	beq @d30qtsw    ; quotation mark
+	cpy #0
+	beq @d30out     ; not inside of quotes
+	cmp #$60
+	bcc @d30out     ; is unshifted character
+	cmp #$80
+	bcc @d30sub20   ; shifted character, subtract $20
+	cmp #$e0
+	bcs @d30ques    ; unprintable, show ?
+	bra @d30out     ; the rest are valid PETSCII
+@d30sub20
+	sec
+	sbc #$20
+@d30out
 	jsr bsout
-	bcc @d30        ;...loop always
+	bra @d30
 
 @d40	jsr crdo        ;start a new line
 	jsr stop
 	beq disk_done   ;...branch if user hit STOP
 	ldy #2
-	bne @d20        ;...loop always
+	bra @d20
+@d30qtsw ; toggle y between 0 and 1 to indicate whether we're inside quotes
+	cpy #0
+	beq :+
+	dey
+	dey
+:	iny
+	bra @d30out
+@d30ques
+	lda #'?'
+	bra @d30out
 
 disk_done
 	jsr clrch
