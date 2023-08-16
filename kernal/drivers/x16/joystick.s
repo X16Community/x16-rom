@@ -56,17 +56,13 @@ joystick_scan:
 
 	; pulse latch
 	sec
-	jsr set_clock
-	pha
-	pla
-	pha
-	pla
+	jsr set_latch
 	pha
 	pla
 	pha
 	pla
 	clc
-	jsr set_clock
+	jsr set_latch
 
 	; read 3x 8 bits
 	ldx #0
