@@ -41,6 +41,7 @@ joy4:	.res 3           ;    joystick 4 status
 ;
 ; Duration before changes: 1,787 clock cycles => 223 us
 ; Duration after changes: 1,627 clock cycles => 203 us
+; No loop: 1306 => 163,25 us
 ;---------------------------------------------------------------
 joystick_scan:
 	KVARS_START_TRASH_A_NZ
@@ -70,31 +71,63 @@ joystick_scan:
 	sta nes_data
 
 	; read 3x 8 bits
-	ldx #0
-l2:	ldy #8
+	ldx #bit_jclk
+	ldy #8
 l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 
 	lda nes_data ; Read all controller bits
-	pha
-	lda #bit_jclk
-	sta nes_data ; Drive NES clock high
-	pla
+	stx nes_data ; Drive NES clock high
 
 				; process while NES clock is high (bits change)
 	rol        ; Move bit 7 into C
-	rol joy1,x ; Roll C into joy1
+	rol joy1   ; Roll C into joy1
 	rol        ; Move bit 6 into C
-	rol joy2,x ; Roll C into joy2
+	rol joy2   ; Roll C into joy2
 	rol        ; Roll bit 5 into C
-	rol joy3,x ; Roll C into joy3
+	rol joy3   ; Roll C into joy3
 	rol        ; Roll bit 4 into C
-	rol joy4,x ; Roll C into joy4
+	rol joy4   ; Roll C into joy4
 
 	dey
 	bne l1
-	inx
-	cpx #3
+
+	ldy #8
+l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
+
+	lda nes_data ; Read all controller bits
+	stx nes_data ; Drive NES clock high
+
+				; process while NES clock is high (bits change)
+	rol        ; Move bit 7 into C
+	rol joy1+1 ; Roll C into joy1
+	rol        ; Move bit 6 into C
+	rol joy2+1 ; Roll C into joy2
+	rol        ; Roll bit 5 into C
+	rol joy3+1 ; Roll C into joy3
+	rol        ; Roll bit 4 into C
+	rol joy4+1 ; Roll C into joy4
+
+	dey
 	bne l2
+
+	ldy #8
+l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
+
+	lda nes_data ; Read all controller bits
+	stx nes_data ; Drive NES clock high
+
+				; process while NES clock is high (bits change)
+	rol        ; Move bit 7 into C
+	rol joy1+2 ; Roll C into joy1
+	rol        ; Move bit 6 into C
+	rol joy2+2 ; Roll C into joy2
+	rol        ; Roll bit 5 into C
+	rol joy3+2 ; Roll C into joy3
+	rol        ; Roll bit 4 into C
+	rol joy4+2 ; Roll C into joy4
+
+	dey
+	bne l3
 
 	; force present if controller ID (bits 8-11) is not 15
 	
