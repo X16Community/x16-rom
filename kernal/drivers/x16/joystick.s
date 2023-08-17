@@ -16,7 +16,6 @@
 nes_data = d1pra
 nes_ddr  = d1ddra
 
-bit_i2c   = $03 ; I2C SDA and SCL pins
 bit_latch = $04 ; PA2 LATCH (both controllers)
 bit_jclk  = $08 ; PA3 CLK   (both controllers)
 bit_data4 = $10 ; PA4 DATA  (controller #4)
@@ -40,40 +39,45 @@ joy4:	.res 3           ;    joystick 4 status
 ;
 ; Function:  Scan all joysticks
 ;
+; Duration before changes: 1,787 clock cycles => 223 us
+; Duration after changes: 1,627 clock cycles => 203 us
 ;---------------------------------------------------------------
 joystick_scan:
 	KVARS_START_TRASH_A_NZ
 
-	lda #bit_data1+bit_data2+bit_data3+bit_data4
-	trb nes_ddr
+	; Set latch and clock as outputs, and data1..4 as inputs, leave I2C pins (0..1) unchanged
+	lda nes_ddr
+	and #$ff-bit_data1-bit_data2-bit_data3-bit_data4
+	ora #bit_latch+bit_jclk
+	sta nes_ddr
+
+	; Set latch=low and clock=high
+	lda #bit_jclk
+	sta nes_data
+
+	; pulse latch while clk=high
 	lda #bit_latch+bit_jclk
-	tsb nes_ddr
-
-	clc
-	jsr set_latch
-	sec
-	jsr set_clock
-
-	; pulse latch
-	sec
-	jsr set_latch
+	sta nes_data
 	pha
 	pla
 	pha
 	pla
-	clc
-	jsr set_latch
+	pha
+	pla
+	pha
+	pla
+	lda #bit_jclk
+	sta nes_data
 
 	; read 3x 8 bits
 	ldx #0
 l2:	ldy #8
-l1:	clc ; Drive NES clock low (NES controller doesn't change when low)
-	jsr set_clock
+l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 
 	lda nes_data ; Read all controller bits
 	pha
-	sec
-	jsr set_clock ; Drive NES clock high
+	lda #bit_jclk
+	sta nes_data ; Drive NES clock high
 	pla
 
 				; process while NES clock is high (bits change)
@@ -93,46 +97,30 @@ l1:	clc ; Drive NES clock low (NES controller doesn't change when low)
 	bne l2
 
 	; force present if controller ID (bits 8-11) is not 15
-	; ldy #0
+	
 	lda joy1+1
 	and #%00001111
 	cmp #15
 	beq :+
-	sty joy1+2
+	stz joy1+2
 :	lda joy2+1
 	and #%00001111
 	cmp #15
 	beq :+
-	sty joy2+2
+	stz joy2+2
 :	lda joy3+1
 	and #%00001111
 	cmp #15
 	beq :+
-	sty joy3+2
+	stz joy3+2
 :	lda joy4+1
 	and #%00001111
 	cmp #15
 	beq :+
-	sty joy4+2
+	stz joy4+2
 :
 
 	KVARS_END_TRASH_A_NZ
-	rts
-
-set_latch:
-	lda nes_data
-	and #(~(bit_latch + bit_i2c) & $0f)
-	bcc :+
-	ora #bit_latch
-:	sta nes_data
-	rts
-
-set_clock:
-	lda nes_data
-	and #(~(bit_jclk + bit_i2c) & $0f)
-	bcc :+
-	ora #bit_jclk
-:	sta nes_data
 	rts
 
 ;---------------------------------------------------------------
