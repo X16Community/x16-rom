@@ -51,15 +51,15 @@ nmain	stz ram_bank
 @e0	lda (poker)
 	pha
 	inc poker
-	bne :+
-	inc poker+1
+	bne @eb
 	lda poker+1
+	inc
 	cmp #$c0
-	bcc :+
+	bcc @ea
 	sbc #$20
-	sta poker+1
 	inc ram_bank
-:	pla
+@ea	sta poker+1
+@eb	pla
 	beq @e1
 	cmp #10
 	beq @e2
@@ -78,25 +78,20 @@ nmain	stz ram_bank
 	lda ram_bank
 	stz ram_bank
 	sty exec_flag
+	sta exec_bank
 	lda poker
 	sta exec_addr
 	lda poker+1
 	sta exec_addr+1
 	jsr stop
-	bne :+
+	bne @e3
 	ldx #erbrk
 	bra @err
-:	lda crambank
+@e3	lda crambank
 	sta ram_bank
 	ldx #<zz5
 	ldy #>zz5
 	bra @2
-@esl	ldx #errls
-@err	stz ram_bank
-	stz exec_flag
-	lda crambank
-	sta ram_bank
-	jmp error
 @1	lda crambank
 	sta ram_bank
 	jsr inlin
@@ -111,6 +106,12 @@ nmain	stz ram_bank
 	jsr crunch
 	jmp gone
 @3	jmp main
+@esl	ldx #errls
+@err	stz ram_bank
+	stz exec_flag
+	lda crambank
+	sta ram_bank
+	jmp error
 main1	jsr linget
 	jsr crunch
 	sty count
