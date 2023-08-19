@@ -172,7 +172,9 @@ cld50	jsr $ffb7       ;read status
 	ldx #erload
 cld55	jmp error
 ;
-cld60	lda eormsk
+cld60	stx sxreg   ; save [B]LOAD addr so BASIC can inspect
+	sty syreg
+	lda eormsk
 	bne cld20
 	lda txtptr+1
 	cmp #bufpag     ;direct?

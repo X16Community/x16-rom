@@ -37,17 +37,81 @@ readyx	lda #<reddy
 
 main	jsr clear_4080_flag
 	jmp (imain)
-nmain	jsr inlin
-	stx txtptr
+nmain	stz ram_bank
+	lda exec_flag
+	beq @1
+	lda exec_addr
+	sta poker
+	lda exec_addr+1
+	sta poker+1
+	lda exec_bank
+	sta ram_bank
+	ldy #1
+	ldx #0
+@e0	lda (poker)
+	pha
+	inc poker
+	bne @eb
+	lda poker+1
+	inc
+	cmp #$c0
+	bcc @ea
+	sbc #$20
+	inc ram_bank
+@ea	sta poker+1
+@eb	pla
+	beq @e1
+	cmp #10
+	beq @e2
+	cmp #13
+	beq @e2
+	sta buf,x
+	jsr bsout
+	inx
+	cpx #buflen
+	bcc @e0
+	bra @esl
+@e1	ldy #0
+@e2	lda #13
+	jsr bsout
+	stz buf,x
+	lda ram_bank
+	stz ram_bank
+	sty exec_flag
+	sta exec_bank
+	lda poker
+	sta exec_addr
+	lda poker+1
+	sta exec_addr+1
+	jsr stop
+	bne @e3
+	ldx #erbrk
+	bra @err
+@e3	lda crambank
+	sta ram_bank
+	ldx #<zz5
+	ldy #>zz5
+	bra @2
+@1	lda crambank
+	sta ram_bank
+	jsr inlin
+@2	stx txtptr
 	sty txtptr+1
 	jsr chrget
 	tax
-	beq main
+	beq @3
 	ldx #255
 	stx curlin+1
 	bcc main1
 	jsr crunch
 	jmp gone
+@3	jmp main
+@esl	ldx #errls
+@err	stz ram_bank
+	stz exec_flag
+	lda crambank
+	sta ram_bank
+	jmp error
 main1	jsr linget
 	jsr crunch
 	sty count
