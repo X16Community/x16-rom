@@ -181,3 +181,6 @@ usrpok	.res 3           ;$0310 user function dispatch
     rencur: .res 2
     rentmp: .res 2
     rentmp2: .res 2
+    exec_flag: .res 1
+    exec_addr: .res 2
+    exec_bank: .res 1

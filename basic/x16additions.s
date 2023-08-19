@@ -1105,6 +1105,28 @@ banner:
 	bannex_call bannex_splash
 	rts
 
+exec:
+	stz ram_bank
+	jsr frmadr
+	lda crambank
+	sta exec_bank
+	lda poker
+	sta exec_addr
+	lda poker+1
+	sta exec_addr+1
+	jsr chrgot
+	beq @1
+	jsr chkcom
+	jsr getbyt
+	stx exec_bank
+@1:
+	lda #1
+	sta exec_flag
+	lda crambank
+	sta ram_bank
+	rts
+
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar

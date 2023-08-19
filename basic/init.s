@@ -10,6 +10,10 @@ panic	jsr clschn      ;warm start basic...
 	lda #0          ;clear channels
 	sta channl
 	jsr stkini      ;restore stack
+	lda ram_bank
+	stz ram_bank
+	stz exec_flag
+	sta ram_bank
 	cli             ;enable irq's
 
 ready	ldx #$80
@@ -24,6 +28,7 @@ init	jsr initv       ;go init vectors
 	jsr initms      ;go print initilization messages
 	stz ram_bank
 	stz crombank     ;set default value for BANK statement (ROM)
+	stz exec_flag
 	ldx #1
 	stx crambank     ;set default value for BANK statement (RAM)
 	stx ram_bank
