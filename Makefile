@@ -169,7 +169,8 @@ UTIL_SOURCES= \
 	kernsup/kernsup_util.s \
 	util/main.s \
 	util/menu.s \
-	util/control.s
+	util/control.s \
+	util/hexedit.s
 
 BANNEX_SOURCES= \
 	kernsup/kernsup_bannex.s \
