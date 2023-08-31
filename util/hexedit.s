@@ -9,8 +9,9 @@
 .include "regs.inc"
 .include "banks.inc"
 
-; for some reason this is commented out in kernal.inc
+; for some reason these are commented out in kernal.inc
 readst = $ffb7
+setmsg = $ff90
 
 .macpack cbm
 
@@ -107,6 +108,9 @@ filename:
 .segment "HEXEDIT"
 
 util_hexedit:
+	; turn off kernal save/load messages
+	lda #0
+	jsr setmsg
 	stz top_address_l
 	stz top_address_h
 	stz cursor_x
@@ -927,6 +931,9 @@ expr4:	cmp #89 ;Y
 	jsr bsout
 	lda #19	;home
 	jsr bsout
+	; turn kernal saving/loading messages back on
+	lda #$80
+	jsr setmsg
 	rts
 	
 switch_display_mode:
@@ -1294,7 +1301,7 @@ dse1:	lda screen_error_text,x
 dse2:	rts
 	
 screen_error_text:
-	.byte "HEXEDIT REQUIRES AT LEAST 32 COLUMNS!",0
+	.byte $93,"HEXEDIT REQUIRES AT LEAST 32 COLUMNS!",0
 
 display_screen_top:
 	lda #%00010001
