@@ -11,7 +11,7 @@
 .include "mac.inc"
 
 ; code
-.import i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
+.import i2c_read_byte, i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
 .import screen_save_state
 .import screen_restore_state
 
@@ -30,9 +30,15 @@ mousex:	.res 2           ;    cur x coordinate
 mousey:	.res 2           ;    cur y coordinate
 mousebt:
 	.res 1           ;    cur buttons (1: left, 2: right, 4: third)
+wheel:	.res 1           ;    Intellimouse wheel buffer
+idat:	.res 1           ;    Intellimouse data packet
+device_id:
+	.res 1           ;    mouse device ID
 
 I2C_ADDRESS = $42
 I2C_GET_MOUSE_MOVEMENT_OFFSET = $21
+I2C_GET_MOUSE_DEVICE_ID = $22
+BAT_FAIL = $fc
 
 .segment "PS2MOUSE"
 
@@ -50,11 +56,31 @@ mouse_config:
 	rts
 _mouse_config:
 	pha
+	phx
+	phy
+
+	; clear mouse wheel buffer
+	stz wheel
+
+	; fetch mouse device ID
+	ldx #I2C_ADDRESS
+	ldy #I2C_GET_MOUSE_DEVICE_ID
+	jsr i2c_read_byte
+	sta device_id
+	cmp #BAT_FAIL ; return if SMC reports mouse init failed
+	bne :+
+	ply
+	plx
+	pla
+	rts
+
+:	ply
+	plx
 	cpx #0
 	jeq @skip
 
 	; scale
-	lda #0
+ 	lda #0
 	cpx #41
 	bcs :+
 	ora #2
@@ -203,7 +229,27 @@ _mouse_scan:
 
 	jsr i2c_read_next_byte
 	pha                     ; Push low 8 bits onto stack
-	jsr i2c_read_stop       ; Stop I2C transfer
+
+	lda device_id		; Fetch Intellimouse byte, if applicable
+	cmp #3			; Device ID 3, mouse wheel only
+	beq :+
+	cmp #4			; Device ID 4, mouse wheel and extra buttons
+	bne :+++
+
+:	jsr i2c_read_next_byte
+	sta idat		; Store raw value
+
+	and #15			; Convert 4 bit signed value to 8 bit signed value, needed for device ID 4
+	cmp #8
+	bcc :+
+	ora #240
+
+:	clc			; Add movement to buffer
+	adc wheel
+	bvs :+			; Ignore if overflow
+	sta wheel
+
+:	jsr i2c_read_stop       ; Stop I2C transfer
 	ply                     ; Pop low 8 bits to Y
 	lda mousebt             ; Load flags
 	and #$20                ; Check sign bit
@@ -273,10 +319,16 @@ mouse_update_position:
 	PushW r0
 	PushW r1
 
+	lda wheel
+	pha
+
 	ldx #r0
 	jsr mouse_get
 	lda #0
 	jsr sprite_set_position
+
+	pla
+	sta wheel
 
 	PopW r1
 	PopW r0
@@ -309,7 +361,7 @@ _mouse_get:
 	lda mousey+1
 	sta 3,x
 	lda mousebt
-	rts
+	bra @exit
 @x1:
 	lda mousex+1
 	lsr
@@ -325,7 +377,17 @@ _mouse_get:
 	lda mousey
 	ror
 	sta 2,x
-	lda mousebt
+
+@exit:	lda #0		; Return mouse button flags
+	ldx device_id
+	cpx #4
+	bne :+
+	lda idat	; Add Intellimouse buttons, if device ID is 4
+	and #48
+:	ora mousebt
+
+	ldx wheel
+	stz wheel
 	rts
 
 ; This is the Susan Kare mouse pointer
