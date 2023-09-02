@@ -17,7 +17,7 @@
 
 .import sprite_set_image, sprite_set_position
 
-.export mouse_config, mouse_scan, mouse_get
+.export mouse_config, mouse_scan, mouse_get, wheel
 
 .segment "KVARSB0"
 
