@@ -544,7 +544,11 @@ mw:
 	jsr mouse_get
 	txa
 	tay
-	jmp sngflt
+	bpl :+
+	lda #$ff
+	bra :++
+:	lda #$00
+:	jmp givayf0
 
 restore_wheel:
 	lda ram_bank
