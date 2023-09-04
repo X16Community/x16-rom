@@ -538,7 +538,7 @@ mb:
 	jmp sngflt
 
 ;***************
-mw:
+mwheel:
 	jsr chrget
 	ldx #fac
 	jsr mouse_get
