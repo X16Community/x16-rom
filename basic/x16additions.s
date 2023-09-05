@@ -1,4 +1,4 @@
-
+.import wheel
 
 VERA_BASE = $9F20
 
@@ -513,6 +513,7 @@ mx:
 	jsr chrget
 	ldx #fac
 	jsr mouse_get
+	jsr restore_wheel
 	lda fac+1
 	ldy fac
 	jmp givayf0
@@ -522,6 +523,7 @@ my:
 	jsr chrget
 	ldx #fac
 	jsr mouse_get
+	jsr restore_wheel
 	lda fac+3
 	ldy fac+2
 	jmp givayf0
@@ -532,7 +534,30 @@ mb:
 	ldx #fac
 	jsr mouse_get
 	tay
+	jsr restore_wheel
 	jmp sngflt
+
+;***************
+mwheel:
+	jsr chrget
+	ldx #fac
+	jsr mouse_get
+	txa
+	tay
+	bpl :+
+	lda #$ff
+	bra :++
+:	lda #$00
+:	jmp givayf0
+
+restore_wheel:
+	lda ram_bank
+	pha
+	stz ram_bank
+	stx wheel
+	pla
+	sta ram_bank
+	rts
 
 ;***************
 joy:

@@ -135,6 +135,7 @@ reslst3
 	.byt "POINTE", 'R' + $80
 	.byt "STRPT", 'R' + $80
 	.byt "RPT", '$' + $80
+	.byt "MWHEE", 'L' + $80
 
 	; add new functions before this line
 	.byt 0

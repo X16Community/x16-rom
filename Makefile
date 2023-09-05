@@ -319,7 +319,7 @@ $(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 # Bank 4 : BASIC
 $(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode`
+	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode wheel`
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
 
 # Bank 5 : MONITOR
