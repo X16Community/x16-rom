@@ -900,7 +900,6 @@ cmd_j:
 	pha
 	lda bank
 	sta ram_bank
-	.byte $db
 	jmp jsr_user
 cmd_j_cont:
 	pla

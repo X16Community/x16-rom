@@ -57,7 +57,6 @@ monitor:
 	lda #<(clean_return-1)
 	pha
 
-	.byte $db
 	jsr bjsrfar
 	.word $c000
 	.byte BANK_MONITOR
