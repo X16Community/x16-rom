@@ -52,10 +52,17 @@ VERA_SPRITES_BASE = $1FC00
 
 ;***************
 monitor:
+	lda #>(clean_return-1)
+	pha
+	lda #<(clean_return-1)
+	pha
+
+	.byte $db
 	jsr bjsrfar
 	.word $c000
 	.byte BANK_MONITOR
-	; does not return
+	; does not (usually) return
+	jmp clean_return
 
 ;***************
 codex:
@@ -844,6 +851,7 @@ cmenu:
 	jsr bjsrfar
 	.word $c000
 	.byte BANK_UTIL
+clean_return:
 	jsr stkini
 	jmp readyx
 
