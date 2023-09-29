@@ -18,6 +18,7 @@
 ; "F"/"H"/"C"/"T" - find, hunt, compare, transfer
 ; "A" - assemble
 ; "G" - run code
+; "J" - run code as subroutine
 ; "$" - convert hex to decimal
 ; "#" - convert decimal to hex
 ; "X" - exit monitor
@@ -160,6 +161,12 @@ command_index	:= ram_code_end + 15 ; index from "command_names", or 'C'/'S' in E
 
 
 monitor:
+	sty reg_y
+	stx reg_x
+	sta reg_a
+	php
+	pla
+	sta reg_p
 	lda #'C'
 	sta entry_type
 	stz bank_flags
@@ -173,11 +180,36 @@ monitor:
 	pla ; jsrfar return MSB
 	pla ; caller bank
 	sta bank
-	plx ; kernsup return LSB
-	ply ; kernsup return MSB
+	; if this is a monitor entry, the PC is two-off from the BRK-induced PC
+	pla
+	clc
+	adc #2
+	tax ; kernsup return LSB
+	pla
+	adc #0
+	tay ; kernsup return MSB
 	; if we were called by BASIC, the caller bank will be 4
+	lda bank
 	cmp #BANK_BASIC
-	bne @end
+	beq @basic
+	phy
+	phx
+	lda reg_p
+	pha
+	lda reg_a
+	pha
+	lda bank
+	pha
+	phy
+	phx
+	php
+	lda reg_a
+	pha
+	ldx reg_x
+	phx
+	ldy reg_y
+	phy
+	bra @end
 @basic:
 	; We were called from BASIC
 	; in the case of BRK, the RAM __irq pushes things in this order
@@ -220,20 +252,27 @@ monitor:
 ; code that will be copied to $0220
 goto_user:
 	;XXX what do we do if video bank is active?
-	sta ram_bank	 ;set RAM bank
-	and #$07
 	sta rom_bank	 ;set ROM bank
 	lda reg_a
 	rti
 
 brk_entry:
-	pha
 	; XXX TODO save banks
 	lda #BANK_MONITOR
 	sta rom_bank
-	pla
 	jmp brk_entry2
 
+jsr_user:
+	sta rom_bank	 ;set ROM bank
+	lda reg_a
+	plp
+	jsr $ffff
+__jsr_target = * - 2
+	php
+	pha
+	lda #BANK_MONITOR
+	sta rom_bank
+	jmp cmd_j_cont
 .segment "monitor"
 
 brk_entry2:
@@ -834,7 +873,43 @@ LAF06:
 	ldx reg_x
 	ldy reg_y
 	lda bank
+	sta ram_bank
 	jmp goto_user
+
+; ----------------------------------------------------------------
+; "J" - run code as jsr
+; ----------------------------------------------------------------
+cmd_j:
+	jsr basin_cmp_cr
+	beq @j1
+	jsr get_hex_word2
+	jsr basin_cmp_cr
+	beq @j2
+	jmp syntax_error
+
+@j1:	jsr copy_pc_to_zp2_and_zp1
+@j2:
+	jsr disable_f_keys
+	lda zp2
+	sta __jsr_target
+	lda zp2 + 1
+	sta __jsr_target + 1
+	ldx reg_x
+	ldy reg_y
+	lda reg_p
+	pha
+	lda bank
+	sta ram_bank
+	jmp jsr_user
+cmd_j_cont:
+	pla
+	sta reg_a
+	pla
+	sta reg_p
+	sty reg_y
+	stx reg_x
+	jmp dump_registers
+
 
 ; ----------------------------------------------------------------
 ; "$" - convert hex to decimal
@@ -1465,6 +1540,7 @@ command_index_i = <(* - command_names)
 	.byte "I"
 	.byte "'"
 	.byte ";"
+	.byte "J"
 command_names_end:
 
 function_table:
@@ -1492,6 +1568,7 @@ function_table:
 	.word cmd_mid-1
 	.word cmd_singlequote-1
 	.word cmd_semicolon-1
+	.word cmd_j-1
 
 ; ----------------------------------------------------------------
 
