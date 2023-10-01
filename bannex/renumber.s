@@ -9,15 +9,80 @@ esctk = $ce
 ram_bank = 0
 rom_bank = 1
 
+errfc = 14
+errov = 15
+errid = 21
 .export renumber
 
-.importzp index, index2, txttab
+.importzp index, index2, txttab, chrgot, poker, chkcom
 .import rencur, reninc, rennew, renold, rentmp, rentmp2
-.import crambank, vartab
+.import crambank, vartab, curlin, error
+
+.import frmadr
 
 .segment "ANNEX"
 
+; REN [newstart[,increment[,oldstart]]]
+; line renumber
 .proc renumber: near
+	lda curlin+1
+	inc
+	beq @imm ; ensure renumber only happens in direct mode
+	ldx #errid
+	jmp error
+@imm:
+	stz ram_bank
+	lda #10
+	sta rennew
+	stz rennew+1
+	sta reninc
+	stz reninc+1
+	stz renold
+	stz renold+1
+
+	jsr chrgot
+	beq @go
+
+	jsr frmadr
+	lda poker
+	sta rennew
+	lda poker+1
+	sta rennew+1
+
+	jsr chrgot
+	beq @go
+
+	jsr chkcom
+	jsr frmadr
+	lda poker
+	sta reninc
+	lda poker+1
+	sta reninc+1
+
+	jsr chrgot
+	beq @go
+
+	jsr chkcom
+	jsr frmadr
+	lda poker
+	sta renold
+	lda poker+1
+	sta renold+1
+
+@go:
+	; make sure rennew < 65280
+	lda rennew+1
+	inc
+	beq @errlin
+	; make sure reninc > 0.
+	lda reninc+1
+	bne @startok
+	lda reninc
+	bne @startok
+@errlin:
+	ldx #errfc
+	jmp error
+@startok:
 	jsr renumber_tag  ; mark all of the line numbers after GOTO/GOSUB/THEN/RESTORE/RUN tokens with leading #
 	bcs fail
 	jsr renumber_walk ; do the actual renumber, while replacing the line numbers after GOTO/GOSUB/THEN/RESTORE/RUN tokens, padding the excess with spaces

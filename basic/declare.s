@@ -25,7 +25,7 @@ linnum	.res 2           ;$14 location to store line number before buf
                          ;    data pointer always starts on a
                          ;    comma or terminator.
 
-poker	=linnum          ;$14 set up location used by poke
+poker	:=linnum         ;$14 set up location used by poke
                          ;    temporary for input and read code
 
 tempst	.res 9           ;$19 storage for numtmp temp descriptors
