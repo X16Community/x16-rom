@@ -402,6 +402,7 @@ cls:
 ;***************
 locate:
 	bannex_call bannex_locate
+	rts
 
 ;***************
 ckeymap:
