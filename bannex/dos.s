@@ -5,7 +5,7 @@ readst = $ffb7
 
 .feature labels_without_colons
 
-.importzp index1
+.importzp index1, txtptr, eormsk, poker
 
 .import basic_fa, curlin, verck, valtyp
 
@@ -17,7 +17,9 @@ readst = $ffb7
 .import frefac
 .import frmevl
 .import getadr
-
+.import nsnerr6
+.import erexit
+.import cld10
 
 .export dos
 dos_getfa = getfa
@@ -26,8 +28,165 @@ dos_ptstat3 = ptstat3
 .export dos_ptstat3
 dos_clear_disk_status = clear_disk_status
 .export dos_clear_disk_status
+dos_chkdosw = chkdosw
+.export dos_chkdosw
 
 .segment "ANNEX"
+
+
+; check if current buffer contains a dos wedge command
+chkdosw:
+	lda (txtptr)
+	cmp #'@'
+	beq dosat
+	cmp #'>'
+	beq dosat
+	cmp #'/'
+	beq dossla
+	cmp #'^'
+	beq doscar
+	cmp #'_'
+	beq doslef
+	cmp #'%'
+	beq dospct
+	clc
+	rts
+
+dosat:
+	ldy #1
+	lda (txtptr),y
+	beq dossta
+	jsr dosparm
+	bcs dosret
+	jsr dos2
+dosret:
+	sec
+	rts
+dossta: ; DOS
+	jsr ptstat
+	bra dosret
+doscar: ; LOAD "FILE",8 : RUN
+	ldx #0
+@kbd_stuff:
+	lda @runc,x
+	beq @load
+	jsr kbdbuf_put
+	inx
+	bne @kbd_stuff
+@load:
+	jmp doswld
+@runc:
+	.byte "RUN",13,0
+@runl = *-@runc
+
+dossla: ; LOAD "FILE",8
+	jmp doswld
+dospct: ; LOAD "FILE",8,1
+	jsr getfa
+	tax
+	lda #1
+	ldy #1
+	jsr setlfs
+	ldy #1
+	jsr dosparm
+	ldx index1
+	ldy index1+1
+	jsr setnam
+	lda #0
+	jsr load
+	bcc dosret
+	jmp erexit
+doslef:
+	jsr getfa
+	sta verck ; used by save routine
+	tax
+	lda #1
+	ldy #1
+	jsr setlfs
+	ldy #1
+	jsr dosparm
+	ldx index1
+	ldy index1+1
+	jsr setnam
+	jsr nsnerr6 ; BASIC SAVE
+	bra dosret
+doswld:
+	stz eormsk
+	jsr getfa
+	tax
+	lda #1
+	ldy #0
+	jsr setlfs
+	ldy #1
+	jsr dosparm
+	ldx index1
+	ldy index1+1
+	jsr setnam
+	ldx #<$801
+	stx poker
+	ldy #>$801
+	sty poker+1
+	lda #0
+	jmp cld10
+inydosparm:
+	iny
+
+dosparm:
+	lda (txtptr),y
+	cmp #' '
+	beq inydosparm
+	cmp #$22
+	beq inydosparm
+	cmp #'#'
+	beq dosnum
+	tya
+	clc
+	adc txtptr
+	sta index1
+	lda txtptr+1
+	adc #0
+	sta index1+1
+	ldy #0
+:	lda (index1),y
+	beq :+
+	cmp #$22
+	beq :+
+	iny
+	bne :-
+:	tya
+	clc
+	rts
+dosnum:
+	iny
+	lda (txtptr),y
+	sec
+	sbc #'0'
+@2:
+	cmp #8
+	bcc @dd
+	cmp #32
+	bcs @fcerr
+	jsr dossw
+	jmp dosret
+@fcerr:
+	jmp fcerr	
+@dd:
+	cmp #4 ; can't be above 32 anyway
+	bcs @fcerr
+	asl
+	sta verck
+	asl
+	asl
+	adc verck
+	sta verck
+	iny
+	lda (txtptr),y
+	beq @fcerr
+	sec
+	sbc #'0'
+	clc
+	adc verck
+	bra @2
 
 
 ; ----------------------------------------------------------------
@@ -53,6 +212,7 @@ dos beq ptstat      ;no argument: print status
 @str	jsr frefac      ;get ptr to string, length in .a
 	cmp #0
 	beq ptstat      ;no argument: print status
+dos2:
 	sta verck       ;save length
 	ldx index1
 	ldy index1+1
@@ -124,7 +284,8 @@ ptstat2	php
 	rts
 :	jsr unlstn
 	jsr getfa
-ptstat3	jsr talk
+ptstat4
+	jsr talk
 	lda #$6f
 	jsr tksa
 dos11	jsr iecin
@@ -252,3 +413,9 @@ disk_done
 	lda #LOGADD
 	sec
 	jmp close
+
+
+ptstat3
+	sec
+	php
+	jmp ptstat4

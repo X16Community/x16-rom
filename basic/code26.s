@@ -114,8 +114,6 @@ nsnerr6	lda verck   ;fetch the device (fa) that was used
 	lda #$0d
 	jsr bsout
 	pla             ;this will have the fa used for the save
-	sec
-	php
 	jmp ptstat3     ;part of the `dos` routine
 :	pla
 	rts
