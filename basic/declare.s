@@ -43,7 +43,7 @@ forpnt	.res 2           ;$49 a variable's pointer for "for" loops
                          ;    and "let" statements
 lstpnt	=forpnt          ;$49 pntr to list string
 andmsk	=forpnt          ;$49 the mask used by wait for anding
-eormsk	=forpnt+1        ;$4A the mask for eoring in wait
+eormsk	:=forpnt+1        ;$4A the mask for eoring in wait
 
 ; CHRGET
 chrget	.res 6           ;$73

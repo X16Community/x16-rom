@@ -19,6 +19,7 @@ rom_bank = 1
 .import dos_getfa
 .import dos_ptstat3
 .import dos_clear_disk_status
+.import dos_chkdosw
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
@@ -31,3 +32,4 @@ rom_bank = 1
 	jmp dos_getfa          ; $C015
 	jmp dos_ptstat3        ; $C018
 	jmp dos_clear_disk_status ; $C01B
+	jmp dos_chkdosw        ; $C01E

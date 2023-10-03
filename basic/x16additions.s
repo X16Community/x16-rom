@@ -272,6 +272,15 @@ old1	lda txttab+1
 	txs
 	jmp ready
 
+chkdosw:
+	bannex_call bannex_dos_chkdosw
+	bcs @1
+	rts
+@1:
+	jsr stkini
+	jmp readyx
+
+
 ;***************
 dos:
 	bannex_call bannex_dos

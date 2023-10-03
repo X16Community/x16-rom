@@ -103,6 +103,7 @@ nmain	stz ram_bank
 	ldx #255
 	stx curlin+1
 	bcc main1
+	jsr chkdosw
 	jsr crunch
 	jmp gone
 @3	jmp main
