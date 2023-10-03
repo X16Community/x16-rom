@@ -1153,6 +1153,7 @@ video_loop:
 	cmp #' '
 	beq video_loop
 	jsr hex_digit_to_nybble
+	and #1
 	bra	store_ram_bank
 default_video_bank:
 	lda #0
