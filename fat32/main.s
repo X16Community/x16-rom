@@ -101,5 +101,5 @@
 	jmp fat32_next_sector       ; $C063
 	jmp fat32_set_time          ; $C066
 
-	jmp	sdcard_init             ; $C069
+	jmp sdcard_init             ; $C069
 	jmp sdcard_check_alive      ; $C06C

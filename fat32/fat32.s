@@ -148,10 +148,6 @@ volumes:             .res FS_SIZE * FAT32_VOLUMES
 
 _fat32_bss_end:
 
-
-; cross-bank imports from DOS
-;.import fat32_size
-
 .export fat32_alloc_context
 .export fat32_chdir
 .export fat32_close
@@ -185,8 +181,6 @@ _fat32_bss_end:
 .export fat32_write
 .export fat32_write_byte
 .export sync_sector_buffer
-
-
 .export fat32_set_time
 
 .code
