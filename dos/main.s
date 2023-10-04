@@ -3,13 +3,12 @@
 ;----------------------------------------------------------------------
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
-.include "fat32/fat32.inc"
-.include "fat32/sdcard.inc"
+;.include "fat32/fat32.inc"
+;.include "fat32/sdcard.inc"
+.include "macros.inc"
 
-.import sdcard_init
+.import djsrfar
 
-.import fat32_init
-.import sync_sector_buffer
 .importzp bank_save
 
 ; cmdch.s
@@ -36,7 +35,6 @@
 .export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr
 .export dos_set_time
 
-.include "banks.inc"
 
 .include "file.inc"
 
@@ -128,7 +126,7 @@ sdcard_check:
 	bmi @not_active
 
 	; SD card was there - make sure it is still there
-	jsr sdcard_check_alive; cheap, not state destructive
+	fat32_call sdcard_check_alive; cheap, not state destructive
 	bcs @yes
 
 @not_active:
@@ -136,7 +134,7 @@ sdcard_check:
 	sta disk_changed
 	; no SD card was there - maybe there is now, so
 	; try to init it
-	jsr sdcard_init ; expensive, state destructive
+	fat32_call sdcard_init ; expensive, state destructive
 	bcc @no
 
 	jsr reset_dos
@@ -171,7 +169,7 @@ reset_dos:
 	stz disk_changed
 	stz skip_mask
 
-	jsr fat32_init
+	fat32_call fat32_init
 
 	lda #1
 	sta cur_medium
@@ -183,18 +181,7 @@ reset_dos:
 ;---------------------------------------------------------------
 dos_set_time:
 	BANKING_START
-	lda 2
-	sta fat32_time_year
-	lda 3
-	sta fat32_time_month
-	lda 4
-	sta fat32_time_day
-	lda 5
-	sta fat32_time_hours
-	lda 6
-	sta fat32_time_minutes
-	lda 7
-	sta fat32_time_seconds
+	fat32_call fat32_set_time
 	BANKING_END
 	rts
 

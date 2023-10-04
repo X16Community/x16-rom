@@ -107,21 +107,23 @@ KEYMAP_SOURCES = \
 	keymap/keymap.s
 
 DOS_SOURCES = \
-	dos/fat32/fat32.s \
-	dos/fat32/mkfs.s \
-	dos/fat32/sdcard.s \
-	dos/fat32/text_input.s \
+	dos/declare.s \
 	dos/zeropage.s \
 	dos/jumptab.s \
 	dos/main.s \
-	dos/match.s \
 	dos/file.s \
 	dos/cmdch.s \
 	dos/dir.s \
 	dos/parser.s \
-	dos/functions.s
+	dos/functions.s \
+	dos/djsrfar.s
 
 FAT32_SOURCES = \
+	fat32/fat32.s \
+	fat32/mkfs.s \
+	fat32/sdcard.s \
+	fat32/text_input.s \
+	fat32/match.s \
 	fat32/main.s
 
 BASIC_SOURCES= \
@@ -203,16 +205,16 @@ KEYMAP_DEPS = \
 
 DOS_DEPS = \
 	$(GENERIC_DEPS) \
-	dos/fat32/fat32.inc \
-	dos/fat32/lib.inc \
-	dos/fat32/regs.inc \
-	dos/fat32/sdcard.inc \
-	dos/fat32/text_input.inc \
 	dos/functions.inc \
+	dos/macros.inc \
 	dos/vera.inc
 
 FAT32_DEPS = \
-	$(GENERIC_DEPS)
+	$(GENERIC_DEPS) \
+	fat32/lib.inc \
+	fat32/regs.inc \
+	fat32/sdcard.inc \
+	fat32/text_input.inc
 
 BASIC_DEPS= \
 	$(GENERIC_DEPS) \
@@ -316,7 +318,9 @@ $(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-x16.cfg
 # Bank 3 : FAT32
 $(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym
+	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym bank_save fat32_bufptr fat32_lfn_bufptr fat32_ptr fat32_ptr2 krn_ptr1` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym fat32_dirent fat32_errno fat32_readonly fat32_size skip_mask`
 	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC

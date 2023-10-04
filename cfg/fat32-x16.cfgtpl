@@ -7,4 +7,5 @@ MEMORY {
 SEGMENTS {
 	API:          load = FAT32,      type = ro;
 	CODE:         load = FAT32,      type = ro;
+	BSS:          load = F32DAT,     type = bss;
 }
