@@ -22,7 +22,8 @@
 ; "$" - convert hex to decimal
 ; "#" - convert decimal to hex
 ; "X" - exit monitor
-; "O" - set bank
+; "O" - set ROM bank
+; "K" - set RAM bank
 ; "L"/"S" - load/save file
 ; "@" - send drive command
 ;
@@ -32,7 +33,6 @@
 ; * F3/F5 scroll more lines in (disassembly, dump, ...) on either
 ;   the top or the bottom of the screen. This includes backwards
 ;   disassembly.
-; * "OD" switches all memory dumps/input to the drive's memory.
 
 .feature labels_without_colons
 
@@ -108,6 +108,8 @@
 .importzp basic_tempst
 .importzp basic_forpnt
 
+.import dbgbrk
+
 zp1         = basic_linnum+0
 zp2         = basic_tempst+0
 zp3         = basic_tempst+2
@@ -154,6 +156,10 @@ entry_type	:= ram_code_end + 12
 command_index	:= ram_code_end + 13 ; index from "command_names", or 'C'/'S' in EC/ES case
 .assert command_index < $0200 + 2*40+1, error, "must not overflow KERNAL editor's buffer"
 
+.segment "jmptbl"
+	jmp monitor
+	jmp brk_entry
+
 .segment "monitor"
 
 .import __monitor_ram_code_LOAD__
@@ -168,14 +174,17 @@ monitor:
 	php
 	pla
 	sta reg_p
+	stz bank_flags
+
 	lda #'C'
 	sta entry_type
-	stz bank_flags
+
 	ldx #<(__monitor_ram_code_SIZE__ - 1)
 :	lda __monitor_ram_code_LOAD__,x
 	sta __monitor_ram_code_RUN__,x
 	dex
 	bpl :-
+	
 	; we were almost certainly called by jsrfar, pop these off
 	pla ; jsrfar return LSB
 	pla ; jsrfar return MSB
@@ -238,15 +247,6 @@ monitor:
 	ldy $030e
 	phy
 @end:
-
-	php
-	sei
-	lda #<brk_entry
-	sta cbinv
-	lda #>brk_entry
-	sta cbinv + 1 ; BRK vector
-	plp
-	
 	bra brk_entry2
 
 .segment "monitor_ram_code"
@@ -256,12 +256,6 @@ goto_user:
 	sta rom_bank	 ;set ROM bank
 	lda reg_a
 	rti
-
-brk_entry:
-	; XXX TODO save banks
-	lda #BANK_MONITOR
-	sta rom_bank
-	jmp brk_entry2
 
 jsr_user:
 	sta rom_bank	 ;set ROM bank
@@ -276,10 +270,31 @@ __jsr_target = * - 2
 	jmp cmd_j_cont
 .segment "monitor"
 
+brk_entry:
+	lda #'B'
+	sta entry_type
+
+	ldx #<(__monitor_ram_code_SIZE__ - 1)
+:	lda __monitor_ram_code_LOAD__,x
+	sta __monitor_ram_code_RUN__,x
+	dex
+	bpl :-
+
+	pla ; RAM __irq_ret LSB
+	pla ; RAM __irq_ret MSB
+	pla ; caller bank
+	sta bank_ro
+	pla ; jsrfar return LSB (kernal handler)
+	pla ; jsrfar return MSB (kernal handler)
 brk_entry2:
-.ifp02
-	cld
-.endif
+	php
+	sei
+	lda #<dbgbrk
+	sta cbinv
+	lda #>dbgbrk
+	sta cbinv + 1 ; BRK vector
+	plp
+
 	; in the case of BRK, the RAM __irq pushes things in this order
 	;   (original real RTI-style return)
 	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
