@@ -58,6 +58,7 @@ rtc_get_date_time:
 	and #$07
 	sta r3H
 
+	iny
 	jsr i2c_read_byte ; 4: day
 	jsr bcd_to_bin
 	sta r1L
