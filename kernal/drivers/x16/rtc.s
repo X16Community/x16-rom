@@ -33,6 +33,7 @@ screen_mode_cksum_addr = nvram_base + $1f
 ;            r2L  minutes
 ;            r2H  seconds
 ;            r3L  jiffies
+;            r3H  weekday
 ;---------------------------------------------------------------
 rtc_get_date_time:
 	ldx #rtc_address
@@ -54,6 +55,10 @@ rtc_get_date_time:
 	sta r1H
 
 	iny
+	jsr i2c_read_byte ; 3: day of week 
+	and #$07
+	sta r3H
+
 	iny
 	jsr i2c_read_byte ; 4: day
 	jsr bcd_to_bin
@@ -94,6 +99,7 @@ rtc_get_date_time:
 ;            r2L  minutes
 ;            r2H  seconds
 ;            r3L  jiffies
+;            r3H  weekday
 ;---------------------------------------------------------------
 rtc_set_date_time:
 	; stop the clock
@@ -117,7 +123,9 @@ rtc_set_date_time:
 	jsr i2c_write_byte_as_bcd ; 4: day
 
 	dey
-	lda #$08                  ; enable battery backup, reset week day
+	lda r3H
+	and #$07
+	ora #$08                  ; enable battery backup
 	jsr i2c_write_byte_as_bcd ; 3: day of week
 
 	dey
