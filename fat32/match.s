@@ -3,20 +3,18 @@
 ;----------------------------------------------------------------------
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
-.include "fat32/fat32.inc"
-.include "fat32/regs.inc"
-.include "fat32/text_input.inc"
+.include "regs.inc"
 
 .export filename_char_ucs2_to_internal, filename_char_internal_to_ucs2
 .export filename_cp437_to_internal, filename_char_internal_to_cp437
 .export match_name, match_type
 
-.export skip_mask
+.import fat32_dirent
+.import to_lower
+.import skip_mask
 
 .bss
 
-skip_mask:
-      .byte 0
 char_tmp:
 	.byte 0
 

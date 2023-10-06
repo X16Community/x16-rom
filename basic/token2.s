@@ -119,6 +119,7 @@ reslst3
 	.byt "BINPUT", '#' + $80
 	.byt "HEL", 'P' + $80
 	.byt "BANNE", 'R' + $80
+	.byt "EXE", 'C' + $80
 
 	; add new statements before this line
 
@@ -134,6 +135,7 @@ reslst3
 	.byt "POINTE", 'R' + $80
 	.byt "STRPT", 'R' + $80
 	.byt "RPT", '$' + $80
+	.byt "MWHEE", 'L' + $80
 
 	; add new functions before this line
 	.byt 0

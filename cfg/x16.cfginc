@@ -45,5 +45,6 @@ VECB0:    start = $AC00, size = $0020; # for misc vectors, stable addresses
 BVARSB0:  start = $AD00, size = $00C0; # BASIC expansion variables, few used
 AUDIOBSS: start = $ADC0, size = $0040; # audio bank scratch space and misc state
 BAUDIO:   start = $AE00, size = $0100; # YM2151 shadow for audio routines
-DOSDAT:   start = $B000, size = $0F00; # there is some space free here, too
+DOSDAT:   start = $B000, size = $0500; # there is some space free here
+F32DAT:   start = $B500, size = $0A00; # there is some space free here, too
 USERPARM: start = $BF00, size = $0100; # Reserved param passing area for user progs

@@ -107,21 +107,23 @@ KEYMAP_SOURCES = \
 	keymap/keymap.s
 
 DOS_SOURCES = \
-	dos/fat32/fat32.s \
-	dos/fat32/mkfs.s \
-	dos/fat32/sdcard.s \
-	dos/fat32/text_input.s \
+	dos/declare.s \
 	dos/zeropage.s \
 	dos/jumptab.s \
 	dos/main.s \
-	dos/match.s \
 	dos/file.s \
 	dos/cmdch.s \
 	dos/dir.s \
 	dos/parser.s \
-	dos/functions.s
+	dos/functions.s \
+	dos/djsrfar.s
 
 FAT32_SOURCES = \
+	fat32/fat32.s \
+	fat32/mkfs.s \
+	fat32/sdcard.s \
+	fat32/text_input.s \
+	fat32/match.s \
 	fat32/main.s
 
 BASIC_SOURCES= \
@@ -169,16 +171,20 @@ UTIL_SOURCES= \
 	kernsup/kernsup_util.s \
 	util/main.s \
 	util/menu.s \
-	util/control.s
+	util/control.s \
+	util/hexedit.s
 
 BANNEX_SOURCES= \
 	kernsup/kernsup_bannex.s \
+	bannex/basic_far.s \
 	bannex/main.s \
 	bannex/renumber.s \
 	bannex/sleep_cont.s \
 	bannex/screen_default_color_from_nvram.s \
 	bannex/help.s \
-	bannex/splash.s
+	bannex/splash.s \
+	bannex/locate.s \
+	bannex/dos.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
@@ -199,16 +205,16 @@ KEYMAP_DEPS = \
 
 DOS_DEPS = \
 	$(GENERIC_DEPS) \
-	dos/fat32/fat32.inc \
-	dos/fat32/lib.inc \
-	dos/fat32/regs.inc \
-	dos/fat32/sdcard.inc \
-	dos/fat32/text_input.inc \
 	dos/functions.inc \
+	dos/macros.inc \
 	dos/vera.inc
 
 FAT32_DEPS = \
-	$(GENERIC_DEPS)
+	$(GENERIC_DEPS) \
+	fat32/lib.inc \
+	fat32/regs.inc \
+	fat32/sdcard.inc \
+	fat32/text_input.inc
 
 BASIC_DEPS= \
 	$(GENERIC_DEPS) \
@@ -312,19 +318,22 @@ $(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-x16.cfg
 # Bank 3 : FAT32
 $(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym
+	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym bank_save fat32_bufptr fat32_lfn_bufptr fat32_ptr fat32_ptr2 krn_ptr1` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym fat32_dirent fat32_errno fat32_readonly fat32_size skip_mask`
 	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC
 $(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode`
+	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode wheel`
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
 
 # Bank 5 : MONITOR
 $(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
+	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode dbgbrk` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ linnum tempst forpnt`
 	./scripts/relist.py $(BUILD_DIR)/monitor.map $(BUILD_DIR)/monitor
 
 # Bank 6 : CHARSET
@@ -362,7 +371,10 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 # Bank C : BASIC Annex
 $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym
+	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa chrgot crambank curlin eormsk facho index index1 index2 poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ chkcom cld10 crdo erexit error frefac frmadr frmevl getadr getbyt linprt nsnerr6` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 

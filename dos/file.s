@@ -3,8 +3,8 @@
 ;----------------------------------------------------------------------
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
-.include "fat32/fat32.inc"
-.include "fat32/regs.inc"
+.include "macros.inc"
+.include "../fat32/regs.inc"
 .include "file.inc"
 
 ; cmdch.s
@@ -29,6 +29,10 @@
 .import alloc_context, free_context
 .export file_set_position
 
+; other BSS
+.import fat32_size
+.import fat32_errno
+
 .bss
 
 cur_mode:           ; for current channel
@@ -44,7 +48,7 @@ mode_for_channel:   ; =$80: write
 ;---------------------------------------------------------------
 file_second:
 	stz ieee_status
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 	ldx channel
 	lda mode_for_channel,x
 	sta cur_mode
@@ -85,7 +89,7 @@ file_open:
 
 @alloc_ok:
 	pha
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 
 	jsr create_unix_path
 	lda #<unix_path
@@ -116,7 +120,7 @@ file_open:
 
 ; *** M - open for modify (read/write)
 	; try opening existing file
-	jsr fat32_open
+	fat32_call fat32_open
 	bcs :+
 	lda fat32_errno
 	cmp #ERRNO_FILE_NOT_FOUND
@@ -124,7 +128,7 @@ file_open:
 	; otherwise create file - wildcards are not ok
 	jsr find_wildcards
 	bcs @open_file_err_wilcards
-	jsr fat32_create
+	fat32_call fat32_create
 	bcc @open_file_err2
 
 :	lda #$c0 ; read & write
@@ -133,7 +137,7 @@ file_open:
 ; *** A - open for appending
 @open_append:
 	; wildcards are ok
-	jsr fat32_open
+	fat32_call fat32_open
 	bcc @open_file_err2
 
 :	lda #$ff ; seek to end of file
@@ -141,7 +145,7 @@ file_open:
 	sta fat32_size + 1
 	sta fat32_size + 2
 	sta fat32_size + 3
-	jsr fat32_seek
+	fat32_call fat32_seek
 	bcc @open_file_err2
 	bra @open_set_mode_write
 
@@ -151,7 +155,7 @@ file_open:
 	bcs @open_file_err_wilcards
 	lda overwrite_flag
 	lsr
-	jsr fat32_create
+	fat32_call fat32_create
 	bcc @open_file_err2
 
 @open_set_mode_write:
@@ -160,7 +164,7 @@ file_open:
 
 ; *** R - open for reading
 @open_read:
-	jsr fat32_open
+	fat32_call fat32_open
 	bcc @open_file_err2
 
 :	lda #$40 ; read
@@ -200,9 +204,9 @@ file_open:
 ;---------------------------------------------------------------
 file_close:
 	pha
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 
-	jsr fat32_close
+	fat32_call fat32_close
 	bcs :+
 	jsr set_errno_status
 :	pla
@@ -224,7 +228,7 @@ file_read:
 	bit cur_mode
 	bvc @acptr_file_not_open
 
-	jsr fat32_read_byte
+	fat32_call fat32_read_byte
 	bcc @acptr_file_error
 
 	tay
@@ -272,7 +276,7 @@ file_read_block:
 	bne @1
 
 	; A=0: read to end of 512-byte sector
-	jsr fat32_get_offset
+	fat32_call fat32_get_offset
 	lda #0
 	sec
 	sbc fat32_size + 0
@@ -292,7 +296,7 @@ file_read_block:
 	stz fat32_size + 1
 
 	; Read
-@2:	jsr fat32_read
+@2:	fat32_call fat32_read
 	; restore krn_ptr1 (doesn't affect C)
 	pla
 	sta krn_ptr1
@@ -324,7 +328,7 @@ file_write:
 
 ; write to file
 	pha
-	jsr fat32_write_byte
+	fat32_call fat32_write_byte
 	bcs :+
 	jsr set_errno_status
 :	pla
@@ -356,7 +360,7 @@ file_set_position:
 	sty fat32_ptr + 1
 	tax
 	bmi @error ; not a file context
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 
 	lda (fat32_ptr)
 	sta fat32_size + 0
@@ -369,7 +373,7 @@ file_set_position:
 	iny
 	lda (fat32_ptr),y
 	sta fat32_size + 3
-	jsr fat32_seek
+	fat32_call fat32_seek
 	bcc @error
 	clc
 	rts

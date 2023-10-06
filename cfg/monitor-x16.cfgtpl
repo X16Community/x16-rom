@@ -9,7 +9,8 @@ MEMORY {
 }
 
 SEGMENTS {
-	monitor:        load = BANK5, type = ro;
+	jmptbl:           load = BANK5, type = ro;
+	monitor:          load = BANK5, type = ro;
 	asmchars1:        load = BANK5, type = ro, define = yes;
 	asmchars2:        load = BANK5, type = ro, define = yes;
 	mnemos1:          load = BANK5, type = ro, define = yes;

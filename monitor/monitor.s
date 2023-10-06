@@ -18,10 +18,12 @@
 ; "F"/"H"/"C"/"T" - find, hunt, compare, transfer
 ; "A" - assemble
 ; "G" - run code
+; "J" - run code as subroutine
 ; "$" - convert hex to decimal
 ; "#" - convert decimal to hex
 ; "X" - exit monitor
-; "O" - set bank
+; "O" - set ROM bank
+; "K" - set RAM bank
 ; "L"/"S" - load/save file
 ; "@" - send drive command
 ;
@@ -31,7 +33,6 @@
 ; * F3/F5 scroll more lines in (disassembly, dump, ...) on either
 ;   the top or the bottom of the screen. This includes backwards
 ;   disassembly.
-; * "OD" switches all memory dumps/input to the drive's memory.
 
 .feature labels_without_colons
 
@@ -103,16 +104,22 @@
 .import cmd_at
 .import cmd_ls
 
-zp              = $22
-zp1		= zp+0
-zp2		= zp+2
-zp3		= zp+4
-mon_fa		= zp+6
-bank		= zp+7
-f_keys_disabled	= zp+8
-tmp1		= zp+9
-tmp2		= zp+10
-bank_flags	= zp+11 ; $80: video, $40: I2C
+.importzp basic_linnum
+.importzp basic_tempst
+.importzp basic_forpnt
+
+.import dbgbrk
+
+zp1         = basic_linnum+0
+zp2         = basic_tempst+0
+zp3         = basic_tempst+2
+mon_fa      = basic_tempst+4
+bank_flags  = basic_tempst+5 ; $80: video, $40: I2C
+f_keys_disabled	= basic_tempst+6
+tmp1        = basic_tempst+7
+tmp2        = basic_tempst+8
+bank_ra     = basic_forpnt+0
+bank_ro     = basic_forpnt+1
 
 DEFAULT_BANK	:= 0
 
@@ -145,12 +152,13 @@ reg_x		:= ram_code_end + 9
 reg_y		:= ram_code_end + 10
 reg_s		:= ram_code_end + 11
 
-irq_lo		:= ram_code_end + 12
-irq_hi		:= ram_code_end + 13
-
-entry_type	:= ram_code_end + 14
-command_index	:= ram_code_end + 15 ; index from "command_names", or 'C'/'S' in EC/ES case
+entry_type	:= ram_code_end + 12
+command_index	:= ram_code_end + 13 ; index from "command_names", or 'C'/'S' in EC/ES case
 .assert command_index < $0200 + 2*40+1, error, "must not overflow KERNAL editor's buffer"
+
+.segment "jmptbl"
+	jmp monitor
+	jmp brk_entry
 
 .segment "monitor"
 
@@ -160,24 +168,58 @@ command_index	:= ram_code_end + 15 ; index from "command_names", or 'C'/'S' in E
 
 
 monitor:
+	sty reg_y
+	stx reg_x
+	sta reg_a
+	php
+	pla
+	sta reg_p
+	stz bank_flags
+
 	lda #'C'
 	sta entry_type
-	stz bank_flags
+
 	ldx #<(__monitor_ram_code_SIZE__ - 1)
 :	lda __monitor_ram_code_LOAD__,x
 	sta __monitor_ram_code_RUN__,x
 	dex
 	bpl :-
+	
 	; we were almost certainly called by jsrfar, pop these off
 	pla ; jsrfar return LSB
 	pla ; jsrfar return MSB
 	pla ; caller bank
-	sta bank
-	plx ; kernsup return LSB
-	ply ; kernsup return MSB
+	sta bank_ro
+	; if this is a monitor entry, the PC is two-off from the BRK-induced PC
+	pla
+	clc
+	adc #2
+	tax ; kernsup return LSB
+	pla
+	adc #0
+	tay ; kernsup return MSB
 	; if we were called by BASIC, the caller bank will be 4
+	lda bank_ro
 	cmp #BANK_BASIC
-	bne @end
+	beq @basic
+	phy
+	phx
+	lda reg_p
+	pha
+	lda reg_a
+	pha
+	lda bank_ro
+	pha
+	phy
+	phx
+	php
+	lda reg_a
+	pha
+	ldx reg_x
+	phx
+	ldy reg_y
+	phy
+	bra @end
 @basic:
 	; We were called from BASIC
 	; in the case of BRK, the RAM __irq pushes things in this order
@@ -193,7 +235,7 @@ monitor:
 	pha
 	lda $030c
 	pha
-	lda bank
+	lda bank_ro
 	pha
 	phy
 	phx
@@ -205,41 +247,54 @@ monitor:
 	ldy $030e
 	phy
 @end:
-
-	php
-	sei
-	lda #<brk_entry
-	sta cbinv
-	lda #>brk_entry
-	sta cbinv + 1 ; BRK vector
-	plp
-	
 	bra brk_entry2
 
 .segment "monitor_ram_code"
 ; code that will be copied to $0220
 goto_user:
 	;XXX what do we do if video bank is active?
-	sta ram_bank	 ;set RAM bank
-	and #$07
 	sta rom_bank	 ;set ROM bank
 	lda reg_a
 	rti
 
-brk_entry:
+jsr_user:
+	sta rom_bank	 ;set ROM bank
+	lda reg_a
+	plp
+	jsr $ffff
+__jsr_target = * - 2
+	php
 	pha
-	; XXX TODO save banks
 	lda #BANK_MONITOR
 	sta rom_bank
-	pla
-	jmp brk_entry2
-
+	jmp cmd_j_cont
 .segment "monitor"
 
+brk_entry:
+	lda #'B'
+	sta entry_type
+
+	ldx #<(__monitor_ram_code_SIZE__ - 1)
+:	lda __monitor_ram_code_LOAD__,x
+	sta __monitor_ram_code_RUN__,x
+	dex
+	bpl :-
+
+	pla ; RAM __irq_ret LSB
+	pla ; RAM __irq_ret MSB
+	pla ; caller bank
+	sta bank_ro
+	pla ; jsrfar return LSB (kernal handler)
+	pla ; jsrfar return MSB (kernal handler)
 brk_entry2:
-.ifp02
-	cld
-.endif
+	php
+	sei
+	lda #<dbgbrk
+	sta cbinv
+	lda #>dbgbrk
+	sta cbinv + 1 ; BRK vector
+	plp
+
 	; in the case of BRK, the RAM __irq pushes things in this order
 	;   (original real RTI-style return)
 	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
@@ -258,7 +313,11 @@ brk_entry2:
 
 	; pull off preserved rom bank
 	pla
-	sta bank
+	sta bank_ro
+
+	; set RAM bank from state at entry
+	lda ram_bank
+	sta bank_ra
 
 	pla
 	sta reg_a ; real preserved A from __irq
@@ -302,7 +361,7 @@ cmd_r:
 	bne syntax_error
 dump_registers:
 	ldx #0
-:	lda s_regs,x ; "PC	IRQ  BK AC XR YR SP NV#BDIZC"
+:	lda s_regs,x ; "PC   RA RO AC XR YR SP NV#BDIZC"
 	beq dump_registers2
 	jsr bsout
 	inx
@@ -315,16 +374,11 @@ dump_registers2:
 	lda reg_pc_lo
 	jsr print_hex_byte2 ; address lo
 	jsr print_space
-	lda irq_hi
-	jsr print_hex_byte2 ; IRQ hi
-	lda irq_lo
-	jsr print_hex_byte2 ; IRQ lo
-	jsr print_space
 	bit  bank_flags
 	bpl  :+
 	lda #'V'
 @1:	jsr bsout
-	lda bank
+	lda bank_ra
 	jsr byte_to_hex_ascii
 	tya
 	jsr bsout
@@ -333,9 +387,13 @@ dump_registers2:
 	lda #'I'
 	bne @1
 :
-	lda bank
-	jsr print_hex_byte2 ; bank
-LABEB:	ldy #0
+
+	lda bank_ra
+	jsr print_hex_byte2 ; RAM bank
+LABEB:	jsr print_space
+	lda bank_ro
+	jsr print_hex_byte2 ; ROM bank
+	ldy #0
 :	jsr print_space
 	lda registers,y
 	jsr print_hex_byte2 ; registers...
@@ -762,40 +820,44 @@ cmd_semicolon:
 	lda zp2
 	sta reg_pc_lo
 	jsr basin_if_more
-	jsr get_hex_word3
-	lda zp2
-	sta irq_lo
-	lda zp2 + 1
-	sta irq_hi
-	jsr basin_if_more ; skip upper nybble of bank
-	; XXX X16
 	jsr basin_if_more
-	cmp #'D' ; "drive"
-	bne LAE12
+	cmp #'V'
+	beq @video
+	cmp #'I'
+	beq @i2c
+	jsr get_hex_byte2
+	sta bank_ra
+@1:
 	jsr basin_if_more
-	cmp #'R'
-	bne syn_err1
-	ora #$80 ; XXX why not lda #$80?
-	bmi LAE1B ; always
-LAE12:	jsr get_hex_byte2
-	cmp #8
-	bcs syn_err1
-LAE1B:	sta bank
-	ldx #0
-LAE20:	jsr basin_if_more
 	jsr get_hex_byte
-	sta registers,x ; registers
-	inx
-	cpx #4
-	bne LAE20
+	sta bank_ro
+	jsr basin_if_more
+	jsr get_hex_byte
+	sta reg_a
+	jsr basin_if_more
+	jsr get_hex_byte
+	sta reg_x
+	jsr basin_if_more
+	jsr get_hex_byte
+	sta reg_y
+	jsr basin_if_more
+	jsr get_hex_byte
+	sta reg_s
 	jsr basin_if_more
 	jsr get_bin_byte
 	sta reg_p
 	jsr print_up
 	jmp dump_registers2
-
-syn_err1:
-	jmp syntax_error
+@i2c:
+	lda #$40
+	bra :+
+@video:
+	lda #$80
+:	sta bank_flags
+	lda #'0'
+	jsr get_hex_byte2
+	bra @1
+	
 
 ; ----------------------------------------------------------------
 ; "," - input up to three hex values
@@ -833,8 +895,46 @@ LAF06:
 	pha
 	ldx reg_x
 	ldy reg_y
-	lda bank
+	lda bank_ra
+	sta ram_bank
+	lda bank_ro
 	jmp goto_user
+
+; ----------------------------------------------------------------
+; "J" - run code as jsr
+; ----------------------------------------------------------------
+cmd_j:
+	jsr basin_cmp_cr
+	beq @j1
+	jsr get_hex_word2
+	jsr basin_cmp_cr
+	beq @j2
+	jmp syntax_error
+
+@j1:	jsr copy_pc_to_zp2_and_zp1
+@j2:
+	jsr disable_f_keys
+	lda zp2
+	sta __jsr_target
+	lda zp2 + 1
+	sta __jsr_target + 1
+	ldx reg_x
+	ldy reg_y
+	lda reg_p
+	pha
+	lda bank_ra
+	sta ram_bank
+	lda bank_ro
+	jmp jsr_user
+cmd_j_cont:
+	pla
+	sta reg_a
+	pla
+	sta reg_p
+	sty reg_y
+	stx reg_x
+	jmp dump_registers
+
 
 ; ----------------------------------------------------------------
 ; "$" - convert hex to decimal
@@ -933,8 +1033,12 @@ load_byte:
 	bvs @i2c
 ; RAM
 	stx tmp1
-	ldx bank
-	lda #zp1
+	ldx bank_ra
+	lda zp1+1
+	cmp #$c0
+	bcc :+
+	ldx bank_ro
+:	lda #zp1
 	sei
 	jsr fetch
 	cli
@@ -948,7 +1052,7 @@ load_byte:
 	lda zp1 + 1
 	adc #0
 	sta VERA_ADDR_M
-	lda bank
+	lda bank_ra
 	sta VERA_ADDR_H
 	lda VERA_DATA0
 	rts
@@ -973,7 +1077,13 @@ store_byte:
 	stx tmp1
 	ldx #zp1
 	stx stavec
-	ldx bank
+	ldx bank_ra
+	pha
+	lda zp1+1
+	cmp #$c0
+	bcc :+
+	ldx bank_ro ; BONK RAM support
+:	pla
 	sei
 	jsr stash
 	cli
@@ -988,7 +1098,7 @@ store_byte:
 	lda zp1 + 1
 	adc #0
 	sta VERA_ADDR_M
-	lda bank
+	lda bank_ra
 	sta VERA_ADDR_H
 	pla
 	sta VERA_DATA0
@@ -1023,17 +1133,29 @@ get_i2c_addr:
 
 ; ----------------------------------------------------------------
 ; "O" - set bank
-;	C64: * 0 to 7 map to a $01 value of $30-$37
-;	     * "D" switches to drive memory
-;	TED: * 0 to C, Shift+D and E to F map to banks 0-F
-;	     * "D" switches to drive memory
-;	X16: * 00 to FF are set as both ROM and RAM bank
+;	X16: * 00 to FF are set as ROM bank
 ; ----------------------------------------------------------------
 cmd_o:
+:	jsr basin_cmp_cr
+	beq LB33F ; without arguments: bank 0
+	cmp #' '
+	beq :-
+	jsr get_hex_byte2
+	bra store_bank
+LB33F	lda #DEFAULT_BANK
+store_bank:
+	sta bank_ro
+	jmp print_cr_then_input_loop
+
+
+; ----------------------------------------------------------------
+; "K" - set RAM bank
+; also sets video/I2C
+cmd_k:
 	lda #0
 	sta bank_flags
 :	jsr basin_cmp_cr
-	beq LB33F ; without arguments: bank 7
+	beq ck0 ; without arguments: bank 0
 	cmp #' '
 	beq :-
 	cmp #'V'
@@ -1046,11 +1168,11 @@ video_loop:
 	cmp #' '
 	beq video_loop
 	jsr hex_digit_to_nybble
-	bra		:+
+	and #1
+	bra	store_ram_bank
 default_video_bank:
 	lda #0
-:
-	jmp store_bank
+	bra store_ram_bank
 
 not_video:
 	cmp #'I'
@@ -1061,14 +1183,13 @@ not_video:
 
 not_i2c:
 	jsr get_hex_byte2
-	bra :+
-LB33F	lda #DEFAULT_BANK
-:
-	bra store_bank
-LB34A:	lda #$80 ; drive
-store_bank:
-	sta bank
+	bra store_ram_bank
+ck0:
+	lda #DEFAULT_BANK
+store_ram_bank:
+	sta bank_ra
 	jmp print_cr_then_input_loop
+
 
 ; ----------------------------------------------------------------
 
@@ -1428,7 +1549,7 @@ LB6AC:	jsr bsout
 
 ; ----------------------------------------------------------------
 
-s_regs: .byte	CR, "   PC  IRQ  BK AC XR YR SP NV#BDIZC", CR, 0
+s_regs: .byte	CR, "   PC  RA RO AC XR YR SP NV#BDIZC", CR, 0
 
 ; ----------------------------------------------------------------
 
@@ -1465,6 +1586,8 @@ command_index_i = <(* - command_names)
 	.byte "I"
 	.byte "'"
 	.byte ";"
+	.byte "J"
+	.byte "K"
 command_names_end:
 
 function_table:
@@ -1492,6 +1615,8 @@ function_table:
 	.word cmd_mid-1
 	.word cmd_singlequote-1
 	.word cmd_semicolon-1
+	.word cmd_j-1
+	.word cmd_k-1
 
 ; ----------------------------------------------------------------
 

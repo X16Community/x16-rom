@@ -140,7 +140,7 @@ stmdsp2	; statements
 	.word binputn-1
 	.word help-1
 	.word banner-1
-
+	.word exec-1
 	; functions
 ptrfunc	.word vpeek
 	.word mx
@@ -153,6 +153,7 @@ ptrfunc	.word vpeek
 	.word pointer
 	.word strptr
 	.word rptd
+	.word mwheel
 ptrend
 num_esc_statements = (ptrfunc - stmdsp2) / 2
 num_esc_functions = (ptrend - ptrfunc) / 2

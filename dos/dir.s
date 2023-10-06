@@ -20,8 +20,14 @@
 .import buffer
 .import file_type, filter0, filter1, medium
 
-.include "fat32/fat32.inc"
-.include "fat32/lib.inc"
+.include "macros.inc"
+
+.include "../fat32/lib.inc"
+
+; other BSS
+.import fat32_size
+.import fat32_errno
+.import fat32_dirent
 
 DIRSTART = $0801 ; load address of directory
 
@@ -87,7 +93,7 @@ dir_open:
 	ldx #3 ; skip "=T"
 	bra @cont1
 @cwd:
-	jsr fat32_open_tree
+	fat32_call fat32_open_tree
 	inc show_cwd
 	bra @cont1
 @long:
@@ -138,7 +144,7 @@ dir_open:
 
 @alloc_ok:
 	sta context
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 
 	ldy #0
 	lda #<DIRSTART
@@ -172,7 +178,7 @@ dir_open:
 
 @not_part2:
 	phy
-	jsr fat32_get_vollabel
+	fat32_call fat32_get_vollabel
 	ply
 	bcc @dir_open_err3
 
@@ -212,7 +218,7 @@ dir_open:
 	bit part_index
 	bpl @cont3
 
-	jsr fat32_open_dir
+	fat32_call fat32_open_dir
 @cont3:
 	ply
 	bcc @dir_open_err3
@@ -275,7 +281,7 @@ read_dir_entry:
 	inc part_index
 	cmp #4
 	beq @dir_end2
-	jsr fat32_get_ptable_entry
+	fat32_call fat32_get_ptable_entry
 	bcc @error
 	lda fat32_dirent + dirent::attributes
 	beq @read_entry
@@ -285,10 +291,10 @@ read_dir_entry:
 	lda show_cwd
 	beq @not_walk
 @read_walk:
-	jsr fat32_walk_tree
+	fat32_call fat32_walk_tree
 	bra @cont1
 @not_walk:
-	jsr fat32_read_dirent_filtered
+	fat32_call fat32_read_dirent_filtered
 @cont1:
 	bcs @found
 	lda fat32_errno
@@ -604,7 +610,7 @@ read_dir_entry:
 	jsr storedir ; link
 	jsr storedir
 
-	jsr fat32_get_free_space
+	fat32_call fat32_get_free_space
 	jsr @get_units
 
 	pha
@@ -658,7 +664,7 @@ has_filter:
 
 ;---------------------------------------------------------------
 dir_close:
-	jsr fat32_close ; can't fail
+	fat32_call fat32_close ; can't fail
 	lda context
 	jmp free_context
 

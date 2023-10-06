@@ -4,9 +4,8 @@
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
 .include "functions.inc"
-.include "fat32/fat32.inc"
-.include "fat32/regs.inc"
-.include "banks.inc"
+.include "../fat32/regs.inc"
+.include "macros.inc"
 
 ; main.s
 .import dos_init
@@ -34,7 +33,13 @@
 .import create_unix_path_only_dir, create_unix_path_only_name, append_unix_path_only_name
 
 .import buffer
-.import krn_ptr1, bank_save
+.importzp krn_ptr1, bank_save
+
+; other BSS
+.import fat32_readonly
+.import fat32_dirent
+.import fat32_size
+.import fat32_errno
 
 .macro FAT32_CONTEXT_START
 	jsr alloc_context
@@ -44,7 +49,7 @@
 
 @alloc_ok:
 	pha
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 .endmacro
 
 .macro FAT32_CONTEXT_END
@@ -70,7 +75,7 @@ alloc_context:
 	lda cur_medium
 :	dec
 alloc_context2:
-	jsr fat32_alloc_context
+	fat32_call fat32_alloc_context
 	php
 	pha
 	jsr update_activity
@@ -79,7 +84,7 @@ alloc_context2:
 	rts
 
 free_context:
-	jsr fat32_free_context
+	fat32_call fat32_free_context
 	php
 	jsr update_activity
 	plp
@@ -91,7 +96,7 @@ free_context:
 ; Set/clear active flag based on whether any contexts are open.
 ;---------------------------------------------------------------
 update_activity:
-	jsr fat32_get_num_contexts
+	fat32_call fat32_get_num_contexts
 	tax
 	lda cbdos_flags
 	and #$ff-$10 ; clear active flag
@@ -258,7 +263,7 @@ new:
 	lda medium
 	dec
 	ldx @sectors_per_cluster
-	jsr fat32_mkfs
+	fat32_call fat32_mkfs
 	pla
 	bcc @error2
 	jsr free_context
@@ -298,7 +303,7 @@ scratch:
 @loop:
 	lda #$11
 	sta skip_mask
-	jsr fat32_delete
+	fat32_call fat32_delete
 	stz skip_mask
 	bcc :+
 	inc @scratch_counter
@@ -327,7 +332,7 @@ scratch:
 make_directory:
 	FAT32_CONTEXT_START
 	jsr create_fat32_path
-	jsr fat32_mkdir
+	fat32_call fat32_mkdir
 	bcc convert_status_end_context
 	FAT32_CONTEXT_END
 	lda #0
@@ -346,7 +351,7 @@ convert_status_end_context:
 remove_directory:
 	FAT32_CONTEXT_START
 	jsr create_fat32_path
-	jsr fat32_rmdir
+	fat32_call fat32_rmdir
 	bcc @error
 	FAT32_CONTEXT_END
 	lda #1 ; files scratched
@@ -388,7 +393,7 @@ change_directory:
 	stz unix_path + 2
 
 @regular_cd:
-	jsr fat32_chdir
+	fat32_call fat32_chdir
 	bcc convert_status_end_context
 	FAT32_CONTEXT_END
 	lda #0
@@ -477,7 +482,7 @@ rename:
 	bne @error
 	FAT32_CONTEXT_START
 	jsr create_fat32_path_x2
-	jsr fat32_rename
+	fat32_call fat32_rename
 	bcs :+
 	jmp convert_status_end_context
 :	FAT32_CONTEXT_END
@@ -511,7 +516,7 @@ rename_header:
 	FAT32_CONTEXT_START
 
 	jsr create_fat32_path
-	jsr fat32_set_vollabel
+	fat32_call fat32_set_vollabel
 	bcs :+
 	jmp convert_status_end_context
 :	FAT32_CONTEXT_END
@@ -559,12 +564,12 @@ copy_start:
 	jsr alloc_context
 	bcc @error_70
 	sta context_dst
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 
 	jsr create_fat32_path
 
 	clc ; don't overwrite
-	jsr fat32_create
+	fat32_call fat32_create
 	bcc @error_errno
 
 	lda #0
@@ -603,17 +608,17 @@ copy_do:
 	jsr alloc_context
 	bcc @error_70
 	sta @context_src
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 	bcc @error_errno
 
 	jsr create_fat32_path
-	jsr fat32_open
+	fat32_call fat32_open
 	bcc @error_errno
 
 @cloop:
 	; read
 	lda @context_src
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 	bcc @error_errno
 	lda #<unix_path
 	sta fat32_ptr
@@ -625,7 +630,7 @@ copy_do:
 	lda krn_ptr1			; krn_ptr1 bit 7 = 0 => disable that fat32_read stores to all data to same destination address
 	and #%01111111
 	sta krn_ptr1
-	jsr fat32_read
+	fat32_call fat32_read
 	bcs :+
 	lda fat32_errno
 	bne @error_errno
@@ -636,33 +641,16 @@ copy_do:
 
 	; write
 	lda context_dst
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 	bcc @error_errno
 	lda #<unix_path
 	sta fat32_ptr
 	lda #>unix_path
 	sta fat32_ptr + 1
-	jsr fat32_write
+	fat32_call fat32_write
 	bcc @error_errno
 
 	bra @cloop
-
-@done:
-	; close source
-	lda @context_src
-	jsr fat32_set_context
-	bcc @error_errno
-	jsr fat32_close
-	bcc @error_errno
-	lda @context_src
-	jsr free_context
-
-	; restore bank_save
-	pla
-	sta bank_save
-
-	lda #0
-	rts
 
 @error_70:
 	; restore bank_save
@@ -676,8 +664,8 @@ copy_do:
 	jsr convert_errno_status
 	pha
 	lda @context_src
-	jsr fat32_set_context
-	jsr fat32_close
+	fat32_call fat32_set_context
+	fat32_call fat32_close
 	lda @context_src
 	jsr free_context
 	pla
@@ -688,6 +676,25 @@ copy_do:
 	
 	rts
 
+@done:
+	; close source
+	lda @context_src
+	fat32_call fat32_set_context
+	bcc @error_errno
+	fat32_call fat32_close
+	bcc @error_errno
+	lda @context_src
+	jsr free_context
+
+	; restore bank_save
+	pla
+	sta bank_save
+
+	lda #0
+	rts
+
+
+
 ;---------------------------------------------------------------
 ; copy_end
 ;
@@ -695,18 +702,18 @@ copy_do:
 ;---------------------------------------------------------------
 copy_end:
 	lda context_dst
-	jsr fat32_set_context
+	fat32_call fat32_set_context
 	bcs @1
 
 	jsr convert_errno_status
 	pha
-	jsr fat32_close
+	fat32_call fat32_close
 	lda context_dst
 	jsr free_context
 	pla
 	rts
 
-@1:	jsr fat32_close
+@1:	fat32_call fat32_close
 	php
 	lda context_dst
 	jsr free_context
@@ -762,7 +769,7 @@ file_lock_unlock:
 	FAT32_CONTEXT_START
 	jsr create_fat32_path
 	lda tmp0
-	jsr fat32_set_attribute
+	fat32_call fat32_set_attribute
 	bcs :+
 	jmp convert_status_end_context
 :	FAT32_CONTEXT_END
@@ -786,13 +793,13 @@ file_unlock:
 file_lock_toggle:
 	FAT32_CONTEXT_START
 	jsr create_fat32_path_only_dir
-	jsr fat32_open_dir
+	fat32_call fat32_open_dir
 	bcc @error_errno
 
 	jsr create_fat32_path_only_name
-	jsr fat32_read_dirent_filtered
+	fat32_call fat32_read_dirent_filtered
 	php
-	jsr fat32_close ; can't fail
+	fat32_call fat32_close ; can't fail
 	plp
 	bcs :+
 	lda fat32_errno
@@ -802,7 +809,7 @@ file_lock_toggle:
 	jsr create_fat32_path
 	lda fat32_dirent + dirent::attributes
 	eor #1
-	jsr fat32_set_attribute
+	fat32_call fat32_set_attribute
 	bcs :+
 	jmp convert_status_end_context
 
@@ -870,7 +877,7 @@ get_partition:
 @ok: 	pha
 	lda medium
 	dec
-	jsr fat32_get_ptable_entry
+	fat32_call fat32_get_ptable_entry
 	bcs @2
 @error:
 	; In the error case (read error or illegal partition),
@@ -1077,7 +1084,7 @@ set_retries:
 ; In:   -
 ;---------------------------------------------------------------
 test_rom_checksum:
-	jsr fat32_get_num_contexts
+	fat32_call fat32_get_num_contexts
 	cmp #0
 	bne @bad
 	lda #0
