@@ -31,6 +31,8 @@
 .export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr
 .export dos_set_time
 
+; from declare.s, so that state can be cleared
+.import shared_vars, shared_vars_len
 
 .include "file.inc"
 
@@ -163,7 +165,20 @@ reset_dos:
 	stz buffer_overflow
 	stz buffer_len
 	stz disk_changed
-	stz skip_mask
+
+.assert >shared_vars_len = 1, error, "dos/fat32 shared var size doesn't match assumed size (two total pages)"
+.assert <shared_vars_len > 0, error, "dos/fat32 shared var size doesn't match assumed size (not a page boundary)"
+
+
+	ldx #<shared_vars_len
+:	stz shared_vars+$ff,x
+	dex
+	bne :-
+
+	ldx #0
+:	stz shared_vars,x
+	inx
+	bne :-
 
 	fat32_call fat32_init
 
