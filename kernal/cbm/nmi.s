@@ -8,10 +8,14 @@
 
 rom_bank = 1
 monitor = $fecc
+clrch   = $ffcc
 .import enter_basic, cint, ioinit, restor, nminv
 .import call_audio_init
+.import jsrfar
 
-.export nnmi, timb
+.export nnmi, timb, dbgbrk
+
+.include "banks.inc"
 
 .segment "NMI"
 
@@ -33,6 +37,14 @@ timb	jsr restor      ;restore system indirects
 	jsr cint        ;restore screen for basic
 	jsr call_audio_init  ;initialize audio API and HW.
 
-	clc
-	jmp monitor
+monen
+	jsr jsrfar
+	.word $c003 ; brk_entry
+	.byte BANK_MONITOR
+	ply
+	plx
+	pla
+	rti
 
+dbgbrk	jsr clrch
+	bra monen
