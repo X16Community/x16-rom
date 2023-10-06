@@ -54,7 +54,10 @@ rtc_get_date_time:
 	sta r1H
 
 	iny
-	iny
+	jsr i2c_read_byte ; 3: day of week 
+	and #$07
+	sta r3H
+
 	jsr i2c_read_byte ; 4: day
 	jsr bcd_to_bin
 	sta r1L

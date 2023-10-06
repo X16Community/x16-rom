@@ -67,6 +67,7 @@ clock_set_timer = softclock_timer_set
 ;            r2L  minutes
 ;            r2H  seconds
 ;            r3L  jiffies
+;            r3H  day of week
 ;---------------------------------------------------------------
 clock_get_date_time = rtc_get_date_time
 
