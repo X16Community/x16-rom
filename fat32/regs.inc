@@ -1,4 +1,4 @@
-.include "../vera.inc"
+.include "io.inc"
 
 .importzp fat32_bufptr, fat32_lfn_bufptr, fat32_ptr, fat32_ptr2
 
