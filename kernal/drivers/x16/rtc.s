@@ -124,7 +124,7 @@ rtc_set_date_time:
 
 	dey
 	lda r3H
-  and #$07
+	and #$07
 	ora #$08                  ; enable battery backup
 	jsr i2c_write_byte_as_bcd ; 3: day of week
 
