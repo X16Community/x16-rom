@@ -37,6 +37,7 @@
 .export listn
 .export talk
 .export macptr
+.export mciout
 
 .export led_update
 
@@ -166,6 +167,15 @@ macptr:
 	.byte BANK_CBDOS
 	rts
 
+mciout:
+	bit cbdos_flags
+	bmi :+
+	sec ; error: unsupported
+	rts
+:	jsr jsrfar
+	.word $c000 + 3 * 18
+	.byte BANK_CBDOS
+	rts
 
 ; Called by SECOND: If it's a CLOSE command, upload the curent time.
 upload_time:

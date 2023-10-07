@@ -24,6 +24,7 @@
 .import fat32_errno
 .import fat32_readonly
 
+.macpack longbranch
 
 FLAG_IN_USE = 1<<0  ; Context in use
 FLAG_DIRTY  = 1<<1  ; Buffer is dirty
@@ -3345,6 +3346,7 @@ fat32_write_byte:
 ;
 ; fat32_ptr          : pointer to data to write
 ; fat32_size (16-bit): size of data to write
+; krn_ptr1           : if MSb set, copy all bytes from same source address.
 ;
 ; * c=0: failure; sets errno
 ;-----------------------------------------------------------------------------
@@ -3368,7 +3370,6 @@ fat32_write:
 	rts
 @1:	lda #2
 	sta bytecnt + 1
-
 @nonzero:
 	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
 	sec
@@ -3388,6 +3389,15 @@ fat32_write:
 @3:
 	; Copy bytecnt bytes into buffer
 	ldy bytecnt
+	bit krn_ptr1
+	jmi @stream_save
+	lda fat32_ptr + 1
+	cmp #$9f            ; $9Fxx can overflow into $Axxx
+	bcc @3a             ; source below banked RAM
+	cmp #$c0
+	bcs @3a             ; source above banked RAM
+	jmp @banked_save
+@3a:
 	dey
 	beq @4b
 @4:	lda (fat32_ptr), y
@@ -3396,9 +3406,10 @@ fat32_write:
 	bne @4
 @4b:	lda (fat32_ptr), y
 	sta (fat32_bufptr), y
-
+@4c:
 	; fat32_ptr += bytecnt, fat32_bufptr += bytecnt, fat32_size -= bytecnt, file_offset += bytecnt
 	add16 fat32_ptr, fat32_ptr, bytecnt
+@4d:
 	add16 fat32_bufptr, fat32_bufptr, bytecnt
 	sub16 fat32_size, fat32_size, bytecnt
 	add32_16 cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
@@ -3429,6 +3440,58 @@ fat32_write:
 @6:
 	sec	; Indicate success
 	rts
+@stream_save:
+	; Copy bytecnt bytes into buffer
+	ldy #0
+@7:	lda (fat32_ptr)
+	sta (fat32_bufptr), y
+	iny
+	cpy bytecnt
+	bne @7
+	jmp @4d
+@banked_save:
+	; save contents of temporary zero page
+	lda krn_ptr1
+	pha
+	lda krn_ptr1+1
+	pha
+
+	ldx bank_save       ; .X holds the destination bank #
+	sty tmp_done        ; .Y holds bytecnt - save here for comparison during loop
+	ldy #0              ; .Y is now the loop counter. Start at 0 and count up.
+
+	; set up the tmp_swapindex
+	lda #0
+	sec
+	sbc fat32_ptr
+	sta tmp_swapindex
+
+@loop:
+	; Copy one byte from banked RAM to buffer
+	stx ram_bank
+	lda (fat32_ptr),y
+	stz ram_bank
+	sta (fat32_bufptr),y
+	iny
+	cpy tmp_swapindex
+	bne @nowrap
+	lda fat32_ptr+1
+	cmp #$bf            ; only wrap when leaving page $BF
+	bne @nowrap
+	inx
+	lda #$9f
+	sta fat32_ptr+1
+@nowrap:
+	cpy tmp_done
+	bne @loop
+	; restore temporary zero page
+	stx bank_save
+	pla
+	sta krn_ptr1+1
+	pla
+	sta krn_ptr1
+	jmp @4c
+
 
 ;-----------------------------------------------------------------------------
 ; fat32_get_free_space

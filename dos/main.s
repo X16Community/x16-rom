@@ -28,7 +28,7 @@
 .import skip_mask
 
 ; jumptab.s
-.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr
+.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr, dos_mciout
 .export dos_set_time
 
 ; from declare.s, so that state can be cleared
@@ -543,3 +543,23 @@ dos_macptr:
 
 @1:	sec ; error: unsupported
 	bra @end
+
+;---------------------------------------------------------------
+; BLOCK-WISE SEND
+;
+; In:   y:x  pointer to data
+;       a    number of bytes to write
+;            =0: implementation decides; up to 512
+; Out:  y:x  number of bytes written
+;       c    =1: unsupported/error
+;---------------------------------------------------------------
+dos_mciout:
+	BANKING_START
+
+	stz ieee_status
+
+	jsr file_write_block
+@end:
+	BANKING_END
+	rts
+
