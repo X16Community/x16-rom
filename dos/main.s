@@ -555,6 +555,8 @@ dos_macptr:
 ;---------------------------------------------------------------
 dos_mciout:
 	BANKING_START
+	bit cur_context
+	bmi @1
 
 	stz ieee_status
 
@@ -573,4 +575,6 @@ dos_mciout:
 @end:
 	BANKING_END
 	rts
+@1:	sec ; error: unsupported
+	bra @end
 
