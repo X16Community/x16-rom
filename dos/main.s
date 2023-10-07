@@ -559,6 +559,17 @@ dos_mciout:
 	stz ieee_status
 
 	jsr file_write_block
+	bcc @end
+
+	phx
+	phy
+	jsr file_close_clr_channel
+	lda #$01 ; write timeout to indicate error
+	tsb ieee_status
+	clc
+	ply
+	plx
+
 @end:
 	BANKING_END
 	rts
