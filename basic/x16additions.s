@@ -871,6 +871,10 @@ exec:
 	rts
 
 
+ctile:
+	bannex_call bannex_tile
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar
