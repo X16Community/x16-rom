@@ -120,6 +120,7 @@ reslst3
 	.byt "HEL", 'P' + $80
 	.byt "BANNE", 'R' + $80
 	.byt "EXE", 'C' + $80
+	.byt "TIL", 'E' + $80
 
 	; add new statements before this line
 
