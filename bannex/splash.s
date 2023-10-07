@@ -233,15 +233,15 @@ l3msg20:
 
 l4msg40:
 	.byte "K HIGH RAM"
-.ifdef PRERELEASE_VERSION
+.ifdef RELEASE_VERSION
 	.byte " - ROM VER R"
-.if PRERELEASE_VERSION >= 100
-	.byte (PRERELEASE_VERSION / 100) + '0'
+.if RELEASE_VERSION >= 100
+	.byte (RELEASE_VERSION / 100) + '0'
 .endif
-.if PRERELEASE_VERSION >= 10
-	.byte ((PRERELEASE_VERSION / 10) .mod 10) + '0'
+.if RELEASE_VERSION >= 10
+	.byte ((RELEASE_VERSION / 10) .mod 10) + '0'
 .endif
-	.byte (PRERELEASE_VERSION .mod 10) + '0'
+	.byte (RELEASE_VERSION .mod 10) + '0'
 .else
 	.byte " - GIT "
 	.incbin "../build/signature.bin"
@@ -251,15 +251,15 @@ l4msg40:
 l4msg20:
 	.byte "K HI RAM",0
 l5msg20:
-.ifdef PRERELEASE_VERSION
+.ifdef RELEASE_VERSION
 	.byte "ROM VER R"
-.if PRERELEASE_VERSION >= 100
-	.byte (PRERELEASE_VERSION / 100) + '0'
+.if RELEASE_VERSION >= 100
+	.byte (RELEASE_VERSION / 100) + '0'
 .endif
-.if PRERELEASE_VERSION >= 10
-	.byte ((PRERELEASE_VERSION / 10) .mod 10) + '0'
+.if RELEASE_VERSION >= 10
+	.byte ((RELEASE_VERSION / 10) .mod 10) + '0'
 .endif
-	.byte (PRERELEASE_VERSION .mod 10) + '0'
+	.byte (RELEASE_VERSION .mod 10) + '0'
 .else
 	.incbin "../build/signature.bin"
 .endif
