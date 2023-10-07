@@ -67,8 +67,8 @@ sv26	jsr cmpste      ; try mciout
 	sec         ; last and potentially partial page
 	lda eal
 	sbc sal
-sv27	clc
-	ldx	sal
+	clc
+sv27	ldx	sal
 	ldy sah
 	jsr mciout
 	bcs sv29    ; unsupported
