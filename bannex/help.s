@@ -13,7 +13,7 @@ uc_address = $42
 
 .proc help: near
 	jsr printstring
-	.byte 13,"COMMANDER X16 ROM",13,0
+	.byte 13,"COMMANDER X16 ROM ",0
 
 	lda #$80
 	sta poker
@@ -28,6 +28,11 @@ uc_address = $42
 	bpl :+
 	eor #$ff
 	inc
+	pha
+	jsr printstring
+	.byte "PRE",0
+	pla
+	ldy #0
 :	cmp #10
 	bcc :+
 	sbc #10
@@ -39,7 +44,7 @@ uc_address = $42
 	phy
 	
 	jsr printstring
-	.byte "COMMUNITY RELEASE R",0
+	.byte "RELEASE R",0
 
 	pla
 	clc
