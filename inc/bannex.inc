@@ -10,3 +10,5 @@ bannex_dos_getfa        = $C015
 bannex_dos_ptstat3      = $C018
 bannex_dos_clear_disk_status = $C01B
 bannex_dos_chkdosw      = $C01E
+bannex_tile             = $C021
+bannex_x16edit          = $C024

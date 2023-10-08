@@ -25,7 +25,7 @@ jobs:
       - name: Build Release ROM
         if: startsWith(github.ref, 'refs/tags/r')
         run: |
-          PRERELEASE_VERSION=$(echo "$GITHUB_REF_NAME" | grep -oP '[0-9]+$') make
+          RELEASE_VERSION=$(echo "$GITHUB_REF_NAME" | grep -oP '[0-9]+$') make
       - name: Archive Build Result
         run: |
           mkdir artifact

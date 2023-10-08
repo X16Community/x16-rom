@@ -3,7 +3,7 @@
 ;----------------------------------------------------------------------
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
-.import dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr
+.import dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr, dos_mciout
 
 .import dos_init, dos_set_time
 
@@ -32,3 +32,4 @@
 	jmp dos_set_time          ; 16
 
 	jmp dos_macptr            ; 17
+	jmp dos_mciout            ; 18

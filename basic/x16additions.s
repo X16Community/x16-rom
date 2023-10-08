@@ -871,6 +871,20 @@ exec:
 	rts
 
 
+ctile:
+	bannex_call bannex_tile
+	rts
+
+;******************************************************************
+;
+; EDIT [<string filename>]
+; Opens a file in the X16 text editor
+;
+;******************************************************************
+cedit:
+	bannex_call bannex_x16edit
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar

@@ -321,6 +321,89 @@ file_read_block:
 @eoi:	sec
 	bra @end
 
+
+
+;---------------------------------------------------------------
+; file_write_block
+;
+; Write up to 256 bytes to the current context. The
+; implementation is free to write any number of bytes,
+; optimizing for speed and simplicity.
+;
+; In:   y:x  pointer to data
+;       a    number of bytes to write
+;            =0: up to 256
+;       c    =0: regular save from memory
+;            =1: stream from single address (e.g. VERA_data0)
+; Out:  y:x  number of bytes written
+;       c    =1: error
+;---------------------------------------------------------------
+file_write_block:
+	stx fat32_ptr
+	sty fat32_ptr + 1
+	tax
+	; backup krn_ptr1 and use as load type: MSB clear=ram / MSB set=single address
+	lda krn_ptr1
+	pha
+	lda #0
+	ror            ; store carry flag as MSB of krn_ptr1
+	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
+	txa
+	bne @1
+	stz fat32_size + 0
+	lda #1
+	sta fat32_size + 1
+	bra @2
+
+	; A!=0: read A bytes
+@1:	sta fat32_size + 0
+	stz fat32_size + 1
+
+	
+@2:	; preserve requested size
+	lda fat32_size + 1
+	pha
+	lda fat32_size + 0
+	pha
+
+	bit cur_mode
+	bpl @not_present
+
+	; Write
+	fat32_call fat32_write
+	; restore krn_ptr1 (doesn't affect C)
+	bcc @error
+
+	clc
+@end:
+	; restore preserved requested size
+	; and calculate how much was written
+	; so that it can be returned to the caller
+	pla
+	ply
+	php
+	sec
+	sbc fat32_size + 0
+	tax
+	tya
+	sbc fat32_size + 1
+	tay
+	plp
+	pla
+	sta krn_ptr1
+	rts
+
+@error:
+	sec
+	lda fat32_errno
+	beq @end
+
+	jsr set_errno_status
+@not_present:
+	sec
+	bra @end
+
+
 ;---------------------------------------------------------------
 file_write:
 	bit cur_mode

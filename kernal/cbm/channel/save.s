@@ -53,11 +53,36 @@ sv25	jsr openi
 	ldy #0
 	jsr rd300
 	lda verck
-	bne sv30      ; check for headerless
+	bne sv26      ; check for headerless
 	lda sal
 	jsr ciout
 	lda sah
 	jsr ciout
+sv26	jsr cmpste      ; try mciout
+	bcs sv50
+	cmp #$ff
+	lda #0
+	bcc sv27	; not last page
+
+	sec         ; last and potentially partial page
+	lda eal
+	sbc sal
+	clc
+sv27	ldx	sal
+	ldy sah
+	jsr mciout
+	bcs sv29    ; unsupported
+	txa
+	adc sal
+	sta sal
+	tya
+	adc sah
+	sta sah
+	jsr stop
+	beq break
+	bra sv26
+
+sv29	ldy #0
 sv30	jsr cmpste      ;compare start to end
 	bcs sv50        ;have reached end
 	lda (sal),y

@@ -32,6 +32,7 @@ stop  = $ffe1
 acptr = $ffa5
 macptr= $ff44
 ciout = $ffa8
+mciout = $feb1
 listn = $ffb1
 secnd = $ff93
 talk  = $ffb4

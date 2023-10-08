@@ -141,6 +141,8 @@ stmdsp2	; statements
 	.word help-1
 	.word banner-1
 	.word exec-1
+	.word ctile-1
+	.word cedit-1
 	; functions
 ptrfunc	.word vpeek
 	.word mx

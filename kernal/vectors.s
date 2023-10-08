@@ -5,7 +5,7 @@
 
 .feature labels_without_colons
 
-.import plot, scrorg, iclall, igetin, istop, savesp, loadsp, ibsout, ibasin, iclrch, ickout, ichkin, iclose, iopen, setnam, setlfs, readst, talk, listn, unlsn, untlk, ciout, acptr, settmo, kbd_scan, tksa, secnd, setmsg, ramtas, ioinit, cint, cmpare, stash, indfet, jsrfar, screen_set_charset, screen_mode, lkupsa, lkupla, close_all, enter_basic, macptr
+.import plot, scrorg, iclall, igetin, istop, savesp, loadsp, ibsout, ibasin, iclrch, ickout, ichkin, iclose, iopen, setnam, setlfs, readst, talk, listn, unlsn, untlk, ciout, acptr, settmo, kbd_scan, tksa, secnd, setmsg, ramtas, ioinit, cint, cmpare, stash, indfet, jsrfar, screen_set_charset, screen_mode, lkupsa, lkupla, close_all, enter_basic, macptr, mciout
 .import FB_move_pixels, FB_filter_pixels, FB_fill_pixels, FB_set_8_pixels_opaque, FB_set_8_pixels, FB_set_pixels, FB_set_pixel, FB_get_pixels, FB_get_pixel, FB_cursor_next_line, FB_cursor_position, FB_set_palette, FB_get_info, FB_init
 .import memory_decompress, memory_crc, memory_copy, memory_fill
 .import monitor
@@ -42,7 +42,7 @@
 	.byte 0,0,0                    ; $FEA8
 	.byte 0,0,0                    ; $FEAB
 	.byte 0,0,0                    ; $FEAE
-	.byte 0,0,0                    ; $FEB1
+	jmp mciout                     ; $FEB1
 	jmp i2c_batch_read             ; $FEB4
 	jmp i2c_batch_write            ; $FEB7
 	jmp savehl                     ; $FEBA

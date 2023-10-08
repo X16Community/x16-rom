@@ -140,3 +140,4 @@ kbdbuf_get_modifiers         = $fec0
 kbdbuf_put                   = $fec3
 
 bsave                        = $feba
+mciout                       = $feb1

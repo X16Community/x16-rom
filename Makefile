@@ -4,11 +4,14 @@ SERIAL_SOURCE_BASE ?= CBM
 # for both also supported
 # * OPENROMS
 
+PRERELEASE_VERSION ?= "45"
+
 ifdef RELEASE_VERSION
 	VERSION_DEFINE="-DRELEASE_VERSION=$(RELEASE_VERSION)"
-endif
-ifdef PRERELEASE_VERSION
-	VERSION_DEFINE="-DPRERELEASE_VERSION=$(PRERELEASE_VERSION)"
+else
+	ifdef PRERELEASE_VERSION
+		VERSION_DEFINE="-DPRERELEASE_VERSION=$(PRERELEASE_VERSION)"
+	endif
 endif
 
 CC           = cc65
@@ -184,7 +187,9 @@ BANNEX_SOURCES= \
 	bannex/help.s \
 	bannex/splash.s \
 	bannex/locate.s \
-	bannex/dos.s
+	bannex/dos.s \
+	bannex/tile.s \
+	bannex/x16edit.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
@@ -372,7 +377,7 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa chrgot crambank curlin eormsk facho index index1 index2 poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa chrgot crambank curlin eormsk fac facho index index1 index2 poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ chkcom cld10 crdo erexit error frefac frmadr frmevl getadr getbyt linprt nsnerr6` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
