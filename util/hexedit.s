@@ -810,7 +810,19 @@ cursor_left:
 	jsr erase_cursor
 	dec cursor_x
 	jsr draw_cursor
-crl1:	jmp user_input
+	jmp user_input
+crl1:	jsr calc_current_address
+	lda source_h
+	ora source_l
+	beq crl2
+	jsr erase_cursor
+	lda hex_columns
+	asl
+	dec
+	sta cursor_x
+	jsr draw_cursor
+	jmp cursor_up
+crl2:	jmp user_input
 
 cursor_right:
 	lda hex_columns
@@ -821,7 +833,12 @@ cursor_right:
 	jsr erase_cursor
 	inc cursor_x
 	jsr draw_cursor
-crr1:	jmp user_input
+	jmp user_input
+crr1:	
+	jsr erase_cursor
+	stz cursor_x
+	jsr draw_cursor
+	jmp cursor_down
 
 scroll_down_one:
 	lda top_address_l	
