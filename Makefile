@@ -188,7 +188,8 @@ BANNEX_SOURCES= \
 	bannex/splash.s \
 	bannex/locate.s \
 	bannex/dos.s \
-	bannex/tile.s
+	bannex/tile.s \
+	bannex/x16edit.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
