@@ -1,0 +1,37 @@
+
+Commands are selected by holding down Ctrl and pressing a 
+shortcut key. Alternatively press and release ESC and
+then a shortcut key. Some commands are available via a
+function key.
+ 
+^G  (F1)  Display built-in help screen
+^X  (F2)  Exit program
+^O  (F3)  Write text buffer to file
+^R  (F5)  Open and read file into text buffer
+^N        Create new text buffer
+^J  (F4)  Justify text buffer
+^Y  (F7)  PageUp
+^V  (F8)  PageDown
+^K        Cut line or selection to clipboard
+^C        Copy line or selection to clipboard
+^U        Uncut (paste) all content from clipboard
+^DEL      Delete current line, no copy to clipboard
+^W  (F6)  Search and find text (case sensitive)
+^S        Search and replace a string (case sensitive)
+^L        Go to line number
+^A        Toggle auto indent on/off
+^Z        Toggle word wrap on/off
+^E        Change charset
+^I        Invoke DOS command
+^D        Set current device number
+^T        Set text color (default white)
+^B        Set background color (default blue)
+^M        Show memory usage (1 bank=251 bytes of text)
+^SPACE    Insert non-breaking space
+^1..9     Set tab width
+
+
+X16 Edit, Copyright 2020-2023, Stefan Jakobsson.
+
+Released under the terms of the 2-Clause BSD license, available
+in the enclosed "license" file.

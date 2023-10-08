@@ -269,7 +269,8 @@ BANK_BINS = \
 	$(BUILD_DIR)/demo.bin \
 	$(BUILD_DIR)/audio.bin \
 	$(BUILD_DIR)/util.bin \
-	$(BUILD_DIR)/bannex.bin
+	$(BUILD_DIR)/bannex.bin \
+	$(BUILD_DIR)/x16edit-rom.bin
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -382,6 +383,11 @@ $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
+# Bank D-E: X16 Edit
+$(BUILD_DIR)/x16edit-rom.bin:
+	@mkdir -p $$(dirname $@)
+	(cd x16-edit && make clean rom)
+	cp x16-edit/build/x16edit-rom.bin $(BUILD_DIR)/x16edit-rom.bin
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@

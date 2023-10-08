@@ -1,0 +1,17 @@
+Ctrl+shortcut or F-key:
+G/F1=Help        S=Replace
+X/F2=Exit        L=Goto line
+O/F3=Write file  A=Auto indent
+J/F4=Justify     Z=Word wrap
+R/F5=Open file   E=Charset
+W/F6=Search      I=DOS cmd
+Y/F7=PageUp      D=Set device
+V/F8=PageDown    T=Text color
+N   =New buffer  B=Backgr color
+K   =Cut         M=Mem free
+DEL =Del line    C=Copy
+1..9=Tab width   U=Uncut/paste
+
+X16 Edit, (c) Stefan Jakobsson,
+released under the 2-Clause BSD
+License.
