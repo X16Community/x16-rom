@@ -223,7 +223,47 @@ FAT32_DEPS = \
 
 BASIC_DEPS= \
 	$(GENERIC_DEPS) \
+	basic/code1.s \
+	basic/code2.s \
+	basic/code3.s \
+	basic/code4.s \
+	basic/code5.s \
+	basic/code6.s \
+	basic/code7.s \
+	basic/code8.s \
+	basic/code9.s \
+	basic/code10.s \
+	basic/code11.s \
+	basic/code12.s \
+	basic/code13.s \
+	basic/code14.s \
+	basic/code15.s \
+	basic/code16.s \
+	basic/code17.s \
+	basic/code26.s \
+	basic/declare.s \
+	basic/graph.s \
+	basic/init.s \
+	basic/sound.s \
+	basic/tokens.s \
+	basic/token2.s \
+	basic/x16additions.s \
+	math/code18.s \
+	math/code19.s \
+	math/code20.s \
+	math/code21.s \
+	math/code22.s \
+	math/code23.s \
+	math/code24.s \
+	math/code25.s \
+	math/declare.s \
+	math/exports.s \
+	math/fadd.s \
+	math/fmult.s \
+	math/fsqr.s \
+	math/jumptab.s \
 	math/math.inc \
+	math/trig.s \
 	$(GIT_SIGNATURE)
 
 MONITOR_DEPS= \
@@ -234,13 +274,15 @@ CHARSET_DEPS= \
 	$(GENERIC_DEPS)
 
 AUDIO_DEPS= \
-	$(GENERIC_DEPS)
-
-UTIL_DEPS= \
-	$(GENERIC_DEPS)
+	$(GENERIC_DEPS)	math/math.s \
 
 BANNEX_DEPS= \
 	$(GENERIC_DEPS)
+
+X16EDIT_DEPS= \
+	$(GENERIC_DEPS) \
+	$(wildcard x16-edit/*.asm) \
+	$(wildcard x16-edit/*.inc)
 
 
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
@@ -391,7 +433,7 @@ $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 # Bank D-E: X16 Edit
-$(BUILD_DIR)/x16edit-rom.bin:
+$(BUILD_DIR)/x16edit-rom.bin: $(X16EDIT_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd x16-edit && make clean rom)
 	cp x16-edit/build/x16edit-rom.bin $(BUILD_DIR)/x16edit-rom.bin
