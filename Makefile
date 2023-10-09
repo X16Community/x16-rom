@@ -326,8 +326,8 @@ $(BUILD_DIR)/rom.bin: $(BANK_BINS)
 x16edit_update:
 	@rm -rf x16edittmp
 	git clone https://github.com/stefan-b-jakobsson/x16-edit.git x16edittmp
-	rsync -av --delete --delete-after --exclude=/.git --exclude=/customrom.bin x16edittmp/ x16-edit/
-	(cd x16-edit && git rev-parse HEAD > .git-commit)
+	rsync -av --delete --delete-after --exclude=/customrom.bin x16edittmp/ x16-edit/
+	(cd x16-edit && git rev-parse HEAD > .git-commit && rm -rf .git)
 	rm -rf x16edittmp
 
 clean:
