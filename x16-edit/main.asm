@@ -145,7 +145,7 @@ exit:
 .proc main_loadfile_with_options_entry
     jsr main_init
     bcs exit            ;C=1 => init failed
-    
+
     ;Auto indent
     bbr0 r1+1, :+
     inc cmd_auto_indent_status
@@ -227,7 +227,7 @@ exit:
 ;                      the values are ignored and replaced with X=1 and Y=255.
 ;Returns.............: C=1 if program initialization failed
 ;Error returns.......: None
-.proc main_init
+.proc main_init    
     ;Ensure we are in binary mode
     cld
 
@@ -264,6 +264,13 @@ exit:
     cpy mem_top
     bcs err
 
+    ;Save R2-R4 on stack
+    ldx #5
+:   lda r2,x
+    pha
+    dex
+    bpl :-
+
     ;Set program mode to default
     stz APP_MOD
 
@@ -281,7 +288,6 @@ exit:
     bridge_jsrfar_call help_decompress
     cli
     
-    
     jsr mem_init
     jsr file_init
     jsr keyboard_init
@@ -291,6 +297,14 @@ exit:
     jsr cmd_init
     jsr scancode_init
     jsr mouse_init
+
+    ;Restore stack
+    ldx #0
+:   pla
+    sta r2,x
+    inx
+    cpx #6
+    bne :-
 
     ;Exit without errors, C=0
     clc
