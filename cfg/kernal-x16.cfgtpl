@@ -53,6 +53,7 @@ SEGMENTS {
 	CONSOLE:  load = KERNAL,   type = ro;
 	SPRITES:  load = KERNAL,   type = ro;
 	VERA_DRV: load = KERNAL,   type = ro;
+	PALETTE:  load = KERNAL,   type = ro, align = $100;
 	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
 	VECB0:    load = KERNAL,   run = VECB0, type = ro, define = yes;
