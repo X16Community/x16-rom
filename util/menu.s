@@ -10,6 +10,8 @@
 .import util_control
 .import util_hexedit
 
+.import ujsrfar
+
 VERA_TILEMAP = $1b000
 
 .segment "MENUZP" : zeropage
@@ -227,6 +229,28 @@ esc:
 
 .endproc
 
+.proc x16edit: near
+new:
+	stz $04 ; R1L = file name length, 0 => no file
+
+launch:
+	ldx #10 ; First RAM bank used by the editor
+	ldy #255 ; Last RAM bank used by the editor
+	stz $05 ; Default value: Auto-indent and word
+	stz $06 ; Default value: Tab stop width
+	stz $07 ; Default value: Word wrap position
+	lda #8 ; ¯\_(ツ)_/¯
+	sta $08 ; Set current active device number
+	stz $09 ; Default value: text/background
+	stz $0a ; Default value: header
+	stz $0b ; Default value: status bar
+
+	jsr ujsrfar
+	.word $C006
+	.byte BANK_X16EDIT
+	rts
+.endproc
+
 to_basic:
 	lda #$93 ; clear screen
 	jsr bsout
@@ -237,13 +261,13 @@ menu_title:
 	scrcode "X16 MENU"
 	.byte 0
 
-MENUITEM_CNT = 3
+MENUITEM_CNT = 4
 
 menuitems:
-	.word menu0, menu1, menu2, 0
+	.word menu0, menu1, menu2, menu3, 0
 
 menu_jumptable:
-	.word util_control, util_hexedit, to_basic
+	.word util_control, util_hexedit, x16edit, to_basic
 
 menu0:
 	scrcode "CONTROL PANEL"
@@ -252,5 +276,8 @@ menu1:
 	scrcode "HEXEDIT"
 	.byte 0
 menu2:
+	scrcode "TEXT EDITOR"
+	.byte 0
+menu3:
 	scrcode "EXIT TO BASIC"
 	.byte 0
