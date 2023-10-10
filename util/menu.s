@@ -276,7 +276,7 @@ menu1:
 	scrcode "HEXEDIT"
 	.byte 0
 menu2:
-	scrcode "X16-EDIT TEXT EDITOR"
+	scrcode "TEXT EDITOR"
 	.byte 0
 menu3:
 	scrcode "EXIT TO BASIC"
