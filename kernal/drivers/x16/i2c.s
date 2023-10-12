@@ -5,17 +5,22 @@
 ; License: 2-clause BSD
 
 .include "io.inc"
+.include "regs.inc"
 
 pr  = d1pra
 ddr = d1ddra
 SDA = (1 << 0)
 SCL = (1 << 1)
 
+.segment "I2CMUTEX"
+i2c_mutex: .res 1
+
 .segment "I2C"
 
-.export i2c_read_byte, i2c_write_byte
+.export i2c_read_byte, i2c_write_byte, i2c_batch_read, i2c_batch_write
 .export i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
 .export i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
+.export i2c_restore, i2c_mutex
 
 __I2C_USE_INLINE_FUNCTIONS__=1
 
@@ -254,6 +259,9 @@ i2c_read_byte:
 	phx
 	phy
 
+	lda i2c_mutex
+	bne @err
+
 	jsr i2c_read_first_byte
 	bcs @err
 	pha
@@ -292,7 +300,12 @@ i2c_read_byte:
 ;            c    1 on error (NAK)
 ;---------------------------------------------------------------
 i2c_read_first_byte:
-	jsr i2c_init
+	lda i2c_mutex
+	beq @1
+	sec
+	rts
+
+@1:	jsr i2c_init
 	jsr i2c_start                        ; SDA -> LOW, (wait 5 us), SCL -> LOW, (no wait)
 	txa                ; device
 	asl
@@ -332,7 +345,12 @@ i2c_read_first_byte:
 ; Return:	a    value
 ;---------------------------------------------------------------
 i2c_read_next_byte:
-	i2c_ack
+	lda i2c_mutex
+	beq :+
+	lda #$ee
+	rts
+
+:	i2c_ack
 
 i2c_read_next_byte_after_ack:
 	jsr i2c_read
@@ -351,7 +369,10 @@ i2c_read_next_byte_after_ack:
 ; Return:	Nothing
 ;---------------------------------------------------------------
 i2c_read_stop:
-	i2c_nack
+	lda i2c_mutex
+	beq :+
+	rts
+:	i2c_nack
 	jmp i2c_stop
 
 ;---------------------------------------------------------------
@@ -371,6 +392,12 @@ i2c_write_byte:
 	php
 	sei
 	phx
+	phy
+
+	ldy i2c_mutex
+	bne @error
+	
+	ply
 	phy
 
 	jsr i2c_write_first_byte
@@ -406,6 +433,9 @@ i2c_write_byte:
 ;---------------------------------------------------------------
 i2c_write_first_byte:
 	pha                ; value
+	lda i2c_mutex
+	bne @error
+
 	jsr i2c_init
 	jsr i2c_start
 	txa                ; device
@@ -440,7 +470,10 @@ i2c_write_first_byte:
 ; Return:	Nothing
 ;---------------------------------------------------------------
 i2c_write_next_byte:
-	jmp i2c_write
+	ldx i2c_mutex
+	beq :+
+	rts
+:	jmp i2c_write
 
 ;---------------------------------------------------------------
 ; i2c_write_stop
@@ -453,7 +486,10 @@ i2c_write_next_byte:
 ; Return:	Nothing
 ;---------------------------------------------------------------
 i2c_write_stop:
-	jmp i2c_stop
+	lda i2c_mutex
+	beq :+
+	rts
+:	jmp i2c_stop
 
 
 ;---------------------------------------------------------------
@@ -653,3 +689,251 @@ i2c_brief_delay:
 	pha
 	pla
 	rts
+
+;---------------------------------------------------------------
+; i2c_batch_read
+;
+; Function:
+;   Read a batch of data into a RAM buffer
+;
+; Pass:      x    7-bit device address
+;	     r0   pointer to start of data buffer
+;            r1   number of bytes to read
+;            c    0: Advance buffer pointer on each byte
+;                 1: Buffer pointer not advanced
+;
+; Return:    x    device (preserved)
+;            r0   pointer to start of data buffer (preserved)
+;            r1   number of bytes to read (preserved)
+;            c    1 on error (NAK)
+;---------------------------------------------------------------
+i2c_batch_read:
+	; Preserve input values on stack
+	lda r0
+	pha
+	lda r0+1
+	pha
+	lda r1
+	pha
+	lda r1+1
+	pha
+
+	phx
+	php
+
+	; Exit if number of bytes to read is 0
+	lda r1
+	ora r1+1
+	bne @br1
+
+	plp
+	plx
+	clc
+	jmp i2c_batch_read_restore
+
+@br1:	; Init I2C transmission
+	lda #1
+	sta i2c_mutex
+
+	sei
+	jsr i2c_init
+	jsr i2c_start
+	
+	plp
+	pla                ; 7 bit address
+	pha
+	php
+
+	asl                ; device * 2
+	ina                ; set read bit
+	jsr i2c_write
+	bcc i2c_batch_read_loop
+
+@err:	sei
+	jsr i2c_stop
+	plp
+	plx
+	sec
+	bra i2c_batch_read_restore
+
+i2c_batch_read_loop:
+	; Read one byte and store it in the buffer
+	jsr i2c_read
+	sta (r0)
+
+	; Advance buffer pointer, if so requested (function called with C=0)
+	plp
+	php
+	bcs @br3
+
+	inc r0
+	bne @br2
+	inc r0+1
+
+	; Rewind buffer pointer and increment RAM bank if address >= $C000
+@br2:	lda r0+1
+	cmp #$c0
+	bcc @br3
+	lda #$a0
+	sta r0+1
+	inc ram_bank
+
+	; Decrement byte request counter
+@br3:	lda r1
+	bne @br4
+	dec r1+1
+@br4:	dec r1
+
+	; Check if requested number of bytes have been read
+	lda r1
+	ora r1+1
+	beq i2c_batch_read_exit
+
+	; Acknowledge, and fetch next byte
+	i2c_ack
+	bra i2c_batch_read_loop
+
+i2c_batch_read_exit:
+	i2c_nack
+	sei
+	jsr i2c_stop
+	
+	plp
+	plx
+	clc
+
+i2c_batch_read_restore:
+	pla
+	sta r1+1
+	pla
+	sta r1
+	pla
+	sta r0+1
+	pla
+	sta r0
+	stz i2c_mutex
+	rts
+
+;---------------------------------------------------------------
+; i2c_batch_write
+;
+; Function:
+;   Write a batch of data from a RAM buffer
+;
+; Pass:      x    7-bit device address
+;	     r0   pointer to start of data buffer
+;            r1   number of bytes to write
+;
+; Return:    x    device (preserved)
+;            r0   pointer to start of data buffer (preserved)
+;            r1   number of bytes to write (preserved)
+;            r2   number of bytes written
+;            c    1 on error (NAK)
+;---------------------------------------------------------------
+i2c_batch_write:
+	; Preserve input on stack
+	lda r0
+	pha
+	lda r0+1
+	pha
+	lda r1
+	pha
+	lda r1+1
+	pha
+	phx
+	php
+
+	; Reset counter
+	stz r2
+	stz r2+1
+
+	; Exit if number of bytes to write is 0
+	lda r1
+	ora r1+1
+	bne @1
+	plp
+	clc
+	bra @restore
+
+@1:	; Init I2C transmission
+	lda #1
+	sta i2c_mutex
+
+	sei
+	jsr i2c_init
+	jsr i2c_start
+	plp
+	pla                ; 7 bit device address
+	pha
+	php
+	asl                ; device * 2
+	jsr i2c_write
+	bcs @err
+
+@loop:	; Write one byte
+	lda (r0)
+	jsr i2c_write
+	bcs @err
+
+	; Increment byte count written
+	inc r2
+	bne @2
+	inc r2+1
+
+@2:	; Advance buffer pointer
+	inc r0
+	bne @3
+	inc r0+1
+
+@3:	; Rewind buffer pointer if address >= $C000
+	lda r0+1
+	cmp #$c0
+	bcc @4
+	lda #$a0
+	sta r0+1
+	inc ram_bank
+
+@4:	; Decrement bytes to write counter
+	lda r1
+	bne @5
+	dec r1+1
+@5:	dec r1
+
+	; Check if all requested bytes have been written
+	lda r1
+	ora r1+1
+	bne @loop
+
+@exit:	sei
+	jsr i2c_stop
+	plp
+	clc
+	bra @restore
+
+@err:	sei
+	jsr i2c_stop
+	plp
+	sec
+
+@restore:
+	plx
+	pla
+	sta r1+1
+	pla
+	sta r1
+	pla
+	sta r0+1
+	pla
+	sta r0
+	stz i2c_mutex
+	rts
+
+;---------------------------------------------------------------
+; i2c_restore
+;
+; Function:
+;   Restore i2c driver
+;---------------------------------------------------------------
+i2c_restore:
+	stz i2c_mutex
+	jmp i2c_stop

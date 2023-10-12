@@ -7,7 +7,6 @@
 .feature labels_without_colons
 
 .import dfltn, dflto, kbd_scan, clock_update, cinv, cbinv
-
 .export key
 
 .segment "IRQ"

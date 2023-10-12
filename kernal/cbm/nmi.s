@@ -11,6 +11,7 @@ monitor = $fecc
 clrch   = $ffcc
 .import enter_basic, cint, ioinit, restor, nminv
 .import call_audio_init
+.import i2c_restore
 .import jsrfar
 
 .export nnmi, timb, dbgbrk
@@ -22,6 +23,7 @@ clrch   = $ffcc
 ; warm reset, ctrl+alt+restore, default value for (nminv)
 nnmi	jsr ioinit           ;go initilize i/o devices
 	jsr restor           ;go set up os vectors
+	jsr i2c_restore      ;release I2C pins and clear mutex flag
 ;
 	jsr cint             ;go initilize screen
 	jsr call_audio_init  ;initialize audio API and HW.
@@ -33,6 +35,7 @@ nnmi	jsr ioinit           ;go initilize i/o devices
 ; timb - where system goes on a brk instruction
 ;
 timb	jsr restor      ;restore system indirects
+	jsr i2c_restore      ;release I2C pins and clear mutex flag
 	jsr ioinit      ;restore i/o for basic
 	jsr cint        ;restore screen for basic
 	jsr call_audio_init  ;initialize audio API and HW.
@@ -47,4 +50,5 @@ monen
 	rti
 
 dbgbrk	jsr clrch
+	jsr i2c_restore      ;release I2C pins and clear mutex flag
 	bra monen
