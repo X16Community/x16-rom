@@ -45,6 +45,8 @@ On macOS, cc65 in [homebrew](https://brew.sh/), which must be installed before i
 
 If cc65 is not available as a package on your system, you'll need to install or build/install it per the instructions below.
 
+If lzsa is not available as a package on your system, you'll need to install or build/install it per the instructions below.
+
 To check the version of python you have use `python3 --version`.
 
 Once the prerequisites are available, type `make` to build `rom.bin`. To use that with the emulator, copy it to the same directory as the `x16emu` binary or use `x16emu -rom .../path/to/rom.bin`.
@@ -73,6 +75,20 @@ This will leave the binaries in the `bin/` subdirectory; you may use thes direct
 Consult the Nesdev Wiki [Installing CC65][nd-cc65] page for some hints, including Windows installs. However, the Debian packages they suggest from [trikaliotis.net] appear to have signature errors.
 
 
+### Building/Installing lzsa
+
+#### Linux Builds from Source
+
+The `lzsa` compression utility is used for some resources packaged into the ROM, and is available [on Github](https://github.com/emmanuel-marty/lzsa); clone and build it with:
+
+	git clone git@github.com:emmanuel-marty/lzsa.git
+	make
+
+The `lzsa` utility will be left in the root directory of the repository.  It can be copied into a directory in your path, such as `~/.local/bin`.
+
+#### Building and Packages for Other Systems
+
+The `lzsa` repository contains project files for both Visual Studio 2017 and XCode, which should allow it to be built for Windows and OS X.
 
 Credits
 -------
