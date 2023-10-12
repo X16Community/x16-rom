@@ -192,6 +192,7 @@ byte_to_hex_ascii:
 @LBCCF: adc     #$3A
         rts
 
+; For performance, avoid moving to BANNEX
 ;***************
 vpeek	jsr chrget
 	jsr chkopn ; open paren
@@ -202,6 +203,10 @@ vpeek	jsr chrget
 	pha
 	lda poker + 1
 	pha
+	cpx #4
+	bcs @io4
+	cpx #2
+	bcs @io3
 	jsr frmadr ; word: offset
 	sty VERA_ADDR_L
 	sta VERA_ADDR_M
@@ -214,13 +219,45 @@ vpeek	jsr chrget
 	jsr chkcls ; closing paren
 	ldy VERA_DATA0
 	jmp sngflt
+@io3:
+	jsr frmadr ; word: offset
+	sty VERA_ADDR_L+$40
+	sta VERA_ADDR_M+$40
+	pla
+	sta poker + 1
+	pla
+	sta poker
+	pla
+	sta VERA_ADDR_H+$40
+	jsr chkcls ; closing paren
+	ldy VERA_DATA0+$40
+	jmp sngflt
+@io4:
+	jsr frmadr ; word: offset
+	sty VERA_ADDR_L+$60
+	sta VERA_ADDR_M+$60
+	pla
+	sta poker + 1
+	pla
+	sta poker
+	pla
+	sta VERA_ADDR_H+$60
+	jsr chkcls ; closing paren
+	ldy VERA_DATA0+$60
+	jmp sngflt
 
+
+; For performance, avoid moving to BANNEX
 ;***************
 vpoke	jsr getbyt ; bank
 	phx
 	jsr chkcom
 	jsr getnum
 	pla
+	cmp #4
+	bcs @io4
+	cmp #2
+	bcs @io3
 	sta VERA_ADDR_H
 	lda poker
 	sta VERA_ADDR_L
@@ -228,6 +265,24 @@ vpoke	jsr getbyt ; bank
 	sta VERA_ADDR_M
 	stx VERA_DATA0
 	rts
+@io3:
+	sta VERA_ADDR_H+$40
+	lda poker
+	sta VERA_ADDR_L+$40
+	lda poker+1
+	sta VERA_ADDR_M+$40
+	stx VERA_DATA0+$40
+	rts
+@io4:
+	sta VERA_ADDR_H+$60
+	lda poker
+	sta VERA_ADDR_L+$60
+	lda poker+1
+	sta VERA_ADDR_M+$60
+	stx VERA_DATA0+$60
+	rts
+
+
 
 ;***************
 bvrfy
