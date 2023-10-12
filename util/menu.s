@@ -239,7 +239,7 @@ launch:
 	stz $05 ; Default value: Auto-indent and word
 	stz $06 ; Default value: Tab stop width
 	stz $07 ; Default value: Word wrap position
-	lda #8 ; ¯\_(ツ)_/¯
+	lda #8 ; ¯\\_(ツ)_/¯
 	sta $08 ; Set current active device number
 	stz $09 ; Default value: text/background
 	stz $0a ; Default value: header
