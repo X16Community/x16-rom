@@ -187,9 +187,11 @@ cld65	stx vartab
 ;
 ;program load
 ;
-cld70	jsr stxtpt
+cld70	stx vartab
+	sty vartab+1    ;end load address
+	jsr stxtpt
 	jsr lnkprg
-	jmp fload
+	jmp cleart
 
 copen	jsr paoc        ;parse statement
 	jsr $ffc0       ;open it
