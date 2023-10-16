@@ -927,6 +927,18 @@ exec:
 	sta ram_bank
 	rts
 
+movspr:
+	bannex_call bannex_movspr
+	rts
+
+sprite:
+	bannex_call bannex_sprite
+	rts
+
+sprmem:
+	bannex_call bannex_sprmem
+	rts
+
 
 ctile:
 	bannex_call bannex_tile

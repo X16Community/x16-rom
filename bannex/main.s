@@ -22,6 +22,9 @@ rom_bank = 1
 .import dos_chkdosw
 .import tile
 .import x16edit
+.import movspr
+.import sprite
+.import sprmem
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
@@ -37,3 +40,6 @@ rom_bank = 1
 	jmp dos_chkdosw        ; $C01E
 	jmp tile               ; $C021
 	jmp x16edit            ; $C024
+	jmp movspr             ; $C027
+	jmp sprite             ; $C02A
+	jmp sprmem             ; $C02D

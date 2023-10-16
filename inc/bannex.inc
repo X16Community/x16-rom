@@ -12,3 +12,6 @@ bannex_dos_clear_disk_status = $C01B
 bannex_dos_chkdosw      = $C01E
 bannex_tile             = $C021
 bannex_x16edit          = $C024
+bannex_movspr           = $C027
+bannex_sprite           = $C02A
+bannex_sprmem           = $C02D
