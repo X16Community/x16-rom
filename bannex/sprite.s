@@ -8,8 +8,10 @@
 .import frmadr
 .import getbyt
 .import fcerr
+.import frmnum
+.import ayint
 
-.importzp facho, poker
+.importzp facho, poker, facmo
 .export sprite
 .export movspr
 .export sprmem
@@ -148,10 +150,11 @@ done:
 	sta VERA_ADDR_H
 .repeat 2 ; for X and then Y
 	jsr chkcom
-	jsr frmadr
-	lda poker
+	jsr frmnum
+	jsr ayint
+	lda facmo+1
 	sta VERA_DATA0
-	lda poker+1
+	lda facmo
 	and #%00000011
 	sta VERA_DATA0
 .endrepeat

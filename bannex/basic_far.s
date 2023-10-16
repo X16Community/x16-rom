@@ -3,6 +3,9 @@
 
 .import bajsrfar
 
+.import basic_ayint
+.export ayint
+
 .import basic_chkcom
 .export chkcom
 
@@ -29,6 +32,9 @@ errfc=14
 .import basic_frmevl
 .export frmevl
 
+.import basic_frmnum
+.export frmnum
+
 .import basic_getadr
 .export getadr
 
@@ -40,6 +46,12 @@ errfc=14
 
 .import basic_nsnerr6
 .export nsnerr6
+
+ayint:
+	jsr bajsrfar
+	.word basic_ayint
+	.byte BANK_BASIC
+	rts
 
 chkcom:
 	jsr bajsrfar
@@ -90,6 +102,12 @@ frmadr:
 frmevl:
 	jsr bajsrfar
 	.word basic_frmevl
+	.byte BANK_BASIC
+	rts
+
+frmnum:
+	jsr bajsrfar
+	.word basic_frmnum
 	.byte BANK_BASIC
 	rts
 
