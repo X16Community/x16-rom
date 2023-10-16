@@ -172,6 +172,8 @@ cld55	jmp error
 ;
 cld60	stx sxreg   ; save [B]LOAD addr so BASIC can inspect
 	sty syreg
+	lda ram_bank
+	sta crambank
 	lda eormsk
 	bne cld20
 	lda txtptr+1
