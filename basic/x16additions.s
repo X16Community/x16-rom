@@ -823,8 +823,10 @@ linput:
 	lda #buflen
 
 in2var:             ; input (line or block) to var
-	sta size        ; store max length
+	pha
 	jsr strspa      ; allocate string space
+	pla
+	sta size        ; store max length
 
 	ldy #0
 in2varc:
