@@ -98,6 +98,44 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 45 ("Nuuk")
+
+* META
+	* The meaning of the version byte at bank 0 \$FF80 has been updated to comport with the original intent of having prereleases as a negative number and releases as a positive number.  Release R45 will have 45/`$2D` in this spot, while later builds should show as -46/`$D2` to indicate R46 prerelease. This should make minimum version checking in applications a lot easier for custom builds and for in-between updates.
+	* Dependency improvements in the Makefile.
+	* `lzsa` is now a build dependency as it compresses X16-Edit's help text.
+	* VERA firmware versions earlier than 0.3.x will display a deprecation warning on the splash screen.
+* KERNAL
+	* Paired with updates in SMC firmware 45.1.0, Intellimouse support has been added. This allows for reading the scroll wheel and potentially buttons higher than 3, depending on the mouse type.
+	* clock_get_date_time and clock_set_date_time can now return and set the RTC's day of week field. [markjreed]
+	* New block-wise write call [`MCIOUT`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2004%20-%20KERNAL.md#function-name-mciout) to complement the block-wise read call `MACPTR`. This seems to accelerate `save` type calls by about 5x.
+	* `CINT` call now uploads the default X16 palette to the VERA.
+	* New I2C batch read and write commands `i2c_batch_read` and `i2c_batch_write`.
+* DOS/FAT32
+	* Fully split DOS and FAT32 into two separate banks, freeing up ample space for fixes and enhancements.
+	* `MCIOUT` call implementation for FAT32
+* BASIC
+	* new [`EXEC`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#exec) command plays back scripted input from a RAM location.
+	* `MENU` now produces a menu of built-in applications.
+	* Improvements to the layout of the second BASIC bank (annex) allowing for more functions to be moved to this area, making room for new features.
+	* new system variable `MWHEEL` returns the mouse wheel delta since the last call as a signed 8-bit value.
+	* new [`TILE`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#tile) comamnd, making pokes to layer 1 screen memory easier.
+	* new [`EDIT`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#edit) command, invoking the built-in text editor X16-Edit.
+	* new sprite-handling commands [`MOVSPR`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#movspr), [`SPRITE`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#sprite), and [`SPRMEM`](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2003%20-%20BASIC.md#sprmem). The first two have parameters which are inspired by the Commodore 128 version of the commands, but their usage is not exactly the same.
+	* `VPOKE` and `VPEEK` can now be used to reach add-on VERA cards. VRAM banks 2-3 point to a VERA at `$9F60` and VRAM banks 4-5 point to a VERA at `$9F80`.
+	* DOS wedge emulation. `@`, `/`, and friends can be used in BASIC immediate mode.
+	* Chain-`LOAD`ing another BASIC program from within a BASIC program was problematic when the second program used variables, as the variable table pointer was not updated after the load. This was a deficiency in BASIC V2, and is now fixed for the Commander X16.
+	* A bug has been fixed affecting `LINPUT`, `LINPUT#`, and `BINPUT#`. These statements would spuriously return a `STRING TOO LONG` error whenever BASIC needed to garbage-collect the string memory before allocating string space to these functions.
+	* After a `LOAD` or `BLOAD` into banked RAM, the RAM bank that the load ended at is saved as if the user called the `BANK` command with this value. Prior to this release, the end bank could be immediately read with `PEEK(0)` after loading, but would be clobbered later on as BASIC would reset the RAM bank to the one set by `BANK`.
+* MONITOR
+	* Improvements related to unwinding the stack to make the PC and register values useful and continuation possible. Making the `BRK` instruction as a breakpoint useful in some situations.
+	* The MONITOR now reuses BASIC's zeropage space, no longer clobbering user ZP \$22-\$2F
+	* New `J` command for JSR into memory, complementing the `G` command to continue execution.
+* UTILITIES
+	* The 8-Bit Guy's hex editor has been added to the `MENU`
+	* Stefan B. Jakobsson's X16-Edit has been added to the `MENU`, and is also callable from BASIC's `EDIT` command, or via an API call in bank 13, making it useful as an editor spawned by other applications.
+
+
 ### Release 44 ("Milan")
 
 This is the third release of x16-rom by the X16Community team
