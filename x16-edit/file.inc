@@ -243,13 +243,11 @@ continue:
     ;Store first char
     lda #5                  ;Set offset to first char
     sta CRS_ADR
-
-    ldy #0                  ;Store char
+    ldy #0
+    stz curpage_len
     lda char
-    sta (CRS_ADR),y
-
-    lda #1
-    sta curpage_len
+    stz char
+    bra check_char
 
 byte_read_loop:
     bridge_setaddr KERNAL_READST
@@ -260,6 +258,7 @@ byte_read_loop:
 :   bridge_setaddr KERNAL_CHRIN
     bridge_call KERNAL_CHRIN
 
+check_char:
     ldx char
     sta char                ;Remember char until next loop
 
