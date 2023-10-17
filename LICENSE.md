@@ -55,4 +55,5 @@ All code outside of the subdirectories above as well as *additions* to legacy co
 | Audio API and library                     | `audio`      | 2-clause BSD  |
 | Additional BASIC routines                 | `bannex`     | 2-clause BSD  |
 | ROM-based utilities                       | `util`       | 2-clause BSD  |
+| X16-Edit                                  | `x16-edit`   | 2-clause BSD  |
 
