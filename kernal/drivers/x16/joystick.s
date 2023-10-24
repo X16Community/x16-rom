@@ -67,8 +67,7 @@ joystick_scan:
 	pla
 	pha
 	pla
-	lda #bit_jclk
-	sta nes_data
+	stz nes_data
 
 	; read 3x 8 bits
 	ldx #bit_jclk
