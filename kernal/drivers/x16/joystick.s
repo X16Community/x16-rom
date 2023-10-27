@@ -67,6 +67,8 @@ joystick_scan:
 	pla
 	pha
 	pla
+	pha
+	pla
 	stz nes_data
 
 	; read 3x 8 bits
