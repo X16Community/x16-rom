@@ -30,5 +30,5 @@
 
 //        ' -> '                  [unchanged]
 // [Shft] " -> "                  [unchanged]
-// [Caps] " -> "
+// [Caps] " -> '
 28	OEM_7		0	0027	0022	-1	00e6	00c6		// APOSTROPHE, QUOTATION MARK, <none>, LATIN SMALL LETTER AE, LATIN CAPITAL LETTER AE
