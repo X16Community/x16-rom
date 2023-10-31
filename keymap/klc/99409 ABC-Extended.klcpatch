@@ -27,3 +27,8 @@
 // [Shft] | -> PETSCII GRAPH 0xa9
 // [Alt]    -> PETSCII GRAPH 0xa8
 2b	OEM_5		0	00a3	f8a9	001c	00ac	00a6	f8a8		// POUND SIGN, PETSCII GRAPH 0xA9, INFORMATION SEPARATOR FOUR, NOT SIGN, BROKEN BAR, PETSCII GRAPH 0xA8
+
+//        ' -> '                  [unchanged]
+// [Shft] " -> "                  [unchanged]
+// [Caps] " -> '
+28	OEM_7		0	0027	0022	-1	00e6	00c6		// APOSTROPHE, QUOTATION MARK, <none>, LATIN SMALL LETTER AE, LATIN CAPITAL LETTER AE

@@ -157,10 +157,36 @@ def get_kbd_layout(base_filename, load_patch = False):
 			pass	
 		elif fields[0] == 'LANGUAGENAMES':
 			# TODO
-			pass	
+			pass
 
 	return kbd_layout
 
+def get_patched_lines(base_filename):
+	filename_changes = base_filename + 'patch'
+	line_changes = []
+	if (os.path.isfile(filename_changes)):
+		f = io.open(filename_changes, mode="r", encoding="utf-8")
+		lines_changes = f.readlines()
+		f.close()
+		lines_changes = [x.strip() for x in lines_changes]
+	else:
+		lines_changes = []
+	
+	patched_lines = []
+	while len(lines_changes) > 0:
+		line = lines_changes[0]
+		lines_changes = lines_changes[1:]
+		i = line.find('//')
+		if i != -1:
+			line = line[:i]
+		line = line.rstrip()
+		if len(line) == 0:
+			continue
+		fields = re.split(r'\t', line)
+		while '' in fields:
+			fields.remove('')
+		patched_lines.append(fields)
+	return patched_lines
 
 # Dictionary of PS/2 Set 1 scan codes to IBM key numbers
 # References:
@@ -719,6 +745,10 @@ if filler_count > 0:
 			data.append(0xff)
 
 # bit field: for which codes CAPS means SHIFT; big endian
+patched_lines = get_patched_lines(sys.argv[1])
+for l in patched_lines:
+	capstab[ps2_to_ibmkey(int(l[0], 16))] = int(l[2],16)
+
 for ibyte in range(0, 16):
 	byte = 0
 	for ibit in range(0, 8):
