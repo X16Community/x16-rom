@@ -34,6 +34,8 @@ wheel:	.res 1           ;    Intellimouse wheel buffer
 idat:	.res 1           ;    Intellimouse data packet
 device_id:
 	.res 1           ;    mouse device ID
+mouse_mutex:
+	.res 1	
 
 I2C_ADDRESS = $42
 I2C_GET_MOUSE_MOVEMENT_OFFSET = $21
@@ -55,6 +57,9 @@ mouse_config:
 	KVARS_END
 	rts
 _mouse_config:
+	; mouse mutex off
+	stz mouse_mutex
+
 	pha
 	phx
 	phy
@@ -181,11 +186,18 @@ mous3:	lda msepar
 
 mouse_scan:
 	KVARS_START
+
+	; check mouse mutes
+	lda mouse_mutex
+	bne :+
+	
 	jsr _mouse_scan
-	KVARS_END
+
+:	KVARS_END
 	rts
 
 _mouse_scan:
+	sta mouse_mutex
 	bit msepar ; do nothing if mouse is off
 	bpl @a
 	
@@ -338,8 +350,15 @@ mouse_update_position:
 
 mouse_get:
 	KVARS_START
+	; mouse mutex on
+	lda #1
+	sta mouse_mutex
+
 	jsr _mouse_get
 	KVARS_END
+
+	; mouse mutex off
+	stz mouse_mutex
 	rts
 
 _mouse_get:
