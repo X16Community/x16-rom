@@ -187,7 +187,7 @@ mous3:	lda msepar
 mouse_scan:
 	KVARS_START
 
-	; check mouse mutes
+	; check mouse mutex
 	lda mouse_mutex
 	bne :+
 	
@@ -354,10 +354,11 @@ mouse_get:
 	sta mouse_mutex
 
 	jsr _mouse_get
-	KVARS_END
-
+	
 	; mouse mutex off
 	stz mouse_mutex
+
+	KVARS_END
 	rts
 
 _mouse_get:
