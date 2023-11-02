@@ -197,7 +197,6 @@ mouse_scan:
 	rts
 
 _mouse_scan:
-	sta mouse_mutex
 	bit msepar ; do nothing if mouse is off
 	bpl @a
 	
