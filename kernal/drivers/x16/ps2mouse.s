@@ -338,7 +338,10 @@ mouse_update_position:
 
 mouse_get:
 	KVARS_START
+	php
+	sei
 	jsr _mouse_get
+	plp
 	KVARS_END
 	rts
 
