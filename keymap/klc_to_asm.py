@@ -433,7 +433,7 @@ for iso_mode in [False, True]:
 				del keytab[shiftstate]
 				shiftstates.remove(shiftstate)
 
-	# stamp in f-keys and numpad keys independent of shiftstate
+	# stamp in f-keys, numpad keys and the menu key independent of shiftstate
 	for shiftstate in keytab.keys():
 		keytab[shiftstate][112]   = chr(0x85) # f1
 		keytab[shiftstate][113]   = chr(0x89) # f2
@@ -470,6 +470,9 @@ for iso_mode in [False, True]:
 		keytab[shiftstate][104] = '.'
 		keytab[shiftstate][95] = '/'
 		keytab[shiftstate][108] = chr(0x0d) # CR
+
+		# Menu key
+		keytab[shiftstate][65] = chr(0x06)
 	
 	# stamp in Ctrl/Alt color codes
 	petscii_from_ctrl_scancode = [ # Ctrl
