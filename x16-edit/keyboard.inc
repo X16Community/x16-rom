@@ -90,7 +90,7 @@ keyboard_shortcut_count = 24
 
     bridge_setaddr KERNAL_OPEN          ;Open file for reading
     bridge_call KERNAL_OPEN
-    bcs close
+    bcs err
 
     bridge_setaddr KERNAL_CHKIN         ;Set file as input
     ldx #1
@@ -131,6 +131,9 @@ close:
     bridge_call KERNAL_CLRCHN
     
     jmp file_read_disk_status
+
+err:
+    rts
 
 keyval:                                 ;List of default shortcut keys
     .byt $47, $58, $4f, $52, $4e

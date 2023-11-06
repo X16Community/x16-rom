@@ -98,6 +98,18 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 46 ("Winnipeg")
+
+This is mainly a minor bugfix release.
+
+* KERNAL
+	* Changes to the joystick polling routine released with R45 had a bad interaction with the emulator, causing the emulated buttons to shift by one bit. This affects the emulator but not real hardware. The polling sequence and timing were changed to be in line with how it was done in R44. [stefan-b-jakobsson]
+	* Caps Lock incorrectly shifted the `'` key to `"` in the ABC/X16 keyboard layout. [stefan-b-jakobsson]
+	* `mouse_scan` had a race against `mouse_get`, specifically if the KERNAL interrupt service routine happend in the middle of reading out one of the 16-bit values of X/Y, the high and low values could be returned out of sync. [stefan-b-jakobsson]
+* UTILITIES
+	* Stefan B. Jakobsson's X16-Edit has been updated to fix a hang that happens if it is launched without an SD card present.
+
+
 ### Release 45 ("Nuuk")
 
 * META
