@@ -213,6 +213,9 @@ set_pixels_FG:
 	inc r0H
 	dec r1H
 	bne @c
+	lda r1L
+	bne @a
+	rts
 
 @a:	ldx r1L
 @b:	ldy #0
@@ -248,6 +251,9 @@ get_pixels_FG:
 	inc r0H
 	dec r1H
 	bne @c
+	lda r1L
+	bne @a
+	rts
 
 @a:	ldx r1L
 @b:	ldy #0
