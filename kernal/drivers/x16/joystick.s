@@ -75,7 +75,7 @@ joystick_scan:
 	ldx #bit_jclk
 	ldy #8
 l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-
+	nop          ; Delay for slow SNES controllers
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
