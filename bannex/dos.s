@@ -4,6 +4,7 @@
 readst = $ffb7
 
 .feature labels_without_colons
+.macpack longbranch
 
 .importzp index1, txtptr, eormsk, poker
 
@@ -221,9 +222,7 @@ dos2:
 	lda (index1),y
 ; dir?
 	cmp #'$'
-	bne :+
-	jmp disk_dir
-:	
+	jeq disk_dir
 ; switch default drive?
 	cmp #'8'
 	beq dosswchr
