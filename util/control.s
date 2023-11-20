@@ -648,7 +648,7 @@ cu01:	cmp #3          ;h/v start
 	bne cu02
 	jmp dec_vstart
 cu02:	cmp #4
-	beq	dec_vstop
+	beq dec_vstop
 	rts
 	
 
