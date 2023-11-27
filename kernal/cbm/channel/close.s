@@ -38,7 +38,7 @@ jx050	jsr jz100       ;extract table data
 	beq jx150       ;is screen...done
 	bcs jx120       ;is serial...process
 	cmp #2          ;rs232?
-	bne jx115       ;no...
+	bne jx150       ;no...
 ;
 ; rs-232 close
 ;
