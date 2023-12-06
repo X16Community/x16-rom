@@ -134,8 +134,8 @@ reslst3
 	.byt "M", 'Y' + $80
 	.byt "M", 'B' + $80
 	.byt "JO", 'Y' + $80
-	.byt "HEX", $a4
-	.byt "BIN", $a4
+	.byt "HEX", '$' + $80
+	.byt "BIN", '$' + $80
 	.byt "I2CPEE", 'K' + $80
 	.byt "POINTE", 'R' + $80
 	.byt "STRPT", 'R' + $80
