@@ -60,7 +60,8 @@ ploop1	iny
 	sta lowtr+1
 	bne list4
 grody	jmp ready
-qplop	jmp (iqplop)
+qplop	jsr listp
+	jmp (iqplop)
 nqplop	bpl ploop
 	cmp #pi
 	beq ploop
