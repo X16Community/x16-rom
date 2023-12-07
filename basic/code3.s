@@ -61,7 +61,7 @@ ploop1	iny
 	bne list4
 grody	jmp ready
 qplop	jmp (iqplop)
-nqplop	jsr listp
+nqplop	jsr listp	; Routine to handle LIST pausing, paging & line stepping
 	bpl ploop
 	cmp #pi
 	beq ploop
