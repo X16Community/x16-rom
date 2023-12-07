@@ -954,6 +954,112 @@ cedit:
 	bannex_call bannex_x16edit
 	rts
 
+;******************************************************************
+;
+; LIST [ xxxx - xxxx ]
+; List BASIC program currently in memory and pause after first page
+; Spacebar will pause/unpause
+; In paused mode below will work:
+; PageDown will show one page at a time
+; Arrow down will show one line at a time
+;
+;******************************************************************
+nlines	= $0387
+curs_y	= $0383
+listp:
+	php			; Save cpu flags as they are used after this function
+	pha			; BASIC uses the a,y registers, they will be restored
+	phy			; before returning from this function
+	stz	ram_bank	; Set RAM bank 0 for variables
+
+	lda	$200
+	beq	@notfirst
+	stz	$200
+	stz	lp_dopause
+	stz	lp_screenpause
+@notfirst:
+	jsr	$FFE4		; GETIN
+	cmp	#$20		; Spacebar
+	bne	@cont
+	inc	lp_dopause
+	jmp	@end
+@cont:	iny			; Is next byte in BASIC line the 0-termination
+	lda	($00C1),y
+	beq	:+
+	jmp	@end
+:	lda	lp_screenpause
+	beq	@islinepause
+	; Handle screen pause
+	lda	curs_y		; If cursor is on line 1 or 2, we have just cleared
+	cmp	#1		; The screen and need to remove the char from
+	beq	:+		; top-left corner
+	cmp	#2
+	bne	@scrend
+:	ldx	VERA_ADDR_L	; Save VERA address
+	ldy	VERA_ADDR_M
+	stz	VERA_ADDR_L	; Set VERA address to xB000
+	lda	#$B0
+	sta	VERA_ADDR_M
+	lda	#' '		; Write a space to top left corner
+	sta	VERA_DATA0
+	stx	VERA_ADDR_L	; Restore VERA address
+	sty	VERA_ADDR_M
+
+@scrend:dec	nlines		; Figure out if cursor is on next to last or last
+	dec	nlines
+	lda	curs_y		; line of the screen
+	cmp	nlines
+	inc	nlines
+	inc	nlines
+	bcc	@end		; If it is, we need to wait for a new keypress
+	stz	lp_screenpause
+	inc	lp_dopause
+@islinepause:
+	lda	lp_dopause
+	beq	@end
+	; Write last char of line and move cursor back so BASIC can overwrite
+	; This does not work when the screen has been cleared which is why
+	; the screenpause part checks for line 1 or 2 to remove the extra char
+	; at the top left corner of the screen.
+	dey		
+	lda	($00C1),y
+	jsr	$FFD2		; CHROUT
+	lda	#$9D		; CursorLeft
+	jsr	$FFD2		; CHROUT
+@pauseloop:
+	jsr	$FFE4		; GETIN
+	cmp	#$20		; Is Space ?
+	bne	@pgdown
+	stz	lp_dopause
+	stz	lp_screenpause
+	bra	@end
+@pgdown:cmp	#$02		; Is Pagedown ?
+	bne	@isarrowdown
+	; handle page down
+	stz	lp_dopause
+	inc	lp_screenpause
+	dec	nlines		; Figure out if cursor is on next to last or last
+	dec	nlines
+	lda	curs_y		; line of the screen
+	cmp	nlines
+	inc	nlines
+	inc	nlines
+	bcc	@end		; If it is, we need to clear the screen
+	lda	#$93		; Clear screen
+	jsr	$FFD2		; CHROUT
+	bra	@end
+@isarrowdown:
+	cmp	#$11		; Is cursor down ?
+	bne	@pauseloop
+	; Let BASIC do its thing and show the next line
+@end:
+	lda	crambank	; Restore RAM bank
+	sta	ram_bank
+	ply			; Restore a,y registers
+	pla
+	plp			; restore cpu flags
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar
