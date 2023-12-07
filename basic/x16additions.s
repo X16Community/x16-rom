@@ -964,18 +964,18 @@ cedit:
 ; Arrow down will show one line at a time
 ;
 ;******************************************************************
-nlines	= $0387
-curs_y	= $0383
+nlines	= $0387			; These variables are in KERNAL space
+curs_y	= $0383			; Could not figure out how to import
 listp:
 	php			; Save cpu flags as they are used after this function
 	pha			; BASIC uses the a,y registers, they will be restored
 	phy			; before returning from this function
 	stz	ram_bank	; Set RAM bank 0 for variables
 
-	lda	$200
+	lda	$200		; Use keyboard buffer to see if first run
 	beq	@notfirst
 	stz	$200
-	stz	lp_dopause
+	stz	lp_dopause	; Initialize variables
 	stz	lp_screenpause
 @notfirst:
 	jsr	$FFE4		; GETIN
@@ -1028,7 +1028,11 @@ listp:
 	jsr	$FFD2		; CHROUT
 @pauseloop:
 	jsr	$FFE4		; GETIN
-	cmp	#$20		; Is Space ?
+	cmp	#$03		; Is STOP ?
+	bne	:+
+	jsr	$FEC3
+	bra	@end
+:	cmp	#$20		; Is Space ?
 	bne	@pgdown
 	stz	lp_dopause
 	stz	lp_screenpause
