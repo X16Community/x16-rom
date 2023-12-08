@@ -36,7 +36,8 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin	sty lstpnt
+typlin	jsr listp	; Routine to handle LIST pausing, paging & line-stepping
+	sty lstpnt
 	jsr linprt
 	lda #' '
 prit4	ldy lstpnt
@@ -61,8 +62,7 @@ ploop1	iny
 	bne list4
 grody	jmp ready
 qplop	jmp (iqplop)
-nqplop	jsr listp	; Routine to handle LIST pausing, paging & line stepping
-	bpl ploop
+nqplop	bpl ploop
 	cmp #pi
 	beq ploop
 	bit dores
