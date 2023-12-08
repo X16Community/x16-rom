@@ -965,11 +965,13 @@ cedit:
 ;
 ;******************************************************************
 nlines	= $0387			; These variables are in KERNAL space
-curs_y	= $0383			; Could not figure out how to import
+llen	= $0386			; Could not figure out how to import
+curs_y	= $0383
 listp:
 	php			; Save cpu flags as they are used after this function
-	pha			; BASIC uses the a,y registers, they will be restored
-	phy			; before returning from this function
+	pha			; BASIC uses the a,x&y registers, they will be
+	phy			; restored before returning from this function
+	phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
 	lda	$200		; Use keyboard buffer to see if first run
@@ -983,74 +985,40 @@ listp:
 	bne	@cont
 	inc	lp_dopause
 	jmp	@end
-@cont:	iny			; Is next byte in BASIC line the 0-termination
-	lda	($00C1),y
-	beq	:+
-	jmp	@end
-:	lda	lp_screenpause
+@cont:	lda	lp_screenpause
 	beq	@islinepause
 	; Handle screen pause
-	lda	curs_y		; If cursor is on line 1 or 2, we have just cleared
-	cmp	#1		; The screen and need to remove the char from
-	beq	:+		; top-left corner
-	cmp	#2
-	bne	@scrend
-:	ldx	VERA_ADDR_L	; Save VERA address
-	ldy	VERA_ADDR_M
-	stz	VERA_ADDR_L	; Set VERA address to xB000
-	lda	#$B0
-	sta	VERA_ADDR_M
-	lda	#' '		; Write a space to top left corner
-	sta	VERA_DATA0
-	stx	VERA_ADDR_L	; Restore VERA address
-	sty	VERA_ADDR_M
-
-@scrend:dec	nlines		; Figure out if cursor is on next to last or last
-	dec	nlines
-	lda	curs_y		; line of the screen
-	cmp	nlines
-	inc	nlines
-	inc	nlines
-	bcc	@end		; If it is, we need to wait for a new keypress
+	jsr	@ateos		; Check if we are at end of screen
+	bcc	@end
+	inc	lp_dopause	; Pause the listing
 	stz	lp_screenpause
-	inc	lp_dopause
+	bra	@end
 @islinepause:
-	lda	lp_dopause
+	lda	lp_dopause	; Check if we need to pause the listing
 	beq	@end
-	; Write last char of line and move cursor back so BASIC can overwrite
-	; This does not work when the screen has been cleared which is why
-	; the screenpause part checks for line 1 or 2 to remove the extra char
-	; at the top left corner of the screen.
-	dey		
-	lda	($00C1),y
-	jsr	$FFD2		; CHROUT
-	lda	#$9D		; CursorLeft
-	jsr	$FFD2		; CHROUT
 @pauseloop:
 	jsr	$FFE4		; GETIN
-	cmp	#$03		; Is STOP ?
-	bne	:+
-	jsr	$FEC3
-	bra	@end
-:	cmp	#$20		; Is Space ?
+	cmp	#$03		; Is STOP (CTRL+C)?
+	bne	@space
+	jsr	$FEC3		; Push STOP back in keyboard buffer
+	bra	@end		; So BASIC can handle it
+@space:	cmp	#$20		; Is Space ?
 	bne	@pgdown
-	stz	lp_dopause
+	stz	lp_dopause	; No more pausing until space is pressed again
 	stz	lp_screenpause
 	bra	@end
 @pgdown:cmp	#$02		; Is Pagedown ?
 	bne	@isarrowdown
 	; handle page down
-	stz	lp_dopause
+	lda	llen		; If number of columns is less than 23
+	cmp	#23		; pagedown should work the sam as 
+	bcc	@end		; arrow down
+	stz	lp_dopause	; Indicate we need to pause at end of screen
 	inc	lp_screenpause
-	dec	nlines		; Figure out if cursor is on next to last or last
-	dec	nlines
-	lda	curs_y		; line of the screen
-	cmp	nlines
-	inc	nlines
-	inc	nlines
-	bcc	@end		; If it is, we need to clear the screen
+	jsr	@ateos		; Check if we are at end of screen
+	bcc	@end
 	lda	#$93		; Clear screen
-	jsr	$FFD2		; CHROUT
+	jsr	$FFD2		; CHROUT	
 	bra	@end
 @isarrowdown:
 	cmp	#$11		; Is cursor down ?
@@ -1059,9 +1027,45 @@ listp:
 @end:
 	lda	crambank	; Restore RAM bank
 	sta	ram_bank
+	plx
 	ply			; Restore a,y registers
 	pla
 	plp			; restore cpu flags
+	rts
+;******************************************************************
+;
+; Function to figure out if we are as far down the screen as can
+; be without scrolling.
+; Trying to take into consideration that lines can actually be
+; longer than 80 characters because of abbreviated keywords
+;
+;******************************************************************
+@ateos:
+	ldy	lp_dopause	; Save value as variable is borrowed
+				; for comparison use
+	ldx	nlines		; In any screenmode we need to go
+	dex			; back at least 6 to prevent scrolling
+	dex
+	dex
+	dex
+	dex
+	dex
+	lda	llen
+@is80:	cmp	#64		; Is it 64 or 80 columns?
+	bcc	@is32
+	stx	lp_dopause	; Store calculated end of screen
+	lda	curs_y
+	cmp	lp_dopause	; Compare current line with calculated eos
+	sty	lp_dopause
+	rts
+@is32:	dex			; Is it 32 or 40 columns?
+	dex			; For 32 column mode we need 
+	dex			; more lines to prevent scrolling
+	dex
+	stx	lp_dopause	; Store calculated end of screen
+	lda	curs_y
+	cmp	lp_dopause	; Compare current line with calculated eos
+	sty	lp_dopause
 	rts
 
 ; BASIC's entry into jsrfar
