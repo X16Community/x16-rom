@@ -5,7 +5,6 @@
 ;Returns.............: Nothing
 ;Error returns.......: None
 .proc compile_prompt
-    rts
     lda #22
     sta APP_MOD
     jsr cursor_disable

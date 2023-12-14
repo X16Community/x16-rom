@@ -190,7 +190,8 @@ BANNEX_SOURCES= \
 	bannex/dos.s \
 	bannex/tile.s \
 	bannex/x16edit.s \
-	bannex/sprite.s
+	bannex/sprite.s \
+	bannex/basload.s
 
 GENERIC_DEPS = \
 	inc/kernal.inc \
