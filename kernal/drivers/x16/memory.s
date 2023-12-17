@@ -352,4 +352,5 @@ monitor:
 	jsr jsrfar
 	.word $c000
 	.byte BANK_MONITOR
+	rts
 	;not reached
