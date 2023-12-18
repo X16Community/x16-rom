@@ -23,7 +23,7 @@
 ayint	= $fe00 ; facmo+1:facmo = (s16)FAC
 givayf	= $fe03 ; FAC = (s16).A:.Y
 fout	= $fe06 ; Convert FAC to ASCIIZ string at fbuffr
-val_1	= $fe09 ;
+val_1	= $fe09 ; Convert string in .X:.Y length in .A to floating point number in FAC
 getadr	= $fe0c ; .A:.Y = (u16)FAC
 floatc	= $fe0f ; C128 API, use floats instead
 ; Math Functions

@@ -59,11 +59,8 @@
 	; Convert FAC to ASCIIZ string at fbuffr
 	jmp fout   ; $BDDD
 
-	; XXX VAL_1, a frontend to fin ($BCF3) is missing
-	; XXX because of the dependency on CHRGET.
-	; XXX We should add it after removing the
-	; XXX depencency.
-	.byte 0,0,0
+	; Convert string in .X:.Y length in .A to floating point number in FAC
+	jmp val_1
 
 	; .A:.Y = (u16)FAC
 	; [*** C128 difference: does not store the

@@ -144,6 +144,15 @@ getadr	lda facsgn
 	ldy facmo+1
 	rts             ;it's all done.
 
+val_1	stx index
+	sty index+1
+	cmp #0
+	jmp val_str	; continue in Basic
+
+
+.import val_str
+
+
 ;**************************
 ; generalized versions of
 ; what BASIC calls
