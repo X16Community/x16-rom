@@ -7,7 +7,6 @@
 .feature labels_without_colons
 
 rom_bank = 1
-monitor = $fecc
 clrch   = $ffcc
 .import enter_basic, cint, ioinit, restor, nminv
 .import call_audio_init
