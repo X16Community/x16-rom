@@ -46,6 +46,7 @@
     sta VERA_L1_MAPBASE
 
     ;Get charset mode
+    .byt $db
     lda KERNAL_MODE
     
     cmp #2                   ;PETSCII upper case/graphics

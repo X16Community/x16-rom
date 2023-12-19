@@ -47,6 +47,8 @@ errfc=14
 .import basic_nsnerr6
 .export nsnerr6
 
+.export ba_bsout
+
 ayint:
 	jsr bajsrfar
 	.word basic_ayint
@@ -135,3 +137,8 @@ nsnerr6:
 	.byte BANK_BASIC
 	rts
 
+ba_bsout:
+	jsr bajsrfar
+	.word bsout  
+	.byte BANK_KERNAL
+	rts
