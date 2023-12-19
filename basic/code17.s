@@ -5,9 +5,9 @@ conint	jsr posint
 	ldx faclo
 	jmp chrgot
 val	jsr len1
-	bne *+5
+val_str	bne @1
 	jmp zerofc
-	ldx txtptr
+@1:	ldx txtptr
 	ldy txtptr+1
 	stx strng2
 	sty strng2+1
@@ -265,3 +265,6 @@ mlex10
 mlexmi
 	sta tenexp	;save result.
 	jmp finec
+
+
+.export val_str

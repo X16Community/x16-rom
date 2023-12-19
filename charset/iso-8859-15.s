@@ -26,9 +26,9 @@
 .byte %10011001
 .byte %10010001
 .byte %10010001
+.byte %10010001
 .byte %10011111
-.byte %10011101
-.byte %11000011
+.byte %11000001
 .byte %11111111
 
 ; $01
@@ -666,9 +666,9 @@
 .byte %01100110
 .byte %01101110
 .byte %01101110
+.byte %01101110
 .byte %01100000
-.byte %01100010
-.byte %00111100
+.byte %00111110
 .byte %00000000
 
 ; $41 A
@@ -1291,15 +1291,15 @@
 .byte %00000000
 .byte %00000000
 
-; $7f
-.byte %00000000
-.byte %00000000
-.byte %00000000
-.byte %00000000
-.byte %00000000
-.byte %00000000
-.byte %00000000
-.byte %00000000
+; $7f (nonprintable, repurposed for shade box)
+.byte %11001100
+.byte %11001100
+.byte %00110011
+.byte %00110011
+.byte %11001100
+.byte %11001100
+.byte %00110011
+.byte %00110011
 
 ; $80
 .byte %11001111
@@ -1727,7 +1727,7 @@
 .byte %00111100
 .byte %00111100
 .byte %00000000
-.byte %00000000
+.byte %00111100
 .byte %00000000
 .byte %00000000
 
@@ -1751,14 +1751,14 @@
 .byte %00000000
 .byte %00000000
 
-; nonprintable shift-hypen "SHY" (repurposed for Commander X16 logo)
+; $ad (-) (nonprintable, repurposed for Commander X16 logo)
 .byte %11000011
 .byte %11100111
-.byte %01111110
+.byte %11111111
 .byte %00111100
 .byte %00011000
 .byte %01111110
-.byte %01100110
+.byte %11100111
 .byte %00000000
 
 ; $ae ®
@@ -1887,7 +1887,7 @@
 .byte %01101100
 .byte %00111000
 .byte %00000000
-.byte %00000000
+.byte %01111100
 .byte %00000000
 .byte %00000000
 

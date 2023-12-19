@@ -642,22 +642,28 @@ w_up:
 	lda menu_select
 	cmp #2          ;screen size
 	bne cu01
+	jsr clear_240p
 	jmp inc_vscale
 cu01:	cmp #3          ;h/v start
 	bne cu02
 	jmp dec_vstart
-cu02:	jmp dec_vstop
+cu02:	cmp #4
+	beq dec_vstop
+	rts
 	
 
 s_down:
 	lda menu_select
 	cmp #2	;screen size
 	bne cd01
+	jsr clear_240p
 	jmp dec_vscale
 cd01:	cmp #3	;hv-start
 	bne cd02
 	jmp inc_vstart
-cd02:	jmp inc_vstop
+cd02:	cmp #4
+	beq inc_vstop
+	rts
 
 a_left:
 	lda menu_select
@@ -667,7 +673,9 @@ a_left:
 cl01:	cmp #3	;hv-start
 	bne cl02
 	jmp dec_hstart
-cl02:	jmp dec_hstop
+cl02:	cmp #4
+	beq dec_hstop
+	rts
 
 d_right:
 	lda menu_select
@@ -677,7 +685,15 @@ d_right:
 cr01:	cmp #3	;hv-start	
 	bne cr02
 	jmp inc_hstart
-cr02:	jmp inc_hstop	
+cr02:	cmp #4
+	beq inc_hstop
+	rts
+
+clear_240p:
+	stz VERA_CTRL
+	lda #$08
+	trb VERA_DC_VIDEO
+	rts
 
 inc_vstop:
 	lda #%00000010
