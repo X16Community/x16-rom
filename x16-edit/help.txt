@@ -1,8 +1,6 @@
-
-Commands are selected by holding down Ctrl and pressing a 
-shortcut key. Alternatively press and release ESC and
-then a shortcut key. Some commands are available via a
-function key.
+Hold down Ctrl and press a shortcut key. Alternatively press
+and release ESC and then a shortcut key. Some commands also 
+available via a function key.
  
 ^G  (F1)  Display built-in help screen
 ^X  (F2)  Exit program
@@ -22,6 +20,7 @@ function key.
 ^A        Toggle auto indent on/off
 ^Z        Toggle word wrap on/off
 ^E        Change charset
+^Q        Quote mode
 ^I        Invoke DOS command
 ^D        Set current device number
 ^T        Set text color (default white)
@@ -29,9 +28,11 @@ function key.
 ^M        Show memory usage (1 bank=251 bytes of text)
 ^SPACE    Insert non-breaking space
 ^1..9     Set tab width
+^ENTER    Set line break encoding
+^F        Programming toolbox (ROM only)
 
 
 X16 Edit, Copyright 2020-2023, Stefan Jakobsson.
 
-Released under the terms of the 2-Clause BSD license, available
-in the enclosed "license" file.
+Released under the BSD 2-Clause license, available in 
+the enclosed "license" file.

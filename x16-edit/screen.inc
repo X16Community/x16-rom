@@ -47,29 +47,35 @@
 
     ;Get charset mode
     lda KERNAL_MODE
-    
-    cmp #2                   ;PETSCII upper case/graphics
-    bne :+
-    dec
-    bra setmode
+    beq unknown_mode
 
-:   cmp #3                   ;PETSCII upper/lower case
-    bne :+
-    dec
-    bra setmode
-
-:   cmp #65                  ;ISO
-    bne :+
+    bit #$40                 ;ISO mode flag
+    beq :+                   ;usually KERNAL_MODE 1 or 6 (| $40)
     lda #0
     bra setmode
-    
-:   bridge_setaddr KERNAL_CHROUT    ;Unkown
+
+:   bit #1                   ;PETSCII upper case/graphics
+    bne :+                   ;usually KERNAL_MODE 2 or 4
+    lda #1
+    bra setmode
+
+:   lda #2                   ;PETSCII upper/lower case
+    bra setmode              ;usually KERNAL_MODE 3 or 5
+unknown_mode:
+    bridge_setaddr KERNAL_CHROUT    ;Unknown
     lda #$0f
     bridge_call KERNAL_CHROUT
     lda #0
-
 setmode:
     sta screen_mode
+
+set_filebreak_encoding:
+    ; ISO mode = 0 = LF
+    ; PETSCII mode = 1 = CR
+    stz file_linebreak_encoding
+    cmp #1
+    lda #0
+    rol file_linebreak_encoding
 
 prepare_screen: 
     ;Set default background and foreground colors
@@ -248,19 +254,46 @@ clear:
     sta VERA_D0
     sta VERA_D0
 
-update_pos:
-    ;Print backward from row SCREEN_HEIGHT-3, col SCREEN_WIDTH-1
+line_brk_enc:
+    ; Print forward from row SCREEN_HEIGHT-3, col 0
+    stz VERA_L
     sec
     lda screen_height
     sbc #3
     clc
     adc #VERA_BUFADR_M
     sta VERA_M
+    lda #%00100000 | VERA_BUFADR_H
+    sta VERA_H
 
+    ldx #0
+    lda file_linebreak_encoding
+    cmp #1
+    bne :+
+    ldx #5
+    bra :++
+:   cmp #2
+    bne :+
+    ldx #10
+
+:   lda brk_enc_lf,x
+    beq :+
+    jsr screen_put_uc_char
+    inx
+    bne :-
+
+:   sec
     lda screen_width
-    dea
-    asl
-    sta VERA_L
+    sbc #5
+    tax
+    lda #32
+:   sta VERA_D0
+    dex
+    bne :-
+
+update_pos:
+    lda #%00101000 | VERA_BUFADR_H
+    sta VERA_H
 
     ;Get column
     ldx mem_cur_col
@@ -293,17 +326,7 @@ update_pos:
     ldx #lblln-labels
     jsr printlabel
 
-    ;Clear possible leftover chars
-    ldx #25
-    lda #32
-
-:   sta VERA_D0
-    ldy VERA_L
-    beq :+
-    dex
-    bne :-
-
-:   rts
+    rts
 
 bin_to_str:
     jsr util_bin_to_bcd
@@ -336,6 +359,13 @@ lblcol:
 
 lblln:
     .byt " nl", 0
+
+brk_enc_lf:
+    .byt "lf  ",0
+brk_enc_cr:
+    .byt "cr  ",0
+brk_enc_crlf:
+    .byt "crlf",0
 
 .endproc
 
@@ -482,7 +512,7 @@ row2:
     ldy #>row1
     jmp screen_print_footer
 row1:
-    .byt ":^b basload", 0
+    .byt ": b basload", 0
 row2:
     .byt 0
 .endproc

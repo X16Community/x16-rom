@@ -99,8 +99,14 @@
 ;                      to the Kernal.
 ;Error returns:......: None
 .proc scancode_handler
+    ;Exit if APP_MOD 23 = Quote mode
+    ldy APP_MOD
+    cpy #23
+    bne :+
+    rts
+    
     ;Save input so we can restore value later
-    pha
+:   pha
 
     ;Check keycode match
     and #%01111111      ; Filter out up/down bit

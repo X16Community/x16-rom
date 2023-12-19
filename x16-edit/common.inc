@@ -25,6 +25,8 @@
 
 .import __ZP_START__, __ZP_LAST__, __VARS_LOAD__
 
+.export APP_MOD
+
 ;*****************************************************************************
 ;KERNAL
 ;*****************************************************************************
@@ -52,6 +54,7 @@
 .define KERNAL_DECOMPRESS $feed
 .define KERNAL_MACPTR $ff44
 .define KERNAL_SCREEN_MODE $ff5f
+.define KERNAL_FETCH $ff74
 
 ;Keyboard & mouse
 .define KERNAL_GETIN $ffe4
@@ -84,6 +87,9 @@
 
 .define VERA_BUFADR_M $b0
 .define VERA_BUFADR_H $01
+
+.define VERA_SPRITE_ATTR $1fc00   ; VRAM address
+.define VERA_POINTER_ADDR $0      ; VRAM address where custom mouse pointer is stored
 
 ;*****************************************************************************
 ;ZERO PAGE "REGISTERS"
@@ -142,11 +148,12 @@ TMP2_IDX:   .res 1   ;Index
 ;*****************************************************************************
 .segment "VARS"
 
-bridge_code:            .res 84             ;Bridge code, used by ROM version of the program
+bridge_code:            .res 70             ;Bridge code, used by ROM version of the program
 APP_MOD:                .res 1              ;1 byte, application mode
 APP_QUIT:               .res 1              ;1 byte, used to signal program exit
 .if target_mem=target_rom
-    rom_bank:           .res 1              ;Bank where ROM version of the program is stored
+rom_bank:               .res 1              ;Bank where ROM version of the program is stored
+rom_bank_save:          .res 1
 .endif
 tempvars:               .res 16             ;Temporary variables
 
