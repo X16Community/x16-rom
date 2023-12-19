@@ -286,6 +286,10 @@ X16EDIT_DEPS= \
 	$(wildcard x16-edit/*.asm) \
 	$(wildcard x16-edit/*.inc)
 
+BASLOAD_DEPS= \
+	$(GENERIC_DEPS) \
+	$(wildcard basload/*.asm) \
+	$(wildcard basload/*.inc)
 
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
@@ -314,7 +318,8 @@ BANK_BINS = \
 	$(BUILD_DIR)/audio.bin \
 	$(BUILD_DIR)/util.bin \
 	$(BUILD_DIR)/bannex.bin \
-	$(BUILD_DIR)/x16edit-rom.bin
+	$(BUILD_DIR)/x16edit-rom.bin \
+	$(BUILD_DIR)/basload-rom.bin
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -331,6 +336,13 @@ x16edit_update:
 	rsync -av --delete --delete-after --exclude=/customrom.bin x16edittmp/ x16-edit/
 	(cd x16-edit && git rev-parse HEAD > .git-commit && rm -rf .git)
 	rm -rf x16edittmp
+
+basload_update:
+	@rm -rf basloadtmp
+	git clone https://github.com/stefan-b-jakobsson/basload-rom.git basloadtmp
+	rsync -av --delete --delete-after --exclude=/customrom.bin basloadtmp/ basload/
+	(cd basload && git rev-parse HEAD > .git-commit && rm -rf .git)
+	rm -rf basloadtmp
 
 clean:
 	rm -f $(GIT_SIGNATURE)
@@ -439,6 +451,12 @@ $(BUILD_DIR)/x16edit-rom.bin: $(X16EDIT_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd x16-edit && make clean rom)
 	cp x16-edit/build/x16edit-rom.bin $(BUILD_DIR)/x16edit-rom.bin
+
+# Bank F: BASLOAD
+$(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
+	@mkdir -p $$(dirname $@)
+	(cd basload && make clean && make)
+	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
