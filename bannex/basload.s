@@ -1,7 +1,8 @@
+.include "kernal.inc"
 .include "banks.inc"
 
 .export basload
-.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa, ba_bsout
+.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa
 
 .segment "ANNEX"
 
@@ -35,8 +36,10 @@ prepare:
     iny
     bra :-
 
+    ; Set current device, if basic_fa < 8 then use default device 8
 :   lda basic_fa
-    bne :+
+    cmp #8
+    bcs :+
     lda #8
 :   sta $03
 
@@ -44,7 +47,7 @@ prepare:
     ldx #0
 :   lda msg_loading,x
     beq :+
-    jsr ba_bsout
+    jsr bsout
     inx
     bra :-
 
@@ -62,7 +65,7 @@ response:
     ldx #0
 :   lda msg_error,x
     beq :+
-    jsr ba_bsout
+    jsr bsout
     inx
     bra :-
 
@@ -70,7 +73,7 @@ response:
     stz $00
 :   lda $bf00,x
     beq exit
-    jsr ba_bsout
+    jsr bsout
     inx
     bra :-
 
