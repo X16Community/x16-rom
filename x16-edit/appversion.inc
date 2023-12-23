@@ -1,6 +1,6 @@
 .define appversion_major    0
 .define appversion_minor    8
-.define appversion_patch    0
+.define appversion_patch    1
 
 .if target_mem=target_rom
     .segment "APPSIG"
