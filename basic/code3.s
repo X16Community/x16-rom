@@ -36,7 +36,11 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin	sty lstpnt
+typlin	jsr jsrfar
+	 .word $C033
+	 .byte BANK_BANNEX
+
+	sty lstpnt
 	jsr linprt
 	lda #' '
 prit4	ldy lstpnt

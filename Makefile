@@ -179,6 +179,7 @@ UTIL_SOURCES= \
 
 BANNEX_SOURCES= \
 	kernsup/kernsup_bannex.s \
+	bannex/pauselist.s \
 	bannex/basic_far.s \
 	bannex/main.s \
 	bannex/renumber.s \
