@@ -9,6 +9,7 @@ SPACEBAR = $20
 ram_bank = 0
 
 pause:
+	jmp listp
     php 
     phx
     phy
