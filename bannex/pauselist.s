@@ -1,4 +1,4 @@
-.include "declare.s"
+.include "basic_declare.s"
 
 .export pause
 
