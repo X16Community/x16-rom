@@ -44,4 +44,4 @@ rom_bank = 1
 	jmp movspr             ; $C027
 	jmp sprite             ; $C02A
 	jmp sprmem             ; $C02D
-	jmp basload			   ; $C030
+	jmp basload            ; $C030
