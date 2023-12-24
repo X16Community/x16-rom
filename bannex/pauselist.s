@@ -1,4 +1,6 @@
 .import crambank
+.import lp_dopause
+.import lp_screenpause
 
 .export pause
 
