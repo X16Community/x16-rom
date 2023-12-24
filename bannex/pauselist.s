@@ -1,4 +1,4 @@
-.include "basic_declare.s"
+.import crambank
 
 .export pause
 
