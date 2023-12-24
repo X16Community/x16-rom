@@ -16,3 +16,4 @@ bannex_movspr           = $C027
 bannex_sprite           = $C02A
 bannex_sprmem           = $C02D
 bannex_basload          = $C030
+bannex_pause            = $C033
