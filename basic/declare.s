@@ -184,3 +184,6 @@ usrpok	.res 3           ;$0310 user function dispatch
     exec_flag: .res 1
     exec_addr: .res 2
     exec_bank: .res 1
+
+    lp_dopause: .res 1
+    lp_screenpause: .res 1
