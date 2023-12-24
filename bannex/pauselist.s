@@ -1,6 +1,10 @@
+.include "declare.s"
+
 .export pause
+
 GETIN  = $FFE4
 SPACEBAR = $20
+ram_bank = 0
 
 pause:
     php 
