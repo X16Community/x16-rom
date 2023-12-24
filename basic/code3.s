@@ -37,7 +37,7 @@ list4	ldy #1
 	beq typlin
 tstdun	bcs grody
 typlin	jsr jsrfar
-	 .word $C033
+	 .word bannex_pause
 	 .byte BANK_BANNEX
 
 	sty lstpnt
