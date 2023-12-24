@@ -72,6 +72,7 @@ listp:
 	lda	lp_dopause	; Check if we need to pause the listing
 	beq	@end
 @pauseloop:
+	brk
 	jsr	$FFE4		; GETIN
 	cmp	#$03		; Is STOP (CTRL+C)?
 	bne	@space
