@@ -125,6 +125,7 @@ reslst3
 	.byt "SPRIT", 'E' + $80
 	.byt "SPRME", 'M' + $80
 	.byt "MOVSP", 'R' + $80
+	.byt "BASLOA", 'D' + $80
 
 	; add new statements before this line
 

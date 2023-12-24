@@ -163,7 +163,14 @@ copy:
     inc r1+1
     bra copy
 
-decompress:  
+decompress:
+    ;Setup call to Kernal decompress function
+    lda #<KERNAL_DECOMPRESS
+    sta jsrfar_addr
+    lda #>KERNAL_DECOMPRESS
+    sta jsrfar_addr+1
+    stz jsrfar_bank
+
     ;Vector to compressed text (input)
     lda #<clipboard_mem
     sta r0
@@ -176,9 +183,8 @@ decompress:
     lda #>help_txt
     sta r1+1
 
-    ;Call Kernal decompress function
-    bridge_setaddr KERNAL_DECOMPRESS
-    bridge_call KERNAL_DECOMPRESS
+    ;Call decompress
+    jsr jsrfar2
     
     ;Add trailing zero to mark end of text
     lda #0

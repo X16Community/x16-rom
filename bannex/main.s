@@ -25,6 +25,7 @@ rom_bank = 1
 .import movspr
 .import sprite
 .import sprmem
+.import basload
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
@@ -43,3 +44,4 @@ rom_bank = 1
 	jmp movspr             ; $C027
 	jmp sprite             ; $C02A
 	jmp sprmem             ; $C02D
+	jmp basload            ; $C030

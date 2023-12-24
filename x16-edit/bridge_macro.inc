@@ -23,14 +23,12 @@
 ;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;*******************************************************************************
 
-bridge_call = bridge_code
-bridge_addr = bridge_call+3
 
-.if target_mem=target_rom
-    bridge_jsrfar_call = bridge_code+bridge_jsrfar-bridge_kernal
-    bridge_jsrfar_bank = bridge_jsrfar_call+8
-    bridge_jsrfar_addr = bridge_jsrfar_call+18
-.endif
+;*******************************************************************************
+;Dedicated macro that calls Kernal code from the first bank
+
+bridge_call = bridge_code
+bridge_addr = bridge_call+12
 
 .if target_mem=target_rom
     .macro bridge_setaddr addr
@@ -39,20 +37,8 @@ bridge_addr = bridge_call+3
         lda #>addr
         sta bridge_addr+1
     .endmacro
-
-    .macro bridge_jsrfar_setaddr addr
-        sta bridge_jsrfar_bank
-        lda #<addr
-        sta bridge_jsrfar_addr
-        lda #>addr
-        sta bridge_jsrfar_addr+1
-    .endmacro
 .else
     .macro bridge_setaddr addr
-        ;Do nothing
-    .endmacro
-
-    .macro bridge_jsrfar_setaddr addr
         ;Do nothing
     .endmacro
 .endif
@@ -61,17 +47,86 @@ bridge_addr = bridge_call+3
     .macro bridge_call addr
         jsr addr
     .endmacro
-
-    .macro bridge_jsrfar_call addr
-        jsr addr
-    .endmacro
-
 .else
     .macro bridge_call addr
         jsr bridge_call
     .endmacro
+.endif
 
-    .macro bridge_jsrfar_call addr
-        jsr bridge_jsrfar_call
+;*******************************************************************************
+; Far call to any ROM bank
+.if target_mem=target_rom
+    .macro call_far1 addr
+        php
+        pha
+        lda #<addr
+        sta jsrfar_addr
+        lda #>addr
+        sta jsrfar_addr+1
+        pla
+        plp
+        jsr jsrfar1
+    .endmacro
+
+    .macro call_far2 addr
+        php
+        pha
+        lda #<addr
+        sta jsrfar_addr
+        lda #>addr
+        sta jsrfar_addr+1
+        pla
+        plp
+        jsr jsrfar1
+    .endmacro
+.else
+    .macro call_far1 addr
+        jsr addr
+    .endmacro
+
+    .macro call_far2 addr
+        jsr addr
+    .endmacro
+.endif
+
+;*******************************************************************************
+; Far call from the first to the second ROM bank or vice versa
+.if target_mem=target_rom
+    .macro call_firstbank addr
+        php
+        pha
+        lda #<addr
+        sta jsrfar_addr
+        lda #>addr
+        sta jsrfar_addr+1
+        lda ROM_SEL
+        dec
+        sta jsrfar_bank
+        pla
+        plp
+        jsr jsrfar2
+    .endmacro
+
+    .macro call_secondbank addr
+        php
+        pha
+        lda #<addr
+        sta jsrfar_addr
+        lda #>addr
+        sta jsrfar_addr+1
+        lda ROM_SEL
+        inc
+        sta jsrfar_bank
+        pla
+        plp
+        jsr jsrfar1
+    .endmacro
+.else
+    .macro call_firstbank addr
+        jsr addr
+    .endmacro
+
+    .macro call_secondbank addr
+        jsr addr
     .endmacro
 .endif

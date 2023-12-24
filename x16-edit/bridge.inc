@@ -50,29 +50,21 @@
 
 ;Bridge for Kernal function calls
 bridge_kernal:         
+    php
+    pha
+    lda ROM_SEL
+    sta rom_bank_save
     stz ROM_SEL        ;Kernal is ROM bank 0
+    pla
+    plp
     jsr $ffff          ;$ffff is just placeholder
+    php
     pha
-    lda rom_bank       ;Set ROM select to our bank again
+    lda rom_bank_save  ;Set ROM select to our bank again
     sta ROM_SEL
     pla
-    rts                ;Size: 13 bytes
-
-
-;Bridge for calling functions in another ROM bank
-bridge_jsrfar:
-    sta tempvars
-    lda rom_bank
-    pha
-    lda #$ff
-    sta rom_bank
-    sta ROM_SEL
-    lda tempvars
-    jsr $ffff
-    pla
-    sta rom_bank
-    sta ROM_SEL
-    rts                 ;Size: 27 bytes
+    plp
+    rts                ;Size: 24 bytes
 
 ;Bridge for interrupt handling, called by the Kernal
 ;on interrupt, switches to X16 Edit's ROM bank and then
@@ -110,7 +102,7 @@ bridge_scancode:
     plp
     rts             ;Size: 27 bytes
 
-bridge_end:         ;Total size: 84 bytes
+bridge_end:         ;Total size: 68 bytes
 
 .segment "VARS"
     bridge_temp:    .res 1

@@ -242,8 +242,8 @@ exit:
     ;Backup zero page and golden RAM so it can be restored on program exit
     jsr ram_backup
 
-    ;Save ROM bank; used by Kernal bridge code so it knows where to return
-    .if (::target_mem=target_rom)
+    ;Set ROM bank
+    .if ::target_mem=target_rom
         lda ROM_SEL
         sta rom_bank
     .endif
@@ -277,16 +277,8 @@ exit:
     ;Initialize base functions
     stz selection_active
     jsr screen_get_dimensions
-    
-    .if (::target_mem=target_rom)
-        lda rom_bank
-        inc
-    .endif
-    
-    bridge_jsrfar_setaddr help_decompress
-    sei
-    bridge_jsrfar_call help_decompress
-    cli
+
+    call_secondbank help_decompress
     
     jsr mem_init
     jsr file_init
@@ -371,6 +363,9 @@ mainloop:
     bra mainloop
     
 shutdown:
+    ;Disable mouse
+    jsr mouse_disable
+
     ;Clear screen
     bridge_setaddr KERNAL_CHROUT
     lda #147
@@ -417,6 +412,7 @@ shutdown:
 .include "mouse.inc"
 .include "compile.inc"
 .include "help.inc"
+.include "jsrfar.inc"
 
 .if target_mem=target_rom
     .include "bridge.inc"

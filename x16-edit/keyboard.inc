@@ -44,7 +44,7 @@
 ;The only way to know whether the Ctrl key key is pressed is 
 ;to check the value of scancode_modifiers.
 
-keyboard_shortcut_count = 24
+keyboard_shortcut_count = 26
 
 ;******************************************************************************
 ;Function name.......: keyboard_init
@@ -140,7 +140,8 @@ keyval:                                 ;List of default shortcut keys
     .byt $4a, $59, $56, $4b, $43
     .byt $55, $19, $57, $53, $4c
     .byt $41, $5a, $45, $49, $44
-    .byt $54, $42, $4d, $46
+    .byt $54, $42, $4d, $46, $0d
+    .byt $51
 
 config:
     .byt "//:x16editrc"
@@ -214,6 +215,7 @@ jmptbl:
     .word keyboard_mode_dos_cmd                 ;APP mode 20
     .word keyboard_mode_justify                 ;APP mode 21
     .word keyboard_mode_compile                 ;APP mode 22
+    .word keyboard_mode_quote                   ;APP mode 23
 .endproc
 
 ;******************************************************************************
@@ -229,6 +231,15 @@ jmptbl:
     beq ctrl
 
 default:
+    ;Hide mouse pointer
+    ldx #(VERA_SPRITE_ATTR & $ff) + 6
+    stx VERA_L
+    ldx #((VERA_SPRITE_ATTR >> 8) & $ff)
+    stx VERA_M
+    ldx #((VERA_SPRITE_ATTR >> 16) & $ff)
+    stx VERA_H
+    stz VERA_D0
+
     ;Search key value table for matches (control keys and other keys requiring special actions)
     ldx #default_keyval_end-default_keyval
 :   cmp default_keyval-1,x
@@ -1179,7 +1190,6 @@ no:
 
     ;Exit if control key up
     ldx scancode_modifiers
-    cpx #KBD_MODIFIER_CTRL
     bne exit
 
     ;Clear bit 5
@@ -1194,13 +1204,35 @@ exit:
     rts
 
 basload:
-    jmp compile_basload
+    call_secondbank compile_basload
+    rts
 
 close:
     stz APP_MOD
     jsr screen_clear_status
     jsr screen_print_default_footer
     jmp cursor_activate
+.endproc
+
+;******************************************************************************
+;Function name.......: keyboard_mode_quote
+;Purpose.............: Key dispatcher: Quote mode
+;Input...............: A = char
+;Returns.............: Nothing
+;Error returns.......: None
+.proc keyboard_mode_quote
+    cmp #KEYVAL_ESC
+    beq close
+
+    ;Insert char into buffer and update screen
+    jsr cmd_insert
+    bcs :+
+    jmp screen_println
+:   jmp screen_refresh
+
+close:
+    stz APP_MOD
+    jmp screen_clear_status
 .endproc
     
 ;******************************************************************************
@@ -1457,6 +1489,15 @@ exit:
 :   rts
 .endproc
 
+.proc keyboard_line_brk_enc
+    inc file_linebreak_encoding
+    lda file_linebreak_encoding
+    cmp #3
+    bcc :+
+    stz file_linebreak_encoding
+:   rts
+.endproc
+
 ;Ctrl+key jump table
 keyboard_ctrl_jmptbl:
     .word cmd_show_help
@@ -1487,6 +1528,9 @@ keyboard_ctrl_jmptbl:
     .word cmd_rotate_background_color
     .word cmd_mem_usage
     .word compile_prompt
+    .word keyboard_line_brk_enc
+
+    .word cmd_quote_mode
 
 .segment "VARS"
     keyboard_tabwidth:          .res 1              ;1 byte

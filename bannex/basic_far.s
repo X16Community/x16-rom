@@ -134,4 +134,3 @@ nsnerr6:
 	.word basic_nsnerr6
 	.byte BANK_BASIC
 	rts
-

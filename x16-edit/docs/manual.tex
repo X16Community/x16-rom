@@ -75,6 +75,9 @@ The Commander X16 was devised by David Murray a.k.a. the
         The "-run" option automatically starts the editor after the emulator
         is booted. You may remove this option and start the editor manually
         by typing \texttt{RUN} in the emulator.
+
+        As of Kernal version R45, the editor is built-in and can be
+        started with the BASIC command EDIT.
  
     \subsection{Entering text}
         X16 Edit is a modeless text editor. As soon as it is started, everything
@@ -119,12 +122,7 @@ The Commander X16 was devised by David Murray a.k.a. the
         you want the selection to start and release it where you want the selection to end. 
         Selections can be copied or cut. More on that later.
 
-        To use the mouse control you must enable the mouse before starting the editor with the
-        following command:
-
-\begin{verbatim}
-    MOUSE 1
-\end{verbatim}
+        The mouse is automatically enabled when you start the editor.
     
     \subsection{User interface}
         X16 Edit's user interface is similar to GNU Nano, and should be mostly self-explanatory.
@@ -152,7 +150,7 @@ The Commander X16 was devised by David Murray a.k.a. the
         At the input prompt you may either press ENTER to confirm your input or press ESC 
         to abort the current operation.
 
-        The \textit{cursor position} is displayed at the right edge of the status bar if
+        The active \textit{line break encoding} and the current \textit{cursor position} are displayed at the left and right edge of the status bar respectively, if
         there is no active message or prompt.
 
         The \textit{shortcut list} takes up the last two rows of the screen. Here you find
@@ -334,14 +332,21 @@ The Commander X16 was devised by David Murray a.k.a. the
         (X16EDIT-KEYBINDINGS.PRG).
 
     \subsection{Line break encoding}
-        X16 Edit internally uses LF (ASCII \$0A) as line break marker.
+        The editor's default behavior is to use CR (ASCII 13) as line break marker when started in
+        one of the PETSCII modes, and LF (ASCII 10) when started in ISO mode.
 
-        When reading a file, X16 Edit interprets every occurrence of LF (ASCII \$0A) and CR (ASCII \$0C) as
-        a line break. Windows style line breaks (CR+LF) are, however, converted to just one LF.
+        On opening a file, the editor detects the use of any of the following line break encodings:
 
-        The selected character set determines how line breaks are encoded when saving the text buffer
-        to file. If in one of the PETSCII modes, line breaks are encoded with CR. If in ISO mode, line
-        breaks are encoded with LF.
+        \begin{itemize}
+            \item CR -- Commodore or old Mac style
+            \item LF -- Unix style
+            \item CRLF -- Windows style
+        \end{itemize}
+
+        The line break encoding found in the file is thereafter used by the editor.
+
+        You can manually change the active line break encoding, which is displayed at the left edge of the status bar,
+        by pressing Ctrl+Enter.
 
     \subsection{Color settings}
         Both the background and the text color may be changed while using the editor. 
@@ -455,14 +460,17 @@ The Commander X16 was devised by David Murray a.k.a. the
         L    & ---   & Goto line number \\
         A    & ---   & Toggle auto indent on/off \\
         Z    & ---   & Toggle word wrap on/off \\
-        E    & ---   & Change charset\\
-        I    & ---   & Invoke DOS command\\
+        E    & ---   & Change charset \\
+        Q    & ---   & Quote mode \\
+        I    & ---   & Invoke DOS command \\
         D    & ---   & Set file storage device number, default is 8 \\
         T    &  ---  & Cycle through text colors \\
         B    &  ---  & Cycle through background colors \\
         M    &  ---  & Show memory usage (1 block=251 bytes) \\
         space& ---   & Insert non-breaking space \\
-        1..9 & ---   & Set tab stop width
+        1..9 & ---   & Set tab stop width \\
+        ENTER & ---  & Set line break encoding \\
+        F    & ---   & Compile toolbox \\
     \end{longtable}
 
 \newpage

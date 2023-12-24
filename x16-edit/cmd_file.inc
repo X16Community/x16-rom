@@ -74,7 +74,7 @@ msg:
     ldx filename
     ldy filename+1
     lda filelen
-    jsr file_write
+    call_secondbank file_write
     
     ;Look for Kernal I/O error
     lda file_io_err
@@ -254,7 +254,7 @@ msg2:
     ldx filename
     ldy filename+1
     lda filelen
-    jsr file_read               ;Read file from disk
+    call_secondbank file_read   ;Read file from disk
 
     lda file_io_err
     bne io_error

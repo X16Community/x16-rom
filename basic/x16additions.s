@@ -954,6 +954,11 @@ cedit:
 	bannex_call bannex_x16edit
 	rts
 
+
+basload:
+	bannex_call bannex_basload
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar

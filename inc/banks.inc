@@ -13,6 +13,7 @@ BANK_AUDIO   = $0A
 BANK_UTIL    = $0B
 BANK_BANNEX  = $0C
 BANK_X16EDIT = $0D ; Occupies two banks!
+BANK_BASLOAD = $0F
 
 ; XXX these constant RAM addresses are KERNAL
 ; XXX implementation details and need to go away!

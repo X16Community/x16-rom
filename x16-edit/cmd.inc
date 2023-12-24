@@ -2348,7 +2348,8 @@ msg_plc:
     jsr screen_clearall
     jsr screen_print_header
     jsr screen_print_default_footer
-    jmp screen_refresh
+    jsr screen_refresh
+    jmp mouse_init
 
 bgcolor = tempvars      ;1 bytes
 
@@ -2382,7 +2383,8 @@ bgcolor = tempvars      ;1 bytes
     jsr screen_clearall
     jsr screen_print_header
     jsr screen_print_default_footer
-    jmp screen_refresh
+    jsr screen_refresh
+    jmp mouse_init
 
 fgcolor = tempvars
 .endproc
@@ -2622,6 +2624,29 @@ msg_illegal:
     phx
 
     rts
+.endproc
+
+;******************************************************************************
+;Function name.......: cmd_quote_mode
+;Purpose.............: Activates quote mode. In quote mode, control codes
+;                      are outputted to the text buffer.
+;Input...............: Nothing
+;Returns.............: Nothing
+;Error returns.......: None
+.proc cmd_quote_mode
+    ; Set application mode
+    lda #23
+    sta APP_MOD
+
+    ; Clear modifier flags, as the scancode handler will be disabled in quote mode
+    stz scancode_modifiers
+
+    ; Display message
+    ldx #<msg
+    ldy #>msg
+    jmp screen_print_status
+msg:
+    .byt "quote mode",0
 .endproc
 
 .segment "VARS"
