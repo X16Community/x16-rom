@@ -81,10 +81,9 @@ pause:
 @pauseloop:
 	jsr	getin		;$FFE4		; GETIN
 	cmp	#BREAK		;$03		; Is STOP (CTRL+C)?
-	beq @end
-	;bne	@space
-	;jsr	kbdbuf_put	;$FEC3		; Push STOP back in keyboard buffer
-	;bra	@end		; So BASIC can handle it
+	bne	@space
+	jsr	kbdbuf_put	;$FEC3		; Push STOP back in keyboard buffer
+	bra	@end		; So BASIC can handle it
 @space:	cmp	#SPACEBAR 	;$20		; Is Space ?
 	bne	@pgdown
 	stz	lp_dopause	; No more pausing until space is pressed again
