@@ -121,7 +121,7 @@ arytab	.res 2           ;$2F pointer to beginning of array
                          ;    incremented by 6 whenever
                          ;    a new simple variable is found, and
                          ;    set to [vartab] by "clearc".
-strend	.res 2           ;$31end of storage in use.
+strend	.res 2           ;$31 end of storage in use.
                          ;    increased whenever a new array
                          ;    or simple variable is encountered.
                          ;    set to [vartab] by "clearc".

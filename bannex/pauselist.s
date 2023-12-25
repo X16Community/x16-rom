@@ -46,9 +46,9 @@ BREAK = $03
 ; Arrow down will show one line at a time
 ;
 ;******************************************************************
-nlines	= $0387			; These variables are in KERNAL space
-llen	= $0386			; Could not figure out how to import
-curs_y	= $0383
+.import nlines	;= $0387			; These variables are in KERNAL space
+.import llen	;= $0386			; Could not figure out how to import
+.import lnmx	;= $0383
 pause:
 	php			; Save cpu flags as they are used after this function
 	pha			; BASIC uses the a,x&y registers, they will be
@@ -137,7 +137,7 @@ pause:
 @is80:	cmp	#64		; Is it 64 or 80 columns?
 	bcc	@is32
 	stx	lp_dopause	; Store calculated end of screen
-	lda	curs_y
+	lda	lnmx
 	cmp	lp_dopause	; Compare current line with calculated eos
 	sty	lp_dopause
 	rts
@@ -146,7 +146,7 @@ pause:
 	dex			; more lines to prevent scrolling
 	dex
 	stx	lp_dopause	; Store calculated end of screen
-	lda	curs_y
+	lda	lnmx
 	cmp	lp_dopause	; Compare current line with calculated eos
 	sty	lp_dopause
 	rts
