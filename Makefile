@@ -442,9 +442,9 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa buf chrgot crambank curlin eormsk fac facho facmo index index1 index2 llen lnmx lp_dopause lp_screenpause nlines poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa buf chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ ayint chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt nsnerr6` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode`
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym llen lnmx mode nlines`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 # Bank D-E: X16 Edit
