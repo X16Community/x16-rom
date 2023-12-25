@@ -39,7 +39,7 @@ BREAK = $03
 ;******************************************************************
 ;
 ; LIST [ xxxx - xxxx ]
-; List BASIC program currently in memory and pause after first page
+; List BASIC program currently in memory
 ; Spacebar will pause/unpause
 ; In paused mode below will work:
 ; PageDown will show one page at a time
@@ -49,8 +49,7 @@ BREAK = $03
 .import nlines	;= $0387			; These variables are in KERNAL space
 .import llen	;= $0386			; Could not figure out how to import
 ;.import - could NOT import lnmx. Value was corrupted?  Maybe a conflict with LNMX?
-.import curs_y
-lnmx	:= curs_y 	;$0383
+lnmx	= $0383
 
 pause:
 	php			; Save cpu flags as they are used after this function
