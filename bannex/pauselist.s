@@ -48,8 +48,10 @@ BREAK = $03
 ;******************************************************************
 .import nlines	;= $0387			; These variables are in KERNAL space
 .import llen	;= $0386			; Could not figure out how to import
-;.import 
-lnmx	= $0383
+;.import - could NOT import lnmx. Value was corrupted?  Maybe a conflict with LNMX?
+.import curs_y
+lnmx	:= curs_y 	;$0383
+
 pause:
 	php			; Save cpu flags as they are used after this function
 	pha			; BASIC uses the a,x&y registers, they will be

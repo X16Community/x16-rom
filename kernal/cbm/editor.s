@@ -134,6 +134,7 @@ crsw	.res 1           ;$D0 input vs get flag
 .assert * = $0380, error, "cc65 depends on CURS_X = $0380, change with caution"
 pntr	.res 1           ;$D3 pointer to column
 qtsw	.res 1           ;$D4 quote switch
+curs_y
 lnmx	.res 1           ;$D5 40/80 max positon
 .assert * = $0383, error, "cc65 depends on CURS_Y = $0383, change with caution"
 tblx	.res 1           ;$D6
