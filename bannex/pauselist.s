@@ -3,11 +3,11 @@
 .import crambank
 .import lp_dopause
 .import lp_screenpause
-.import buf 	; BASIC input buffer
 
 .export pause
 
 ram_bank = 0
+inputbuf = $0200 	; BASIC input buffer
 
 PAGEDOWN = $02
 SPACEBAR = $20
@@ -58,9 +58,9 @@ pause:
 	phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
-	lda	buf		;$200		; Use BASIC input buffer to see if first run
+	lda	inputbuf		;$200		; Use BASIC input buffer to see if first run
 	beq	@notfirst
-	stz	buf		;$200
+	stz	inputbuf		;$200
 	stz	lp_dopause	; Initialize variables
 	stz	lp_screenpause
 @notfirst:
