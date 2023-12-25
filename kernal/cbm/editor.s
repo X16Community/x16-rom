@@ -118,7 +118,7 @@ lintmp	.res 1           ;    temporary for line index
 .assert * = $0376, error, "cc65 depends on CHARCOLOR = $0376, change with caution"
 color	.res 1           ;    activ color nybble
 .assert * = $0377, error, "cc65 depends on RVS = $0377, change with caution"
-rvs	.res 1           ;$C7 rvs field on flag
+rvs		.res 1           ;$C7 rvs field on flag
 indx	.res 1           ;$C8
 lsxp	.res 1           ;$C9 x pos at start
 lstp	.res 1           ;$CA

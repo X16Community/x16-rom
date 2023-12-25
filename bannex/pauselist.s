@@ -7,9 +7,12 @@
 .export pause
 
 ram_bank = 0
+input_buffer = $0200
 
 PAGEDOWN = $02
 SPACEBAR = $20
+CURSORDOWN = $11
+CLEARSCREEN = $93
 BREAK = $03
 
 ;pause:
@@ -53,9 +56,9 @@ pause:
 	phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
-	lda	$200		; Use BASIC input buffer to see if first run
+	lda	input_buffer	;$200		; Use BASIC input buffer to see if first run
 	beq	@notfirst
-	stz	$200
+	stz	input_buffer	;$200
 	stz	lp_dopause	; Initialize variables
 	stz	lp_screenpause
 @notfirst:
@@ -77,8 +80,8 @@ pause:
 	beq	@end
 @pauseloop:
 	jsr	getin		;$FFE4		; GETIN
-	cmp	#BREAK		;$03		; Is STOP (CTRL+C)?
-	beq @end
+	;;;cmp	#BREAK		;$03		; Is STOP (CTRL+C)?
+	;;;beq @end
 	;bne	@space
 	;jsr	kbdbuf_put	;$FEC3		; Push STOP back in keyboard buffer
 	;bra	@end		; So BASIC can handle it
@@ -97,11 +100,11 @@ pause:
 	inc	lp_screenpause
 	jsr	@ateos		; Check if we are at end of screen
 	bcc	@end
-	lda	#$93		; Clear screen
+	lda	#CLEARSCREEN	;$93		; Clear screen
 	jsr	bsout  		;$FFD2		; CHROUT	
 	bra	@end
 @isarrowdown:
-	cmp	#$11		; Is cursor down ?
+	cmp	#CURSORDOWN	;$11		; Is cursor down ?
 	bne	@pauseloop
 	; Let BASIC do its thing and show the next line
 @end:
