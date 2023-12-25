@@ -1,31 +1,35 @@
+.include "kernal.inc"
+
 .import crambank
 .import lp_dopause
 .import lp_screenpause
 
 .export pause
 
-GETIN  = $FFE4
-SPACEBAR = $20
 ram_bank = 0
 
-pause:
-	jmp listp
-    php 
-    phx
-    phy
-    pha
-    jsr GETIN
-    cmp #SPACEBAR
-    bne exit
-loop:
-    jsr GETIN
-    beq loop
-exit:
-    pla
-    ply
-    plx
-    plp
-    rts
+PAGEDOWN = $02
+SPACEBAR = $20
+BREAK = $03
+
+;pause:
+; 	jmp listp
+;    php 
+;    phx
+;    phy
+;    pha
+;    jsr getin
+;    cmp #SPACEBAR ; $20
+;    bne exit
+;loop:
+;    jsr getin
+;    beq loop
+;exit:
+;    pla
+;    ply
+;    plx
+;    plp
+;    rts
 
 
 
@@ -42,21 +46,21 @@ exit:
 nlines	= $0387			; These variables are in KERNAL space
 llen	= $0386			; Could not figure out how to import
 curs_y	= $0383
-listp:
+pause:
 	php			; Save cpu flags as they are used after this function
 	pha			; BASIC uses the a,x&y registers, they will be
 	phy			; restored before returning from this function
 	phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
-	lda	$200		; Use keyboard buffer to see if first run
+	lda	$200		; Use BASIC input buffer to see if first run
 	beq	@notfirst
 	stz	$200
 	stz	lp_dopause	; Initialize variables
 	stz	lp_screenpause
 @notfirst:
-	jsr	$FFE4		; GETIN
-	cmp	#$20		; Spacebar
+	jsr	getin        ;$FFE4		; GETIN
+	cmp	#SPACEBAR	;$20		; Spacebar
 	bne	@cont
 	inc	lp_dopause
 	jmp	@end
@@ -72,17 +76,18 @@ listp:
 	lda	lp_dopause	; Check if we need to pause the listing
 	beq	@end
 @pauseloop:
-	jsr	$FFE4		; GETIN
-	cmp	#$03		; Is STOP (CTRL+C)?
-	bne	@space
-	jsr	$FEC3		; Push STOP back in keyboard buffer
-	bra	@end		; So BASIC can handle it
-@space:	cmp	#$20		; Is Space ?
+	jsr	getin		;$FFE4		; GETIN
+	cmp	#BREAK		;$03		; Is STOP (CTRL+C)?
+	beq @end
+	;bne	@space
+	;jsr	kbdbuf_put	;$FEC3		; Push STOP back in keyboard buffer
+	;bra	@end		; So BASIC can handle it
+@space:	cmp	#SPACEBAR 	;$20		; Is Space ?
 	bne	@pgdown
 	stz	lp_dopause	; No more pausing until space is pressed again
 	stz	lp_screenpause
 	bra	@end
-@pgdown:cmp	#$02		; Is Pagedown ?
+@pgdown:cmp	#PAGEDOWN	;$02		; Is Pagedown ?
 	bne	@isarrowdown
 	; handle page down
 	lda	llen		; If number of columns is less than 23
@@ -93,7 +98,7 @@ listp:
 	jsr	@ateos		; Check if we are at end of screen
 	bcc	@end
 	lda	#$93		; Clear screen
-	jsr	$FFD2		; CHROUT	
+	jsr	bsout  		;$FFD2		; CHROUT	
 	bra	@end
 @isarrowdown:
 	cmp	#$11		; Is cursor down ?
