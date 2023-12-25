@@ -3,6 +3,7 @@
 .import crambank
 .import lp_dopause
 .import lp_screenpause
+.import buf
 
 .export pause
 
