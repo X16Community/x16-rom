@@ -3,6 +3,9 @@
 .import crambank
 .import lp_dopause
 .import lp_screenpause
+.import nlines	;= $0387			; These variables are in KERNAL space
+.import llen	;= $0386			; Could not figure out how to import
+.import tblx	;= $0383
 
 .export pause
 
@@ -46,9 +49,7 @@ BREAK = $03
 ; Arrow down will show one line at a time
 ;
 ;******************************************************************
-.import nlines	;= $0387			; These variables are in KERNAL space
-.import llen	;= $0386			; Could not figure out how to import
-.import tblx	;= $0383
+
 
 pause:
 	php			; Save cpu flags as they are used after this function
