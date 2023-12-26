@@ -49,7 +49,7 @@ BREAK = $03
 .import nlines	;= $0387			; These variables are in KERNAL space
 .import llen	;= $0386			; Could not figure out how to import
 ;.import - could NOT import lnmx. Value was corrupted?  Maybe a conflict with LNMX?
-lnmx	= $0383
+.import lnmx	;= $0383
 
 pause:
 	php			; Save cpu flags as they are used after this function
