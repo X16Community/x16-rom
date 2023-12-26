@@ -49,7 +49,7 @@ BREAK = $03
 .import nlines	;= $0387			; These variables are in KERNAL space
 .import llen	;= $0386			; Could not figure out how to import
 ;.import - could NOT import lnmx. Value was corrupted?  Maybe a conflict with LNMX?
-.import lnmx	;= $0383
+.import tblx	;= $0383
 
 pause:
 	php			; Save cpu flags as they are used after this function
@@ -124,7 +124,7 @@ pause:
 ; longer than 80 characters because of abbreviated keywords
 ;
 ;******************************************************************
-@ateos: brk
+@ateos:
 	ldy	lp_dopause	; Save value as variable is borrowed
 				; for comparison use
 	ldx	nlines		; In any screenmode we need to go
@@ -138,7 +138,7 @@ pause:
 @is80:	cmp	#64		; Is it 64 or 80 columns?
 	bcc	@is32
 	stx	lp_dopause	; Store calculated end of screen
-	lda	lnmx
+	lda	tblx
 	cmp	lp_dopause	; Compare current line with eos
 	sty	lp_dopause
 	rts
@@ -147,7 +147,7 @@ pause:
 	dex			; more lines to prevent scrolling
 	dex
 	stx	lp_dopause	; Store calculated end of screen
-	lda	lnmx
+	lda	tblx
 	cmp	lp_dopause	; Compare current line with eos
 	sty	lp_dopause
 	rts

@@ -444,7 +444,7 @@ $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym basic_fa chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ ayint chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt nsnerr6` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym llen lnmx mode nlines`
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym llen mode nlines tblx`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 # Bank D-E: X16 Edit
