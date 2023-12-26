@@ -15,7 +15,7 @@ CURSORDOWN = $11
 CLEARSCREEN = $93
 BREAK = $03
 
-;pause:
+;pause:      ; my pause - replaced with JimmyDasbo's pause
 ; 	jmp listp
 ;    php 
 ;    phx
@@ -139,7 +139,7 @@ pause:
 	bcc	@is32
 	stx	lp_dopause	; Store calculated end of screen
 	lda	lnmx
-	cmp	lp_dopause	; Compare current line with calculated eos
+	cmp	lp_dopause	; Compare current line with eos
 	sty	lp_dopause
 	rts
 @is32:	dex			; Is it 32 or 40 columns?
@@ -148,6 +148,6 @@ pause:
 	dex
 	stx	lp_dopause	; Store calculated end of screen
 	lda	lnmx
-	cmp	lp_dopause	; Compare current line with calculated eos
+	cmp	lp_dopause	; Compare current line with eos
 	sty	lp_dopause
 	rts
