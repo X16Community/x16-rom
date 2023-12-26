@@ -39,7 +39,7 @@ tstdun	bcs grody
 typlin	jsr jsrfar
 	 .word bannex_pause
 	 .byte BANK_BANNEX
-	jsr stop
+	 
 	sty lstpnt
 	jsr linprt
 	lda #' '
