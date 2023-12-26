@@ -124,7 +124,7 @@ pause:
 ; longer than 80 characters because of abbreviated keywords
 ;
 ;******************************************************************
-@ateos:
+@ateos: brk
 	ldy	lp_dopause	; Save value as variable is borrowed
 				; for comparison use
 	ldx	nlines		; In any screenmode we need to go
