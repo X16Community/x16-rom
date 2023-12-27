@@ -36,7 +36,8 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin  bannex_call bannex_pause
+typlin: 
+	bannex_call bannex_pause
 	sty lstpnt
 	jsr linprt
 	lda #' '
