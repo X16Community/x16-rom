@@ -36,9 +36,7 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin	jsr jsrfar
-	 .word bannex_pause
-	 .byte BANK_BANNEX
+typlin  bannex_call bannex_pause
 	sty lstpnt
 	jsr linprt
 	lda #' '
