@@ -3,8 +3,8 @@
 .import crambank
 .import lp_dopause
 .import lp_screenpause
-.import nlines	;= $0387			; These variables are in KERNAL space
-.import llen	;= $0386			; Could not figure out how to import
+.import nlines	;= $0387			
+.import llen	;= $0386	
 .import tblx	;= $0383
 
 .export pause
@@ -19,10 +19,7 @@ CLEARSCREEN = $93
 BREAK = $03
 
 ;pause:      ; my pause - replaced with JimmyDasbo's pause
-;    php 
-;    phx
 ;    phy
-;    pha
 ;    jsr getin
 ;    cmp #SPACEBAR ; $20
 ;    bne exit
@@ -30,10 +27,7 @@ BREAK = $03
 ;    jsr getin
 ;    beq loop
 ;exit:
-;    pla
 ;    ply
-;    plx
-;    plp
 ;    rts
 
 
@@ -51,11 +45,7 @@ BREAK = $03
 
 
 pause:  ; No longer necessary to save anything but Y. 
-		;Found a better place to put routine!
-	;php			; Save cpu flags as they are used after this function
-	;pha			; BASIC uses the a,x&y registers, they will be
 	phy			; restored before returning from this function
-	;phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
 	lda	inputbuf		;$200		; Use BASIC input buffer to see if first run
@@ -111,10 +101,7 @@ pause:  ; No longer necessary to save anything but Y.
 @end:
 	lda	crambank	; Restore RAM bank
 	sta	ram_bank
-	;plx  ; no longer necessary with better entry point
 	ply			; Restore y register
-	;pla
-	;plp			; restore cpu flags
 	rts
 ;******************************************************************
 ;
