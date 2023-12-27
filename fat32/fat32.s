@@ -2702,14 +2702,22 @@ fat32_create:
 	stz fat32_errno
 
 	; Check if context is free
-	lda cur_context + context::flags
+	lda cur_context + context::flags 
 	beq @1
 	plp ; overwrite flag
 @error:	clc
 	rts
 @1:
-	; Check if directory entry already exists?
-	lda #0 ; allow files and directories
+	; Check if a directory exists with the same name
+	lda #$40 ; allow directories only
+	jsr find_dirent
+	bcc @2
+	plp
+	lda #ERRNO_FILE_EXISTS
+	jmp set_errno
+
+	; Check if file already exists?
+@2:	lda #$80 ; allow files only
 	jsr find_dirent
 	bcs @exists
 	plp ; overwrite flag
