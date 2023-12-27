@@ -51,11 +51,11 @@ BREAK = $03
 ;******************************************************************
 
 
-pause:
-	php			; Save cpu flags as they are used after this function
-	pha			; BASIC uses the a,x&y registers, they will be
-	phy			; restored before returning from this function
-	phx
+pause:  ; No longer necessary to save. Found a better place to put routine!
+	;php			; Save cpu flags as they are used after this function
+	;pha			; BASIC uses the a,x&y registers, they will be
+	;phy			; restored before returning from this function
+	;phx
 	stz	ram_bank	; Set RAM bank 0 for variables
 
 	lda	inputbuf		;$200		; Use BASIC input buffer to see if first run
@@ -111,10 +111,10 @@ pause:
 @end:
 	lda	crambank	; Restore RAM bank
 	sta	ram_bank
-	plx
-	ply			; Restore a,y registers
-	pla
-	plp			; restore cpu flags
+	;plx  ; no longer necessary with better entry point
+	;ply			; Restore a,y registers
+	;pla
+	;plp			; restore cpu flags
 	rts
 ;******************************************************************
 ;

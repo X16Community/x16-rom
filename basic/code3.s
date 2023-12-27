@@ -24,6 +24,7 @@ list4	ldy #1
 	sty dores
 	lda (lowtr),y
 	beq grody
+	jsr listpause
 	jsr iscntc
 	jsr crdo
 	iny
@@ -36,8 +37,7 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin jsr listpause
-	sty lstpnt
+typlin sty lstpnt
 	jsr linprt
 	lda #' '
 prit4	ldy lstpnt
