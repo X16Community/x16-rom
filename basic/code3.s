@@ -24,7 +24,7 @@ list4	ldy #1
 	sty dores
 	lda (lowtr),y
 	beq grody
-	jsr listpause
+	jsr listpause   ; better entry point
 	jsr iscntc
 	jsr crdo
 	iny
