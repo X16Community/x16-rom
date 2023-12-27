@@ -19,7 +19,6 @@ CLEARSCREEN = $93
 BREAK = $03
 
 ;pause:      ; my pause - replaced with JimmyDasbo's pause
-; 	jmp listp
 ;    php 
 ;    phx
 ;    phy

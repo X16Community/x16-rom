@@ -37,7 +37,7 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin sty lstpnt
+typlin  sty lstpnt
 	jsr linprt
 	lda #' '
 prit4	ldy lstpnt
