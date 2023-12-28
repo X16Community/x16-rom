@@ -24,7 +24,7 @@ list4	ldy #1
 	sty dores
 	lda (lowtr),y
 	beq grody
-	jsr listpause   ; better entry point
+	jsr listpause   ; better pause point
 	jsr iscntc
 	jsr crdo
 	iny
@@ -37,7 +37,7 @@ list4	ldy #1
 	cpx linnum
 	beq typlin
 tstdun	bcs grody
-typlin  sty lstpnt
+typlin	sty lstpnt
 	jsr linprt
 	lda #' '
 prit4	ldy lstpnt

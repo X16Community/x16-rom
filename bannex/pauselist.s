@@ -47,12 +47,12 @@ BREAK = $03
 pause:  ; No longer necessary to save anything but Y. 
 	phy			; restored before returning from this function
 	stz	ram_bank	; Set RAM bank 0 for variables
-
 	lda	inputbuf		;$200		; Use BASIC input buffer to see if first run
 	beq	@notfirst
 	stz	inputbuf		;$200
 	stz	lp_dopause	; Initialize variables
 	stz	lp_screenpause
+	bra @end
 @notfirst:
 	jsr	getin        ;$FFE4		; GETIN
 	cmp	#SPACEBAR	;$20		; Spacebar
