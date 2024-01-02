@@ -2702,7 +2702,7 @@ fat32_create:
 	stz fat32_errno
 
 	; Check if context is free
-	lda cur_context + context::flags 
+	lda cur_context + context::flags
 	beq @1
 	plp ; overwrite flag
 @error:	clc
