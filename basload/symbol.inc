@@ -145,7 +145,7 @@ SYMBOLTYPE_CONTROL_CHAR = 4
     lda #SYMBOLTYPE_TOKEN
     jsr symbol_add
 
-    ; Add reserved variables ST and TI to the symbol table
+    ; Add reserved variables to the symbol table
     lda #'s'
     sta file_buf
     lda #'t'
@@ -164,6 +164,15 @@ SYMBOLTYPE_CONTROL_CHAR = 4
     lda #SYMBOLTYPE_RESERVED_VAR
     jsr symbol_add
     
+    lda #'d'
+    sta file_buf
+    lda #'a'
+    sta file_buf+1
+    ldx #0
+    ldy #1
+    lda #SYMBOLTYPE_RESERVED_VAR
+    jsr symbol_add
+
     rts
 
 PRINT_TOKEN:
