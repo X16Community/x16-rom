@@ -12,7 +12,7 @@
 
 timer:	.res 3           ;$A0 24 bit 1/60th second timer
 
-.segment "CLOCK"
+.segment "CLOCK_TIMER"
 
 ;---------------------------------------------------------------
 ; softclock_timer_update
@@ -28,6 +28,8 @@ softclock_timer_update:
 	inc timer
 :	KVARS_END
 	rts
+
+.segment "CLOCK"
 
 ;---------------------------------------------------------------
 ; softclock_timer_get

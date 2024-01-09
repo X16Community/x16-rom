@@ -28,6 +28,7 @@ BUILD_DIR=build/x16
 CFG_DIR=$(BUILD_DIR)/cfg
 
 KERNAL_CORE_SOURCES = \
+	kernal/65c816.s \
 	kernal/declare.s \
 	kernal/vectors.s \
 	kernal/kbdbuf.s \
