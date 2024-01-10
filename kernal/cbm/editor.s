@@ -81,6 +81,7 @@ MODIFIER_SHIFT = 1
 .import callkbvec
 
 .import c816_irqb
+.import c816_is_65c816
 
 .include "banks.inc"
 .include "mac.inc"
@@ -140,10 +141,8 @@ scrorg
 	pla
 	and #4 ; interrupt flag set?
 	beq :+
-	ldx #$FF
-	;ldy #$00
-	;.byte $9B ; TXY
-	bpl :+
+	jsr c816_is_65c816
+	beq :+
 	pla
 	jmp c816_irqb
 :   pla

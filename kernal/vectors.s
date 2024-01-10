@@ -31,6 +31,8 @@
 
 .import savehl
 
+.import c816_getin_thunk
+
 .include "banks.inc"
 
 	.segment "JMPTBL"
@@ -176,7 +178,7 @@ bsout	jmp (ibsout)    ;output to channel
 	jmp clock_set_timer ;set timer (SETTIM)
 	jmp clock_get_timer ;read timer (RDTIM)
 stop	jmp (istop)     ;scan stop key
-getin	jmp (igetin)    ;get char from q
+getin	jmp c816_getin_thunk    ;get char from q
 clall	nop
 		bra clall_thunk   ;close all files
 	jmp clock_update ;increment timer (UDTIM)
