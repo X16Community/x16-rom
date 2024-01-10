@@ -129,7 +129,7 @@
 	jmp mouse_scan         ; $FF71: mouse_scan - read mouse state                  [unsupported C128: JMPFAR – goto another bank]
 	jmp indfet             ; $FF74: [C128] FETCH – LDA (fetvec),Y from any bank
 	jmp stash              ; $FF77: [C128] STASH – STA (stavec),Y to any bank
-	.byte 0,0,0            ; $FF7A:                                                [unsupported C128: CMPARE]
+clall_thunk: jmp (iclall)  ; $FF7A:                                                [unsupported C128: CMPARE]
 	jmp primm              ; $FF7D: [C128] PRIMM – print string following the caller’s code
 
 	;KERNAL revision
@@ -177,7 +177,8 @@ bsout	jmp (ibsout)    ;output to channel
 	jmp clock_get_timer ;read timer (RDTIM)
 stop	jmp (istop)     ;scan stop key
 getin	jmp (igetin)    ;get char from q
-clall	jmp (iclall)    ;close all files
+clall	nop
+		bra clall_thunk   ;close all files
 	jmp clock_update ;increment timer (UDTIM)
 jscrog	jmp scrorg      ;screen org
 jplot	jmp plot        ;read/set x,y coord
