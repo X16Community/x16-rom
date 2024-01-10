@@ -40,6 +40,7 @@ SEGMENTS {
 	RS232:    load = KERNAL,   type = ro;
 	CHANNEL:  load = KERNAL,   type = ro;
 	CLOCK:    load = KERNAL,   type = ro;
+	C816_BRK: load = KERNAL,   type = ro, start = $EA03;
 	C816_NMIB: load = KERNAL, type = ro, start = $EE4C;
 	CLOCK_TIMER: load = KERNAL, type = ro, start = $EEEE;
 	I2C:      load = KERNAL,   type = ro;
