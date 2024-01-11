@@ -11,7 +11,7 @@
 .include "keycode.inc"
 
 ; code
-.import i2c_read_byte
+.import i2c_read_byte, i2c_direct_read, i2c_read_stop
 .import i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
 .import joystick_from_ps2_init, joystick_from_ps2; [joystick]
 
@@ -33,6 +33,7 @@
 .export MODIFIER_4080
 
 I2C_ADDRESS = $42
+I2C_KBD_ADDRESS = $43
 I2C_GET_SCANCODE_OFFSET = $07
 I2C_KBD_CMD2 = $1a
 
@@ -523,13 +524,18 @@ find_table:
 ;      Z: 1 if no key
 ;*****************************************
 fetch_key_code:
-	ldx #I2C_ADDRESS
-	ldy #I2C_GET_SCANCODE_OFFSET
-	jsr i2c_read_byte 	; Key code returned in A
-	bne :+
-	rts			; 0 = no key code available
+	ldx #I2C_KBD_ADDRESS
+	jsr i2c_direct_read ; Key code returned in A
+	pha
+	php
+	jsr i2c_read_stop
+	plp
+	pla
+	bcc :+ ; C = 1 on slave NACK (or error), no key code available
+	lda #0
+	rts
 
-:	jmp (keyhdl)		;Jump to key event handler
+:	jmp (keyhdl) ;Jump to key event handler
 receive_scancode_resume:
 	rts
 

@@ -11,7 +11,7 @@
 .include "mac.inc"
 
 ; code
-.import i2c_read_byte, i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
+.import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop
 .import screen_save_state
 .import screen_restore_state
 
@@ -36,6 +36,7 @@ device_id:
 	.res 1           ;    mouse device ID
 
 I2C_ADDRESS = $42
+I2C_MOUSE_ADDRESS = $44
 I2C_GET_MOUSE_MOVEMENT_OFFSET = $21
 I2C_GET_MOUSE_DEVICE_ID = $22
 BAT_FAIL = $fc
@@ -187,15 +188,14 @@ mouse_scan:
 
 _mouse_scan:
 	bit msepar ; do nothing if mouse is off
-	bpl @a
+	bpl @a2
 	
-	ldx #I2C_ADDRESS
-	ldy #I2C_GET_MOUSE_MOVEMENT_OFFSET
-	jsr i2c_read_first_byte
-	bcs @a ; error
-	bne @b ; no data
-	jmp i2c_read_stop
-@a:	rts
+	ldx #I2C_MOUSE_ADDRESS
+	jsr i2c_direct_read
+	bcs @a ; SMC NACKed request (=no data) or transmission error
+	bne @b ; 0 = no data
+@a:	jmp i2c_read_stop
+@a2:	rts
 @b:
 .if 0
 	; heuristic to test we're not out

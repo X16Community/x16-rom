@@ -18,7 +18,7 @@ i2c_mutex: .res 1
 .segment "I2C"
 
 .export i2c_read_byte, i2c_write_byte, i2c_batch_read, i2c_batch_write
-.export i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
+.export i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop, i2c_direct_read
 .export i2c_write_first_byte, i2c_write_next_byte, i2c_write_stop
 .export i2c_restore, i2c_mutex
 
@@ -327,6 +327,43 @@ i2c_read_first_byte:
 	
 @error:
 	pla
+	jsr i2c_stop
+	lda #$ee
+	sec
+	rts
+
+;---------------------------------------------------------------
+; i2c_direct_read
+;
+; Function: Reads one byte over I2C directly without first
+;           sending a command or offset number and without 
+;           stopping the transmission. Subsequent bytes may 
+;           be read by i2c_read_next_byte. When done, call 
+;           function i2c_read_stop to close the I2C 
+;           transmission.
+;
+; Pass:     x    7-bit device address
+;
+; Return:   a    value
+;           c    1 on error (NAK)
+;---------------------------------------------------------------
+i2c_direct_read:
+	lda i2c_mutex
+	beq @1
+	sec
+	rts
+
+@1:	phx ; device
+	jsr i2c_init
+	jsr i2c_start
+	pla ; device
+	asl ; device * 2
+	inc ; set bit 0 to read
+	jsr i2c_write ; Send device address + R/W bit
+	bcs @error
+	bra i2c_read_next_byte_after_ack
+	
+@error:
 	jsr i2c_stop
 	lda #$ee
 	sec
