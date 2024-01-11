@@ -944,6 +944,11 @@ ctile:
 	bannex_call bannex_tile
 	rts
 
+
+listpause:
+	bannex_call bannex_pause
+	rts
+
 ;******************************************************************
 ;
 ; EDIT [<string filename>]

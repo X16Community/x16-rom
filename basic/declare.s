@@ -121,7 +121,7 @@ arytab	.res 2           ;$2F pointer to beginning of array
                          ;    incremented by 6 whenever
                          ;    a new simple variable is found, and
                          ;    set to [vartab] by "clearc".
-strend	.res 2           ;$31end of storage in use.
+strend	.res 2           ;$31 end of storage in use.
                          ;    increased whenever a new array
                          ;    or simple variable is encountered.
                          ;    set to [vartab] by "clearc".
@@ -184,3 +184,6 @@ usrpok	.res 3           ;$0310 user function dispatch
     exec_flag: .res 1
     exec_addr: .res 2
     exec_bank: .res 1
+
+    lp_dopause: .res 1
+    lp_screenpause: .res 1
