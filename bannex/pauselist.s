@@ -138,3 +138,4 @@ pause:  ; No longer necessary to save anything but Y.
 	cmp	lp_dopause	; Compare current line with eos
 	sty	lp_dopause
 	rts
+ 
