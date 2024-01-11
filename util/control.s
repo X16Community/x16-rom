@@ -1998,6 +1998,7 @@ dec_month:
 	ldx #rtc_address
 	ldy #5
 	jsr i2c_read_byte
+	and #$1f
 	sed
 	sec
 	sbc #1
@@ -2088,6 +2089,7 @@ inc_month:
 	ldx #rtc_address
 	ldy #5
 	jsr i2c_read_byte
+	and #$1f
 	sed
 	clc
 	adc #1
