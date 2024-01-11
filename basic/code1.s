@@ -200,7 +200,13 @@ chead	ldy #1
 	beq lnkrts
 	ldy #4
 czloop	iny
-	lda (index),y
+	bne :+		; Continue as normal as long as Y has not rolled over to 0
+	tya		; If Y has rolled over to 0
+	sta (index),y	; store 0's in the two first bytes of the txttab buffer
+	iny		; to show that there is no BASIC program
+	sta (index),y
+	bra lnkrts	; exit function (better with just an RTS?)
+:	lda (index),y
 	bne czloop
 	iny
 	tya
