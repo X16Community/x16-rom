@@ -712,7 +712,6 @@ att:
 	stz ym_atten-1,x
 	dex
 	bne att
-	RESTORE_BANK
 
 	; set release=max ($0F) for all operators on all channels ($E0..$FF)
 	lda #$0f
@@ -732,7 +731,6 @@ i2:
 	bpl i2
 
 	; reset lfo
-	
 	ldx #$01 ; OPM
 	lda ym_chip_type
 	cmp #$01
@@ -744,23 +742,30 @@ i2:
 	ldx #$19
 	jsr ym_write	  ; clear pmd  (amd will be cleared when all regs are zeroed)
 
-	; write 0 into all registers $0F .. $FF
-	; except write $C0 into registers $20-$27
-	lda #0
-	ldx #$0F
+	; write $C0 into registers $20-$27
+	lda #$c0
+	ldx #$20
 i3:
-	cpx #$20
-	bne i3a
-	lda #$C0
-	bra i3b
-i3a:
+	sta ymshadow,x ; prevent reading uninitialized memory
+	jsr ym_write
+	inx
 	cpx #$28
-	bne i3b
+	bcc i3 
+
+	; write 0 into all registers $28-$FF
 	lda #0
-i3b:
-	jsr ym_write    ; clear everything else $0f..$ff
+i3a:
+	jsr ym_write
 	inx
 	bne i3
+
+	; write 0 into all registers $0F-$1F
+	ldx #$0f
+i3b:
+	jsr ym_write
+	inx
+	cpx #$20
+	bcc i3b
 
 	; re-enable LFO
 	ldx #$01 ; OPM
@@ -771,6 +776,7 @@ i3b:
 :	lda #$00
 	jsr ym_write
 abort:
+	RESTORE_BANK
 	rts
 .endproc
 
