@@ -200,7 +200,13 @@ chead	ldy #1
 	beq lnkrts
 	ldy #4
 czloop	iny
-	lda (index),y
+	bne :+		; Continue as normal as long as Y has not rolled over to 0
+	tya		; If Y has rolled over to 0, we have encountered a line > 255 bytes.
+	sta (index),y	; store 0's in the next two bytes
+	iny		; to indicate the end of the BASIC program
+	sta (index),y
+	rts
+:	lda (index),y
 	bne czloop
 	iny
 	tya
