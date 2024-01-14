@@ -757,7 +757,7 @@ i3:
 i3a:
 	jsr ym_write
 	inx
-	bne i3
+	bne i3a
 
 	; write 0 into all registers $0F-$1F
 	ldx #$0f
