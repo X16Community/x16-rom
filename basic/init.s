@@ -124,10 +124,6 @@ usedef	stx memsiz
 	ldy #0
 	tya
 	sta (txttab),y
-;	ldy #6		;prevent OLD command from hanging when run without a
-;	sta (txttab),y	;program in memory. When ($0801),6 and ($0801),8 are 0
-;	ldy #8		;OLD will restore random data, but will not hang
-;	sta (txttab),y
 	inc txttab
 	bne init20
 	inc txttab+1
