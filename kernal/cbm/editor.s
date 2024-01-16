@@ -81,7 +81,7 @@ MODIFIER_SHIFT = 1
 .import callkbvec
 
 .import c816_irqb
-.import c816_is_65c816
+.import is_65c816
 
 .include "banks.inc"
 .include "mac.inc"
@@ -136,16 +136,23 @@ verbatim	.res 1
 ;return max rows,cols of screen
 ;
 scrorg
-	pha
+	phx
 	php
-	pla
+	.byte $E2, $30 ; sep #$30
+	pha
+	tsx
+	lda $102,x
 	and #4 ; interrupt flag set?
 	beq :+
-	jsr c816_is_65c816
+	lda is_65c816
 	beq :+
 	pla
+	plp
+	plx
 	jmp c816_irqb
 :   pla
+	plp
+	plx
 	ldx llen
 	ldy nlines
 	rts

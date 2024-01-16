@@ -218,7 +218,7 @@ __jmpfr:
 .segment "KERNRAM2"
 
 .assert * = irq, error, "irq must be at specific address"
-.export __irq
+.export __irq, __irq_ret
 __irq:
 	; If this stack preserve order is ever changed, check
 	; and update the MONITOR entry code as it makes assumptions
@@ -327,6 +327,7 @@ __brk:
 __irq_ret:
 	pla
 	sta rom_bank    ;restore ROM bank
+	.byte $C2, $20  ;rep #$20
 	pla
 	rti
 
