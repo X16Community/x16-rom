@@ -9,7 +9,7 @@
 .include "io.inc"
 
 .import nsave, nload, nclall, ngetin, nstop, nbsout, nbasin, nclrch, nckout, nchkin, nclose, nopen, nnmi, timb, key, cinv, receive_scancode_resume
-.import c816_is_65c816, c816_cop_emulated
+.import is_65c816, c816_cop_emulated
 .importzp tmp2
 .export iobase, membot, memtop, restor, vector
 
@@ -91,7 +91,7 @@ iobase
 	pla
 	and #4 ; interrupt flag set?
 	beq :+
-	jsr c816_is_65c816
+	lda is_65c816
 	beq :+
 	pla
 	jmp c816_cop_emulated

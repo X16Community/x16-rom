@@ -6,7 +6,12 @@
 
 .include "bannex.inc"
 
-panic	jsr clschn      ;warm start basic...
+panic	lda is_65c816
+	beq pn65c816
+	sec
+	.byte $FB       ; xce
+	clc
+pn65c816	jsr clschn      ;warm start basic...
 	lda #0          ;clear channels
 	sta channl
 	jsr stkini      ;restore stack
@@ -23,7 +28,12 @@ nerror	txa             ;get  high bit
 	jmp nerrox
 nready	jmp readyx
 
-init	jsr initv       ;go init vectors
+init	lda is_65c816
+	beq in65c816
+	sec
+	.byte $FB       ; xce
+	clc
+in65c816	jsr initv       ;go init vectors
 	jsr initcz      ;go init charget & z-page
 	jsr initms      ;go print initilization messages
 	stz ram_bank
