@@ -9,6 +9,7 @@ clmwid	=10             ;print window 10 chars
 pi	=255
 numlev	=23
 strsiz	=3
+is_65c816 = $02bb
 
 ; *************** IMPORTANT ****************
 ; There is a copy of ZPBASIC and BVARS from these declarations

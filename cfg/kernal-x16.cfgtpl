@@ -13,6 +13,7 @@ SEGMENTS {
 	ZPFONTS:    load = ZPKERNAL, type = zp;
 
 	KVAR:       load = KVAR,     type = bss;
+	KVAR816:    load = KVAR816,  type = bss;
 	VARCHANNEL: load = KVAR,     type = bss;
 	I2CMUTEX: 	load = I2CMUTEX, type = bss;
 	KVAR2:      load = KVAR2,    type = bss;
@@ -41,8 +42,8 @@ SEGMENTS {
 	CHANNEL:  load = KERNAL,   type = ro;
 	CLOCK:    load = KERNAL,   type = ro;
 	C816_UTIL: load = KERNAL,  type = ro;
-	C816_BRK: load = KERNAL,   type = ro, start = $EAEA;        # low byte equals high byte of C816_GETIN_THUNK
-	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $EAEF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
+	C816_BRK: load = KERNAL,   type = ro, start = $EAEB;        # low byte equals high byte of C816_GETIN_THUNK, high byte = nop
+	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $EBEF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
 	C816_NMIB: load = KERNAL, type = ro, start = $EE4C;         # low byte: JMP abs, high byte equals low byte of CLOCK_TIMER
 	CLOCK_TIMER: load = KERNAL, type = ro, start = $EEEE;       # low byte equals high byte of C816_NMIB
 	C816_COP_NATIVE: load = KERNAL,   type = ro, start = $EF4C; # low byte: JMP abs, high byte equals low byte of C816_GETIN_THUNK

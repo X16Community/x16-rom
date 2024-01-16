@@ -7,7 +7,7 @@
 
 .feature labels_without_colons
 
-.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init
+.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init, detect_65c816
 
 .export start
 
@@ -29,6 +29,7 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 
 	jsr ioinit           ;go initilize i/o devices
 	jsr ramtas           ;go ram test and set
+	jsr detect_65c816    ;detect 65C816
 	jsr restor           ;go set up os vectors
 	jsr i2c_restore      ;release I2C pins and clear mutex flag
 	jsr ps2data_init
