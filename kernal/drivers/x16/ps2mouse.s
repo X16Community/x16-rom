@@ -11,11 +11,11 @@
 .include "mac.inc"
 
 ; code
-.import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop
+.import i2c_write_byte, i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop
 .import screen_save_state
 .import screen_restore_state
-
 .import sprite_set_image, sprite_set_position
+.import ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_mouse, ps2data_mouse_count
 
 .export mouse_config, mouse_scan, mouse_get, wheel
 
@@ -32,12 +32,10 @@ mousebt:
 	.res 1           ;    cur buttons (1: left, 2: right, 4: third)
 wheel:	.res 1           ;    Intellimouse wheel buffer
 idat:	.res 1           ;    Intellimouse data packet
-device_id:
+mouse_id:
 	.res 1           ;    mouse device ID
 
 I2C_ADDRESS = $42
-I2C_MOUSE_ADDRESS = $44
-I2C_GET_MOUSE_MOVEMENT_OFFSET = $21
 I2C_GET_MOUSE_DEVICE_ID = $22
 BAT_FAIL = $fc
 
@@ -67,7 +65,7 @@ _mouse_config:
 	ldx #I2C_ADDRESS
 	ldy #I2C_GET_MOUSE_DEVICE_ID
 	jsr i2c_read_byte
-	sta device_id
+	sta mouse_id
 	cmp #BAT_FAIL ; return if SMC reports mouse init failed
 	bne :+
 	ply
@@ -154,7 +152,9 @@ _mouse_config:
 	inc
 	jsr sprite_set_position
 	PopW r0H
-	rts
+
+	; set SMC default read operation to fetch only key codes
+	jmp ps2data_keyboard_only
 
 ; show mouse
 mous2:	cmp #$ff
@@ -178,6 +178,12 @@ mous3:	lda msepar
 	ora #$80 ; flag: mouse on
 	sta msepar
 
+	; set SMC default read operation to return key code and mouse packet
+	lda #3
+	ldx mouse_id
+	beq :+
+	lda #4
+:	jsr ps2data_keyboard_and_mouse
 	jmp mouse_update_position
 
 mouse_scan:
@@ -188,14 +194,11 @@ mouse_scan:
 
 _mouse_scan:
 	bit msepar ; do nothing if mouse is off
-	bpl @a2
-	
-	ldx #I2C_MOUSE_ADDRESS
-	jsr i2c_direct_read
-	bcs @a ; SMC NACKed request (=no data) or transmission error
+	bpl @a
+	lda ps2data_mouse_count
 	bne @b ; 0 = no data
-@a:	jmp i2c_read_stop
-@a2:	rts
+@a:	rts
+
 @b:
 .if 0
 	; heuristic to test we're not out
@@ -213,9 +216,10 @@ _mouse_scan:
 	bne @a
 	txa
 .endif
+	lda ps2data_mouse
 	sta mousebt
 
-	jsr i2c_read_next_byte
+	lda ps2data_mouse+1
 	clc
 	adc mousex
 	sta mousex
@@ -227,16 +231,16 @@ _mouse_scan:
 :	adc mousex+1
 	sta mousex+1
 
-	jsr i2c_read_next_byte
+	lda ps2data_mouse+2
 	pha                     ; Push low 8 bits onto stack
 
-	lda device_id		; Fetch Intellimouse byte, if applicable
+	lda mouse_id	; Fetch Intellimouse byte, if applicable
 	cmp #3			; Device ID 3, mouse wheel only
 	beq :+
 	cmp #4			; Device ID 4, mouse wheel and extra buttons
 	bne :+++
 
-:	jsr i2c_read_next_byte
+:	lda ps2data_mouse+3
 	sta idat		; Store raw value
 
 	and #15			; Convert 4 bit signed value to 8 bit signed value, needed for device ID 4
@@ -249,8 +253,7 @@ _mouse_scan:
 	bvs :+			; Ignore if overflow
 	sta wheel
 
-:	jsr i2c_read_stop       ; Stop I2C transfer
-	ply                     ; Pop low 8 bits to Y
+:	ply                     ; Pop low 8 bits to Y
 	lda mousebt             ; Load flags
 	and #$20                ; Check sign bit
 	beq :+                  ; set?
@@ -382,7 +385,7 @@ _mouse_get:
 	sta 2,x
 
 @exit:	lda #0		; Return mouse button flags
-	ldx device_id
+	ldx mouse_id
 	cpx #4
 	bne :+
 	lda idat	; Add Intellimouse buttons, if device ID is 4

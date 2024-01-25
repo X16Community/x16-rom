@@ -18,6 +18,7 @@
 .import irq_ack
 .import led_update
 .export panic
+.import ps2data_fetch
 
 .include "banks.inc"
 
@@ -26,6 +27,7 @@ rom_bank = 1
 ; VBLANK IRQ handler
 ;
 key
+	jsr ps2data_fetch
 	jsr mouse_scan  ;scan mouse (do this first to avoid sprite tearing)
 	jsr joystick_scan
 	jsr clock_update
