@@ -4,10 +4,11 @@
 	.byte BANK_BANNEX
 .endmacro
 
+.include "65c816.inc"
 .include "bannex.inc"
 
-panic	lda is_65c816
-	beq pn65c816
+panic	set_carry_if_65c816
+	bcc pn65c816
 	sec
 	.byte $FB       ; xce
 	clc
@@ -28,8 +29,8 @@ nerror	txa             ;get  high bit
 	jmp nerrox
 nready	jmp readyx
 
-init	lda is_65c816
-	beq in65c816
+init	set_carry_if_65c816
+	bcc in65c816
 	sec
 	.byte $FB       ; xce
 	clc

@@ -81,8 +81,8 @@ MODIFIER_SHIFT = 1
 .import callkbvec
 
 .import c816_irqb
-.import is_65c816
 
+.include "65c816.inc"
 .include "banks.inc"
 .include "mac.inc"
 
@@ -144,8 +144,8 @@ scrorg
 	lda $102,x
 	and #4 ; interrupt flag set?
 	beq :+
-	lda is_65c816
-	beq :+
+	set_carry_if_65c816
+	bcc :+
 	pla
 	plp
 	plx
