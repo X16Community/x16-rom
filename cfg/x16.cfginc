@@ -22,8 +22,7 @@ ZPBASIC:  start = $00D4, size = $002B; # BASIC (last byte used: $FE)
 
 /* $0200-$02FF: always-available variables and RAM code */
 KVAR:     start = $0200, size = $00BB; # KERNAL
-KVAR816:  start = $02BB, size = $0001; # 65C816 related variables
-/*        start = $02BC, size = $0005; # reserved for KERNAL growth */
+/*        start = $02BB, size = $0005; # reserved for KERNAL growth */
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
 KERNRAM:  start = $02C4, size = $0020; # KERNAL RAM code

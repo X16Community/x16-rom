@@ -7,14 +7,9 @@
 .export c816_cop_emulated
 .export c816_irqb
 .export c816_getin_thunk
-.export detect_65c816
-.export is_65c816
 
 
 rom_bank = 1
-
-.segment "KVAR816"
-is_65c816: .res 1 ; 0 if 65C02, 1 if 65C816
 
 .pushcpu
 .setcpu "65816"
@@ -104,14 +99,3 @@ c816_irqb_ret:
 .popcpu
 
 .segment "C816_UTIL"
-
-; Detects whether the CPU is a 65C816.
-; Needs to be called in emulation mode.
-; Clobbers: C
-detect_65c816:
-    lda #00
-    clc
-    .byte $E2, $01 ; sep #$01
-    adc #00
-    sta is_65c816
-    rts

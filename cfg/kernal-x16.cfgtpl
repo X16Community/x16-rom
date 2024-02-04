@@ -13,7 +13,6 @@ SEGMENTS {
 	ZPFONTS:    load = ZPKERNAL, type = zp;
 
 	KVAR:       load = KVAR,     type = bss;
-	KVAR816:    load = KVAR816,  type = bss;
 	VARCHANNEL: load = KVAR,     type = bss;
 	I2CMUTEX: 	load = I2CMUTEX, type = bss;
 	KVAR2:      load = KVAR2,    type = bss;
