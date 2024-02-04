@@ -29,7 +29,6 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 
 	jsr ioinit           ;go initilize i/o devices
 	jsr ramtas           ;go ram test and set
-	jsr detect_65c816    ;detect 65C816
 	jsr restor           ;go set up os vectors
 	jsr i2c_restore      ;release I2C pins and clear mutex flag
 	jsr ps2data_init
