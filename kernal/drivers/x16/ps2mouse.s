@@ -216,9 +216,11 @@ _mouse_scan:
 	bne @a
 	txa
 .endif
+	; Store status byte
 	lda ps2data_mouse
 	sta mousebt
 
+	; Add delta X
 	lda ps2data_mouse+1
 	clc
 	adc mousex
@@ -231,19 +233,23 @@ _mouse_scan:
 :	adc mousex+1
 	sta mousex+1
 
+	; Add delta Y
 	lda ps2data_mouse+2
-	pha                     ; Push low 8 bits onto stack
-
-	lda mouse_id	; Fetch Intellimouse byte, if applicable
-	cmp #3			; Device ID 3, mouse wheel only
+	eor #$ff
+	sec
+	adc mousey
+	sta mousey
+	lda mousebt
+	and #$20
 	beq :+
-	cmp #4			; Device ID 4, mouse wheel and extra buttons
-	bne :+++
+	lda #$ff
+:	eor #$ff
+	adc mousey+1
+	sta mousey+1
 
-:	lda ps2data_mouse+3
-	sta idat		; Store raw value
-
-	and #15			; Convert 4 bit signed value to 8 bit signed value, needed for device ID 4
+	; Add wheel movement
+	lda ps2data_mouse+3
+	and #15			; Convert 4 bit signed value to 8 bit signed value
 	cmp #8
 	bcc :+
 	ora #240
@@ -253,67 +259,49 @@ _mouse_scan:
 	bvs :+			; Ignore if overflow
 	sta wheel
 
-:	ply                     ; Pop low 8 bits to Y
-	lda mousebt             ; Load flags
-	and #$20                ; Check sign bit
-	beq :+                  ; set?
-	lda #$ff                ; sign extend into all of A
-:	eor #$ff                ; invert high 8 bits
-	tax                     ; High 8 bits in X
-	tya                     ; Low 8 bits in A
-	eor #$ff                ; invert low 8 bits
-	; At this point X:A = ~dY (not negative dY, bitwise not)
-	sec                     ; Add 1 to low 8 bits
-	adc mousey              ; Add low 8 bits to mousey
-	sta mousey              ; mousey = result
-	txa                     ; High 8 bits in A
-	adc mousey+1            ; Add high 8 bits to mousey+1
-	sta mousey+1            ; mousey+1 = result
-
-	lda mousebt
+	; Clean up status byte, show only button state
+:	lda mousebt
 	and #7
 	sta mousebt
 
-; check bounds
-	ldy #0
-	ldx #0
-	lda mousex+1
-	bmi @2
-	cpx mousex+1
-	bne @1
-	cpy mousex
-@1:	bcc @3
-	beq @3
-@2:	sty mousex
-	stx mousex+1
-@3:	ldy mousemx
-	ldx mousemx+1
-	cpx mousex+1
-	bne @4
-	cpy mousex
-@4:	bcs @5
-	sty mousex
-	stx mousex+1
-@5:	ldy #0
-	ldx #0
-	lda mousey+1
-	bmi @2a
-	cpx mousey+1
-	bne @1a
-	cpy mousey
-@1a:	bcc @3a
-	beq @3a
-@2a:	sty mousey
-	stx mousey+1
-@3a:	ldy mousemy
-	ldx mousemy+1
-	cpx mousey+1
-	bne @4a
-	cpy mousey
-@4a:	bcs @5a
-	sty mousey
-	stx mousey+1
-@5a:
+	; Check bounds
+
+	lda mousex+1		; x < 0?
+	bpl :+			; No
+	stz mousex		; Yes, x < 0, set x = 0
+	stz mousex+1
+	bra :++
+
+:	sec			; x > max?
+	lda mousemx
+	sbc mousex
+	lda mousemx+1
+	sbc mousex+1
+	bcs :+			; No
+
+	lda mousemx		; Yes, x > max, set x = max
+	sta mousex
+	lda mousemx+1
+	sta mousex+1
+
+:	lda mousey+1		; y < 0?
+	bpl :+			; No
+	stz mousey		; Yes, y < 0, set y = 0
+	stz mousey+1
+	bra :++
+
+:	sec			; y > max?
+	lda mousemy
+	sbc mousey
+	lda mousemy+1
+	sbc mousey+1
+	bcs :+			; No
+
+	lda mousemy		; Yes, y > max, set y = max
+	sta mousey
+	lda mousemy+1
+	sta mousey+1
+:
 
 ; set the mouse sprite position
 mouse_update_position:

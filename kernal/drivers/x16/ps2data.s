@@ -77,7 +77,13 @@ ps2data_fetch:
 
 	; Clear
 	stz ps2data_kbd_count
+	stz ps2data_kbd
+	
 	stz ps2data_mouse_count
+	stz ps2data_mouse
+	stz ps2data_mouse+1
+	stz ps2data_mouse+2
+	stz ps2data_mouse+3
 
 	; Fetch data from SMC
 	ldx #I2C_ADDR
