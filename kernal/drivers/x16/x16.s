@@ -11,7 +11,6 @@
 
 .export ioinit
 .export iokeys
-.export irq_ack
 .export emulator_get_data
 .export vera_wait_ready
 .export call_audio_init
@@ -48,15 +47,6 @@ ioinit:
 iokeys:
 	lda #1
 	sta VERA_IEN    ;VERA VBLANK IRQ for 60 Hz
-	rts
-
-;---------------------------------------------------------------
-; ACK VBLANK IRQ
-;
-;---------------------------------------------------------------
-irq_ack:
-	lda #1
-	sta VERA_ISR    ;ACK VERA VBLANK
 	rts
 
 ;---------------------------------------------------------------
