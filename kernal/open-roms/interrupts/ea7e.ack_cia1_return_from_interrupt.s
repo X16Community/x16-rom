@@ -9,7 +9,8 @@
 
 clear_cia1_interrupt_flag_and_return_from_interrupt:
 
-	jsr irq_ack
+	lda #1
+	sta VERA_ISR
 
 	; FALL THROUGH to $EA81
 

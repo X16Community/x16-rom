@@ -249,7 +249,6 @@ start = hw_entry_reset
 .import screen_set_char, screen_set_color, screen_set_position, screen_get_char, screen_get_color, screen_copy_line, screen_clear_line, screen_init, screen_mode, screen_set_charset
 .import enter_basic
 .import kbd_config
-.import irq_ack
 .import emulator_get_data
 
 ;

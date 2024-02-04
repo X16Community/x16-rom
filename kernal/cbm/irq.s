@@ -15,13 +15,11 @@
 .import mouse_scan
 .import joystick_scan
 .import cursor_blink
-.import irq_ack
 .import led_update
 .export panic
 
 .include "banks.inc"
-
-rom_bank = 1
+.include "io.inc"
 
 ; VBLANK IRQ handler
 ;
@@ -33,7 +31,9 @@ key
 	jsr kbd_scan
 	jsr led_update
 
-	jsr irq_ack
+	lda #1
+	sta VERA_ISR    ;ack VERA VBLANK
+
 .ifp02
 	pla
 	tay
