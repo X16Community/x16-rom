@@ -64,6 +64,9 @@ SEGMENTS {
 	PALETTE:  load = KERNAL,   type = ro, align = $100;
 	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
+	KRAM816A: load = KERNAL,   run = KRAM816A, type = ro, define = yes;
+	KRAM816B: load = KERNAL,   run = KRAM816B, type = ro, define = yes;
+	KRAM816C: load = KERNAL,   run = KRAM816C, type = ro, define = yes;
 	VECB0:    load = KERNAL,   run = VECB0, type = ro, define = yes;
 	JMPTBL:   load = JMPTBL,   type = ro;
 	VECTORS:  load = VECTORS,  type = ro;
