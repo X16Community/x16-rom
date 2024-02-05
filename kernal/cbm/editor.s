@@ -137,6 +137,7 @@ verbatim	.res 1
 ;
 scrorg
 	phx
+	phy
 	php
 	.byte $E2, $30 ; sep #$30
 	pha
@@ -148,10 +149,12 @@ scrorg
 	bcc :+
 	pla
 	plp
+	ply
 	plx
 	jmp c816_irqb
 :   pla
 	plp
+	ply
 	plx
 	ldx llen
 	ldy nlines
