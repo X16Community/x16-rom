@@ -3,11 +3,15 @@
 ;----------------------------------------------------------------------
 ; (C)2019 Michael Steil, License: 2-clause BSD
 
+.include "65c816.inc"
 .include "banks.inc"
 .include "io.inc"
 
 .import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
+.import __KRAM816A_LOAD__, __KRAM816A_RUN__, __KRAM816A_SIZE__
+.import __KRAM816B_LOAD__, __KRAM816B_RUN__, __KRAM816B_SIZE__
+.import __KRAM816C_LOAD__, __KRAM816C_RUN__, __KRAM816C_SIZE__
 .import __KVARSB0_LOAD__, __KVARSB0_RUN__, __KVARSB0_SIZE__
 .import __VARFONTS_LOAD__, __VARFONTS_RUN__, __VARFONTS_SIZE__
 .import __VECB0_LOAD__, __VECB0_RUN__, __VECB0_SIZE__
@@ -101,12 +105,64 @@ ramtas:
 	dex
 	bne :-
 
+	set_carry_if_65c816
+	bcs @kernram2_65c816
+
 	ldx #<__KERNRAM2_SIZE__
-:	lda __KERNRAM2_LOAD__-1,x
+
+@kernram2:
+	lda __KERNRAM2_LOAD__-1,x
 	sta __KERNRAM2_RUN__-1,x
 	dex
-	bne :-
+	bne @kernram2
+	bra @vecb0
 
+@kernram2_65c816:
+.pushcpu
+.setcpu "65816"
+	clc
+	xce
+	clc
+	rep #$30
+	.A16
+	.I16
+
+	ldx #__KERNRAM2_LOAD__
+	ldy #__KERNRAM2_RUN__
+	lda #(__KRAM816A_RUN__ - __KERNRAM2_RUN__ - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816A_LOAD__
+	lda #(__KRAM816A_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #(__KERNRAM2_LOAD__ + (__irq_push_irq_ret_end - __KERNRAM2_RUN__))
+	lda #(__irq_load_flags_start - __irq_push_irq_ret_end - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816B_LOAD__
+	lda #(__KRAM816B_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #(__KERNRAM2_LOAD__ + (__irq_load_flags_end - __KERNRAM2_RUN__))
+	lda #(__irq_padding_end_start - __irq_load_flags_end - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816C_LOAD__
+	lda #(__KRAM816C_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #(__KERNRAM2_LOAD__ + (__irq_padding_end_end - __KERNRAM2_RUN__))
+	lda #(__KERNRAM2_SIZE__ - (__irq_padding_end_end - __KERNRAM2_RUN__) - 1)
+	mvn #00,#00
+
+	.A8
+	.I8
+	sec
+	xce
+.popcpu
+
+@vecb0:
 ;
 ; copy editor basin vectoring code (and perhaps other extended vectors)
 ;
@@ -227,22 +283,59 @@ __irq:
 	lda rom_bank    ;save ROM bank
 	pha
 	stz rom_bank	;set KERNAL bank
+.assert * = __KRAM816A_RUN__, error, "KRAM816A must start at specific address"
+__irq_push_irq_ret_start = *
 	lda #>__irq_ret ;put RTI-style
 	pha             ;return-address
 	lda #<__irq_ret ;onto the
 	pha             ;stack
+__irq_push_irq_ret_end = *
 	php
 
 	pha		;set up CBM IRQ stack frame
 	phx
 	phy
+__irq_load_flags_start = *
 	tsx
 	lda $109,x      ;get old p status
+__irq_load_flags_end = *
 	and #$10        ;break flag?
 	bne __brk       ;...yes
 	jmp (cinv)      ;...no...irq
 
+__irq_padding_end_start = *
 	.res 2
+__irq_padding_end_end = *
+
+;.assert __KRAM816B_RUN__ = __KRAM816A_RUN__ + __KRAM816A_SIZE__ + 4, error, "KRAM816B must start at specific address"
+.assert * = __KRAM816C_RUN__ + __KRAM816C_SIZE__, error, "KRAM816C must end at specific address"
+
+.pushcpu
+.setcpu "65816"
+
+.segment "KRAM816A"
+	pea __irq_ret
+
+.segment "KRAM816B"
+	lda $09,S
+
+.segment "KRAM816C"
+.export __irq_native_ret
+__irq_native_ret:
+	sta rom_bank
+	pld
+	rep #$20
+	pla
+	rti
+.popcpu
+
+
+.linecont +
+.assert (__irq_push_irq_ret_end - __irq_push_irq_ret_start) \
+	+ (__irq_load_flags_end - __irq_load_flags_start) \
+	+ (__irq_padding_end_end - __irq_padding_end_start) \
+	= (__KRAM816A_SIZE__ + __KRAM816B_SIZE__ + __KRAM816C_SIZE__), error, "IRQ size mismatch between 65C02 and 65816"
+.linecont -
 
 .segment "MEMDRV"
 
@@ -327,7 +420,6 @@ __brk:
 __irq_ret:
 	pla
 	sta rom_bank    ;restore ROM bank
-	.byte $C2, $20  ;rep #$20
 	pla
 	rti
 
