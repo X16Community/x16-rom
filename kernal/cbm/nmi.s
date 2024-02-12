@@ -15,6 +15,7 @@ clrch   = $ffcc
 
 .export nnmi, timb, dbgbrk
 
+.include "65c816.inc"
 .include "banks.inc"
 
 .segment "NMI"
