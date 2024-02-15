@@ -1,13 +1,11 @@
-.import igetin
+.import iclall, igetin
 .import cbinv, cinv, nminv
 .import __irq, __irq_65c816_saved, __irq_native_ret
 
-.import goto_user, reg_a, reg_x, reg_y
+.import goto_user, reg_a, reg_x, reg_y, softclock_timer_update, scrorg
 
 .export ecop, nint
-.export c816_cop_emulated
-.export c816_irqb
-.export c816_getin_thunk
+.export c816_clall_thunk, c816_abort_emulated, c816_cop_emulated, c816_irqb, c816_getin_thunk
 .export __irq_65c816_first
 .export interrupt_65c816_native
 .export cop_65c816_emulated
@@ -59,9 +57,17 @@ rom_bank = 1
 ecop: .res 2    ; emulated COP vector
 nint: .res 2    ; native interrupt vector
 
+.segment "C816_ABORT_NATIVE"
+c816_abort_native:
+    rti
+
+.segment "C816_CLALL_THUNK"
+c816_clall_thunk:
+    jmp (iclall)
+
 .segment "C816_BRK"
 c816_brk:
-    c816_interrupt_impl sep #$02
+    jmp c816_brk_impl
 
 .segment "C816_COP_EMULATED"
 c816_cop_emulated:
@@ -90,7 +96,14 @@ c816_nmib:
 c816_irqb:
     c816_interrupt_impl sec
 
+.segment "C816_ABORT_EMULATED"
+c816_abort_emulated:
+    rti
+
 .segment "MEMDRV"
+c816_brk_impl:
+    c816_interrupt_impl sep #$02
+
 __irq_65c816_first:
     xba
     pha
@@ -179,4 +192,16 @@ __interrupt_65c816_native_ret:
 
 cop_65c816_emulated:
     rti
+
+.assert <c816_abort_native = $4C, error, "c816_abort_native's low byte must be JMP ABS"
+.assert >c816_abort_native = <c816_clall_thunk, error, "c816_abort_native's high byte must be equal to c816_clall_thunk's low byte"
+.assert <softclock_timer_update = $4C, error, "softclock_timer_update's low byte must be JMP ABS"
+.assert >softclock_timer_update = <scrorg, error, "softclock_timer_update's high byte must be equal to scrorg's low byte"
+.assert >c816_clall_thunk = $EA, error, "c816_clall_thunk's high byte must be NOP"
+.assert <c816_nmib = >c816_clall_thunk, error, "c816_nmib's low byte must be equal to c816_clall_thunk's high byte"
+.assert >c816_nmib = $EA, error, "c816_nmib's high byte must be NOP"
+.assert <c816_brk = >c816_getin_thunk, error, "c816_brk's low byte must be equal to c816_getin_thunk's high byte"
+.assert >c816_brk = $EA, error, "c816_brk's high byte must be NOP"
+.assert <c816_cop = $4C, error, "c816_cop's low byte must be JMP ABS"
+.assert >c816_cop = <c816_getin_thunk, error, "c816_cop's high byte must be equal to c816_getin_thunk's low byte"
 .popcpu

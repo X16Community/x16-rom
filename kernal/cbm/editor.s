@@ -130,8 +130,7 @@ nlinesp1	.res 1          ;    X16: y resolution + 1
 nlinesm1	.res 1          ;    X16: y resolution - 1
 verbatim	.res 1
 
-.segment "EDITOR"
-
+.segment "C816_SCRORG"
 ;
 ;return max rows,cols of screen
 ;
@@ -159,6 +158,8 @@ scrorg
 	ldx llen
 	ldy nlines
 	rts
+
+.segment "EDITOR"
 ;
 ;read/plot cursor position
 ;
