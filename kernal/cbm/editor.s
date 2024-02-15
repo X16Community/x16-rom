@@ -201,10 +201,10 @@ cint	jsr iokeys
 
 ; clear screen, populate ldtb1 with non-continuing lines
 clsr	lda #$ff
-	ldx #8
-lps1	sta ldtb1-1,x
+	ldx #7
+lps1	sta ldtb1,x
 	dex
-	bne lps1
+	bpl lps1
 	ldx nlinesm1    ;clear from the bottom line up
 clear1	jsr screen_clear_line ;see scroll routines
 	dex
