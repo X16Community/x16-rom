@@ -42,12 +42,16 @@ SEGMENTS {
 	CHANNEL:  load = KERNAL,   type = ro;
 	CLOCK:    load = KERNAL,   type = ro;
 	C816_UTIL: load = KERNAL,  type = ro;
-	C816_BRK: load = KERNAL,   type = ro, start = $EAEB;        # low byte equals high byte of C816_GETIN_THUNK, high byte = nop
-	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $EBEF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
-	C816_NMIB: load = KERNAL, type = ro, start = $EE4C;         # low byte: JMP abs, high byte equals low byte of CLOCK_TIMER
-	CLOCK_TIMER: load = KERNAL, type = ro, start = $EEEE;       # low byte equals high byte of C816_NMIB
-	C816_COP_NATIVE: load = KERNAL,   type = ro, start = $EF4C; # low byte: JMP abs, high byte equals low byte of C816_GETIN_THUNK
+	C816_ABORT_NATIVE: load = KERNAL, type = ro, start = $E44C; # low byte: JMP abs, high byte equals low byte of C816_CLALL_THUNK
+	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $E7EF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
+	CLOCK_TIMER: load = KERNAL, type = ro, start = $E94C;       # low byte: JMP abs, high byte equals low byte of C816_SCRORG
+	C816_SCRORG: load = KERNAL, type = ro, start = $E9E9;       # low byte equals high byte of CLOCK_TIMER, high byte chosen at random
+	C816_CLALL_THUNK: load = KERNAL, type = ro, start = $EAE4;  # low byte equals high byte of C816_ABORT_NATIVE, high byte = NOP
+	C816_BRK: load = KERNAL, type = ro, start = $EAE7;        # low byte equals high byte of C816_GETIN_THUNK, high byte = nop
+	C816_NMIB: load = KERNAL, type = ro, start = $EAEA;         # low byte equals NOP and high byte of C816_CLALL_THUNK, high byte = NOP
+	C816_COP_NATIVE: load = KERNAL, type = ro, start = $EF4C; # low byte: JMP abs, high byte equals low byte of C816_GETIN_THUNK
 	C816_COP_EMULATED: load = KERNAL, type = ro;
+	C816_ABORT_EMULATED: load = KERNAL, type = ro;
 	I2C:      load = KERNAL,   type = ro;
 	RTC:      load = KERNAL,   type = ro;
 	NVRAM:    load = KERNAL,   type = ro;
