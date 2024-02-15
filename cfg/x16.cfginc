@@ -30,7 +30,7 @@ GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 
 /* $0300-$0333: vectors */
 BVECTORS: start = $0300, size = $0013; # BASIC vectors
-KVECTORS: start = $0314, size = $002C; # KERNAL vectors
+KVECTORS: start = $0314, size = $002E; # KERNAL vectors
 
 /* $036A-$03FF: variables and RAM code */
 KVAR2:    start = $036A, size = $0021; # KERNAL: screen editor state
