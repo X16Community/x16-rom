@@ -32,8 +32,8 @@ GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 BVECTORS: start = $0300, size = $0013; # BASIC vectors
 KVECTORS: start = $0314, size = $0020; # KERNAL vectors
 
-/* $0334-$03FF: variables and RAM code */
-KVAR2:    start = $0334, size = $0057; # KERNAL: screen editor table
+/* $036A-$03FF: variables and RAM code */
+KVAR2:    start = $036A, size = $0021; # KERNAL: screen editor state
 KERNRAM2: start = $038B, size = $003F; # KERNAL: banked IRQ/NMI, fetch, stash
 FPVARS:   start = $03CA, size = $0009; # MATH
 BVARS:    start = $03D3, size = $002D; # BASIC
