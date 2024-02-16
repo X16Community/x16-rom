@@ -33,8 +33,6 @@ SEGMENTS {
 	PS2:      load = KERNAL,   type = ro;
 	PS2KBD:   load = KERNAL,   type = ro;
 	PS2MOUSE: load = KERNAL,   type = ro;
-	JOYSTICK: load = KERNAL,   type = ro;
-	IEEESWTCH:load = KERNAL,   type = ro;
 	SERIAL:   load = KERNAL,   type = ro;
 	MEMORY:   load = KERNAL,   type = ro;
 	LZSA:     load = KERNAL,   type = ro;
@@ -43,6 +41,8 @@ SEGMENTS {
 	CLOCK:    load = KERNAL,   type = ro;
 	C816_UTIL: load = KERNAL,  type = ro;
 	C816_ABORT_NATIVE: load = KERNAL, type = ro, start = $E44C; # low byte: JMP abs, high byte equals low byte of C816_CLALL_THUNK
+	JOYSTICK: load = KERNAL,   type = ro;
+	IEEESWTCH:load = KERNAL,   type = ro;
 	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $E7EF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
 	CLOCK_TIMER: load = KERNAL, type = ro, start = $E94C;       # low byte: JMP abs, high byte equals low byte of C816_SCRORG
 	C816_SCRORG: load = KERNAL, type = ro, start = $E9E9;       # low byte equals high byte of CLOCK_TIMER, high byte chosen at random
