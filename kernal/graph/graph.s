@@ -22,6 +22,8 @@
 .export GRAPH_set_colors
 .export GRAPH_set_window
 
+ram_bank = 0
+
 .segment "GRAPH"
 
 GRAPH_clear:
@@ -45,7 +47,9 @@ GRAPH_draw_rect:
     rts
 
 GRAPH_init:
+    KVARS_START
     graph_call gr_GRAPH_init
+    KVARS_END
     rts
 
 GRAPH_move_rect:
