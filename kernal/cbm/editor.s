@@ -222,9 +222,9 @@ stupt
 	ldx tblx        ;get curent line index
 	lda pntr        ;get character pointer
 fndstr	pha
-	ldy ldcmap,x
+	ldy ldtbl_byte,x
 	lda ldtb1,y
-	and ldbmap,x
+	and ldtbl_bit,x
 	tay
 	pla
 	cpy #0          ;find begining of line
@@ -241,9 +241,9 @@ stok	jsr screen_set_position
 	dec
 	inx
 fndend	pha
-	ldy ldcmap,x
+	ldy ldtbl_byte,x
 	lda ldtb1,y
-	and ldbmap,x
+	and ldtbl_bit,x
 	tay
 	pla
 	cpy #0
@@ -557,14 +557,14 @@ wlog20
 	jsr scrol       ;else do the scrol up
 	dec tblx        ;and adjust curent line#
 	ldx tblx
-wlog30	ldy ldcmap,x
-	lda ldbmap,x
+wlog30	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	eor #$ff
 	and ldtb1,y
 	sta ldtb1,y     ;wrap the line
 	inx             ;index to next line
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	ora ldtb1,y     ;make it a non-continuation line
 	sta ldtb1,y
 	dex             ;get back to current line
@@ -573,8 +573,8 @@ wlog30	ldy ldcmap,x
 	adc llen
 	sta lnmx
 findst
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	and ldtb1,y     ;is this the first line?
 	bne finx        ;branch if so
 	dex             ;else backup 1
@@ -976,8 +976,8 @@ nxln2	inx
 	cpx nlines      ;off bottom?
 	bne nxln1       ;no...
 	jsr scrol       ;yes...scroll
-nxln1	ldy ldcmap,x
-	lda ldbmap,x
+nxln1	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	and ldtb1,y     ;continued line?
 	beq nxln2       ;yes...scroll again
 	stx tblx
@@ -1092,9 +1092,11 @@ scr41
 	jsr screen_clear_line
 ;
 	sec              ;scroll hi byte pointers
-.repeat 8, i
-	ror ldtb1+(7-i)
-.endrepeat
+	ldx #7
+scrl5	ror ldtb1,x
+	dex
+	bpl scrl5
+
 ;
 	lda ldtb1       ;continued line?
 	and #1
@@ -1124,8 +1126,8 @@ pulind	rts
 newlin
 	ldx tblx
 bmt1	inx
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	and ldtb1,y     ;find last display line of this line
 	beq bmt1
 bmt2	stx lintmp      ;found it
@@ -1157,20 +1159,20 @@ scr40
 scrd21
 	cpx lintmp      ;done?
 	bcc scrd22      ;branch if so
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	and ldtb1,y     ;was it continued
 	beq scrd19      ;branch if so
 	inx
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	ora ldtb1,y
 	sta ldtb1,y
 	dex
 	bra scrd20
 scrd19	inx
-	ldy ldcmap,x
-	lda ldbmap,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
 	eor #$ff
 	and ldtb1,y
 	sta ldtb1,y
@@ -1267,11 +1269,11 @@ fkeytb	.byt "LIST:", 13, 0
 beeplo: .lobytes 526,885,1404
 beephi: .hibytes 526,885,1404
 
-ldbmap:	
+ldtbl_bit:	
 .repeat 8
 	.byte $01,$02,$04,$08,$10,$20,$40,$80
 .endrepeat
-ldcmap:
+ldtbl_byte:
 .repeat 8,i
 	.byte i,i,i,i,i,i,i,i
 .endrepeat
