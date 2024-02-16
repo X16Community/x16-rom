@@ -6,17 +6,6 @@
 
 .feature labels_without_colons
 
-.ifp02
-.macro stz addr
-	php
-	pha
-	lda #0
-	sta addr
-	pla
-	plp
-.endmacro
-.endif
-
 ;screen editor constants
 ;
 maxchr=80
@@ -95,16 +84,7 @@ MODIFIER_SHIFT = 1
 .include "mac.inc"
 
 .segment "KVAR2" ; more KERNAL vars
-; XXX TODO only one bit per byte is used, this should be compressed!
-ldtb1	.res 61 +1       ;flags+endspace
-	;       ^^ XXX at label 'lps2', the code counts up to
-	;              numlines+1, THEN writes the end marker,
-	;              which seems like one too many. This was
-	;              worked around for now by adding one more
-	;              byte here, but we should have a look at
-	;              whether there's an off-by-one error over
-	;              at 'lps2'!
-
+ldtb1	.res 8       ;end of line flags, one bit per line
 ; Screen
 ;
 .export mode; [ps2kbd]
@@ -219,14 +199,12 @@ cint	jsr iokeys
 	sta blnct
 	sta blnsw
 
-clsr	lda #$80        ;fill end of line table
-	ldx #0
+; clear screen, populate ldtb1 with non-continuing lines
+clsr	lda #$ff
+	ldx #7
 lps1	sta ldtb1,x
-	inx
-	cpx nlinesp1    ;done # of lines?
-	bne lps1        ;no...
-	lda #$ff        ;tag end of line table
-	sta ldtb1,x
+	dex
+	bpl lps1
 	ldx nlinesm1    ;clear from the bottom line up
 clear1	jsr screen_clear_line ;see scroll routines
 	dex
@@ -243,8 +221,14 @@ nxtd	ldy #0
 stupt
 	ldx tblx        ;get curent line index
 	lda pntr        ;get character pointer
-fndstr	ldy ldtb1,x     ;find begining of line
-	bmi stok        ;branch if start found
+fndstr	pha
+	ldy ldtbl_byte,x
+	lda ldtb1,y
+	and ldtbl_bit,x
+	tay
+	pla
+	cpy #0          ;find begining of line
+	bne stok        ;branch if start found
 	clc
 	adc llen        ;adjust pointer
 	sta pntr
@@ -254,15 +238,16 @@ fndstr	ldy ldtb1,x     ;find begining of line
 stok	jsr screen_set_position
 ;
 	lda llen
-.ifp02
-	sec
-	sbc #1
-.else
 	dec
-.endif
 	inx
-fndend	ldy ldtb1,x
-	bmi stdone
+fndend	pha
+	ldy ldtbl_byte,x
+	lda ldtb1,y
+	and ldtbl_bit,x
+	tay
+	pla
+	cpy #0
+	bne stdone
 	clc
 	adc llen
 	inx
@@ -345,16 +330,12 @@ nokbo
 nochr
 	sta blnsw
 	sta autodn      ;turn on auto scroll down
-.ifp02
-	beq loop3
-.else
-        ; power saving: a character from the keyboard
+    ; power saving: a character from the keyboard
 	; cannot arrive before the next timer IRQ
 	bne ploop3
-        .byte $cb       ; WAI instruction
+	.byte $cb       ; WAI instruction
 	jmp loop3
 ploop3
-.endif
 	pha
 	php
 	sei
@@ -576,20 +557,26 @@ wlog20
 	jsr scrol       ;else do the scrol up
 	dec tblx        ;and adjust curent line#
 	ldx tblx
-wlog30	asl ldtb1,x     ;wrap the line
-	lsr ldtb1,x
-	inx             ;index to next lline
-	lda ldtb1,x     ;get high order byte of address
-	ora #$80        ;make it a non-continuation line
-	sta ldtb1,x     ;and put it back
+wlog30	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	eor #$ff
+	and ldtb1,y
+	sta ldtb1,y     ;wrap the line
+	inx             ;index to next line
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	ora ldtb1,y     ;make it a non-continuation line
+	sta ldtb1,y
 	dex             ;get back to current line
 	lda lnmx        ;continue the bytes taken out
 	clc
 	adc llen
 	sta lnmx
 findst
-	lda ldtb1,x     ;is this the first line?
-	bmi finx        ;branch if so
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	and ldtb1,y     ;is this the first line?
+	bne finx        ;branch if so
 	dex             ;else backup 1
 	bne findst
 finx
@@ -606,7 +593,7 @@ bkln	ldx tblx
 	stx pntr
 	pla
 	pla
-	bne loop2
+	jmp loop2
 ;
 bkln1	dex
 	stx tblx
@@ -940,7 +927,7 @@ up2	cmp #$11
 	ldx #0          ;scroll screen DOWN!
 	jsr bmt2        ;insert line at top of screen
 	lda ldtb1
-	ora #$80        ;first line is not an extension
+	ora #$01        ;first line is not an extension
 	sta ldtb1
 	jsr stupt
 	bra jpl2
@@ -989,8 +976,10 @@ nxln2	inx
 	cpx nlines      ;off bottom?
 	bne nxln1       ;no...
 	jsr scrol       ;yes...scroll
-nxln1	lda ldtb1,x     ;double line?
-	bpl nxln2       ;yes...scroll again
+nxln1	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	and ldtb1,y     ;continued line?
+	beq nxln2       ;yes...scroll again
 	stx tblx
 	jmp stupt
 nxt1
@@ -1024,12 +1013,7 @@ back	dec tblx
 ;
 chkdwn	ldx #nwrap
 	lda llen
-.ifp02
-	sec
-	sbc #1
-.else
 	dec
-.endif
 dwnchk	cmp pntr
 	beq dnline
 	clc
@@ -1098,42 +1082,25 @@ scr10	inx             ;goto next line
 	cpx nlinesm1    ;done?
 	bcs scr41       ;branch if so
 ;
-.ifp02
-	txa
-	pha
-.else
 	phx
-.endif
 	inx
 	jsr screen_copy_line ;scroll this line up1
-.ifp02
-	pla
-	tax
-.else
 	plx
-.endif
 	bra scr10
 ;
 scr41
 	jsr screen_clear_line
 ;
-	ldx #0          ;scroll hi byte pointers
-scrl5	lda ldtb1,x
-	and #$7f
-	ldy ldtb1+1,x
-	bpl scrl3
-	ora #$80
-scrl3	sta ldtb1,x
-	inx
-	cpx nlinesm1
-	bne scrl5
+	sec              ;scroll hi byte pointers
+	ldx #7
+scrl5	ror ldtb1,x
+	dex
+	bpl scrl5
+
 ;
-	ldy nlinesm1
-	lda ldtb1,y
-	ora #$80
-	sta ldtb1,y
-	lda ldtb1       ;double line?
-	bpl scro0       ;yes...scroll again
+	lda ldtb1       ;continued line?
+	and #1
+	beq scro0       ;yes...scroll again
 ;
 	inc tblx
 	inc lintmp
@@ -1159,8 +1126,10 @@ pulind	rts
 newlin
 	ldx tblx
 bmt1	inx
-	lda ldtb1,x     ;find last display line of this line
-	bpl bmt1        ;table end mark=>$ff will abort...also
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	and ldtb1,y     ;find last display line of this line
+	beq bmt1
 bmt2	stx lintmp      ;found it
 ;generate a new line
 	cpx nlinesm1    ;is one line from bottom?
@@ -1177,20 +1146,10 @@ scd10	dex
 	cpx lintmp
 	bcc scr40
 	beq scr40       ;branch if finished
-.ifp02
-	txa
-	pha
-.else
 	phx
-.endif
 	dex
 	jsr screen_copy_line ;scroll this line down
-.ifp02
-	pla
-	tax
-.else
 	plx
-.endif
 	bra scd10
 scr40
 	jsr screen_clear_line
@@ -1200,13 +1159,25 @@ scr40
 scrd21
 	cpx lintmp      ;done?
 	bcc scrd22      ;branch if so
-	lda ldtb1+1,x
-	and #$7f
-	ldy ldtb1,x     ;was it continued
-	bpl scrd19      ;branch if so
-	ora #$80
-scrd19	sta ldtb1+1,x
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	and ldtb1,y     ;was it continued
+	beq scrd19      ;branch if so
+	inx
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	ora ldtb1,y
+	sta ldtb1,y
 	dex
+	bra scrd20
+scrd19	inx
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	eor #$ff
+	and ldtb1,y
+	sta ldtb1,y
+	dex
+scrd20	dex
 	bne scrd21
 scrd22
 	ldx lintmp
@@ -1297,3 +1268,12 @@ fkeytb	.byt "LIST:", 13, 0
 
 beeplo: .lobytes 526,885,1404
 beephi: .hibytes 526,885,1404
+
+ldtbl_bit:	
+.repeat 8
+	.byte $01,$02,$04,$08,$10,$20,$40,$80
+.endrepeat
+ldtbl_byte:
+.repeat 8,i
+	.byte i,i,i,i,i,i,i,i
+.endrepeat
