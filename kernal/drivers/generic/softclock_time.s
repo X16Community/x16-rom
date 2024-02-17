@@ -9,13 +9,6 @@
 .include "io.inc"
 .include "regs.inc"
 
-.ifp02
-.macro stz addr
-	lda #0
-	sta addr
-.endmacro
-.endif
-
 .segment "KVARSB0"
 
 timeh:	.res 1           ;    hours
