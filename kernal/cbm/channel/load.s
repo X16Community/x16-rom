@@ -121,16 +121,12 @@ bld10
 bld11:
 	ldx eal
 	ldy eah
-.ifdef MACHINE_X16
-        phy             ;save address hi
-.endif
+    phy             ;save address hi
 bld12:
 	lda #0          ;load as many bytes as device wants
 	jsr macptr
 	bcc :+
-.ifdef MACHINE_X16
 	pla             ;clear hi address from stack
-.endif
 	jmp ld40        ;not supported, fall back to byte-wise
 :	txa
 	clc
@@ -138,7 +134,6 @@ bld12:
 	sta eal
 	tya
 	adc eah
-.ifdef MACHINE_X16
 	; fix-up address when loading into banked RAM:
 	; this should reflect the banked RAM address following
 	; the last byte written (exception: $BFFF -> $A000)
@@ -154,7 +149,6 @@ bld12:
 	sbc #$20
 	bra @loop
 @skip
-.endif
 	sta eah
 	bit status      ;eoi?
 	bvc bld10       ;no...continue load
@@ -218,7 +212,6 @@ ld50	ldy #0
 ld60	inc eal         ;increment store addr
 	bne ld64
 	inc eah
-.ifdef MACHINE_X16
 ;
 ;if necessary, wrap to next bank
 ;
@@ -231,7 +224,6 @@ ld60	inc eal         ;increment store addr
 ld62	lda #$a0        ;wrap to bottom of high ram
 	sta eah
 	inc ram_bank    ;move to next ram bank
-.endif
 ld64	bit status      ;eoi?
 	bvc ld40        ;no...continue load
 ;
@@ -296,7 +288,6 @@ ld410	jsr spmsg
 	beq frmto1      ;skip if verify
 	ldy #ms7-ms1    ;"from $"
 msghex	jsr msg
-.ifdef MACHINE_X16
 	lda eah
 	cmp #$a0
 	bcc :+
@@ -307,7 +298,6 @@ msghex	jsr msg
 	lda #':'
 	jsr bsout
 :
-.endif
 	lda eah
 	jsr hex8
 	lda eal
