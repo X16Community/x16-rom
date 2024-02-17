@@ -9,12 +9,6 @@
 .include "io.inc"
 .include "regs.inc"
 
-.ifp02
-.macro bra addr
-	jmp addr
-.endmacro
-.endif
-
 .segment "KVARSB0"
 
 datey:	.res 1           ;    year-1900

@@ -34,15 +34,8 @@ key
 	lda #1
 	sta VERA_ISR    ;ack VERA VBLANK
 
-.ifp02
-	pla
-	tay
-	pla
-	tax
-.else
 	ply
 	plx
-.endif
 	pla
 	rti             ;exit from irq routines
 

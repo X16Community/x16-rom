@@ -182,12 +182,7 @@
 
 .macro smbf bitN, dest
 	lda #1 << bitN
-	.ifp02
-		ora dest
-		sta dest
-	.else
-		tsb dest
-	.endif
+	tsb dest
 .endmacro
 
 .macro rmb bitN, dest
@@ -197,14 +192,8 @@
 .endmacro
 
 .macro rmbf bitN, dest
-	.ifp02
-		lda #(1 << bitN) ^ $ff
-		and dest
-		sta dest
-	.else
-		lda #1 << bitN
-		trb dest
-	.endif
+	lda #1 << bitN
+	trb dest
 .endmacro
 
 .macro bbs bitN, source, addr
@@ -288,12 +277,6 @@
 	txa
 	beq addr
 .endmacro
-
-.ifp02
-	.macro bra addr
-		jmp addr
-	.endmacro
-.endif
 
 .macro IncW addr
 	.local @j

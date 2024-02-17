@@ -132,7 +132,7 @@ KSUP_VECS = \
 	   $(OBJDIR)/cx_vecs.o \
 		$(OBJDIR)/kernsup_cx.o
 
-KSUP_DEFS = -D CPU_65C02=1  -g -D MACHINE_X16=1 --cpu 65SC02
+KSUP_DEFS = -D CPU_65C02=1  -g --cpu 65SC02
 
 UT_INCS=$(TESTDIR)/assert.s
 

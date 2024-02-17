@@ -17,7 +17,6 @@ BANK_BASLOAD = $0F
 
 ; XXX these constant RAM addresses are KERNAL
 ; XXX implementation details and need to go away!
-.ifdef MACHINE_X16
 cbdos_flags= $0268
 status     = $0287 ; channel: status byte
 jsrfar3    = $02c4 ; jsrfar: RAM part
@@ -26,11 +25,6 @@ imparm     = $82   ; jsrfar: temporary byte
 stavec     = $03b2 ; stash: argument
 irq        = $038b ; irq handler: RAM part         this value MUST NEVER CHANGE starting from R42
 nmi        = $03b7 ; nmi handler: RAM trampoline   this value MUST NEVER CHANGE starting from R42
-.elseif .defined(MACHINE_C64)
-status     = $029F
-;fa         = $029F
-imparm     = $E2
-.endif
 
 ; editor keystroke vectors (currently used by MONITOR)
 edkeyvec   = $ac03
@@ -40,8 +34,6 @@ edkeybk    = $ac05
 ; 0:   KVARS
 ; 1-9: GEOS BG SCREEN (320x200) [not currently enabled]
 ; 255: CBDOS
-
-.ifdef MACHINE_X16
 
 .macro KVARS_START
 .import kvswitch_tmp1, kvswitch_tmp2
@@ -114,13 +106,3 @@ edkeybk    = $ac05
 	sta ram_bank
 	lda kvswitch_tmp1
 .endmacro
-
-.else ; C64
-
-.macro KVARS_START
-.endmacro
-
-.macro KVARS_END
-.endmacro
-
-.endif
