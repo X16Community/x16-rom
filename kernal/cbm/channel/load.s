@@ -121,7 +121,7 @@ bld10
 bld11:
 	ldx eal
 	ldy eah
-    phy             ;save address hi
+	phy             ;save address hi
 bld12:
 	lda #0          ;load as many bytes as device wants
 	jsr macptr
