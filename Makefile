@@ -26,8 +26,6 @@ ASFLAGS     += -D CPU_65C02=1
 ASFLAGS     +=  $(VERSION_DEFINE)
 # put all symbols into .sym files
 ASFLAGS     += -g
-
-ASFLAGS     += -D MACHINE_X16=1
 # all files are allowed to use 65SC02 features
 ASFLAGS     += --cpu 65SC02
 
