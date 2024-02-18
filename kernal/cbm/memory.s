@@ -10,7 +10,8 @@
 .include "io.inc"
 
 .import nsave, nload, nclall, ngetin, nstop, nbsout, nbasin, nclrch, nckout, nchkin, nclose, nopen, nnmi, timb, key, cinv, receive_scancode_resume
-.import c816_cop_emulated, interrupt_65c816_native, cop_65c816_emulated, ecop, nint
+.import necop, neabort, nnirq, nnbrk, nnnmi, nncop, nnabort
+.import c816_cop_emulated
 .importzp tmp2
 .export iobase, membot, memtop, restor, vector
 
@@ -41,19 +42,7 @@ movos2	sta (tmp2),y    ;put in user
 	sta cinv,y      ;put in storage
 	dey
 	bpl movos1
-
-	set_carry_if_65c816
-	bcc :+
-	lda #<interrupt_65c816_native
-	sta nint
-	lda #>interrupt_65c816_native
-	sta nint+1
-
-	lda #<cop_65c816_emulated
-	sta ecop
-	lda #>cop_65c816_emulated
-	sta ecop+1
-:	rts
+	rts
 ;
 vectss	.word key,timb,nnmi
 	.word nopen,nclose,nchkin
@@ -62,6 +51,9 @@ vectss	.word key,timb,nnmi
 	.word nclall
 	.word receive_scancode_resume
 	.word nload,nsave
+	.word necop,neabort
+	.word nnirq,nnbrk,nnnmi
+	.word nncop,nnabort
 vectse
 
 
