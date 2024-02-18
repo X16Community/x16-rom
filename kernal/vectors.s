@@ -186,7 +186,7 @@ jscrog	.byte <clock_update, >clock_update, >scrorg ;screen org
 
 jplot	jmp plot        ;read/set x,y coord
 jiobas	jmp iobase      ;return i/o base
-	.byte "MI"
+	.byte 0,0
 	.word c816_abort_emulated
 
 	.segment "VECTORS"
