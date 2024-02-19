@@ -35,8 +35,10 @@ KVECTORS: start = $0314, size = $002E; # KERNAL vectors
 
 /* $036A-$03FF: variables and RAM code */
 KVAR2:    start = $036A, size = $0021; # KERNAL: screen editor state
-KERNRAM2: start = $038B, size = $003F; # KERNAL: banked IRQ/NMI, fetch, stash
+KERNRAM2: start = $038B, size = $0038; # KERNAL: banked IRQ/NMI, fetch, stash
 KRAM816:  start = $038B, size = $001D; # KERNAL: 65C816: IRQ
+KRAM02B:  start = $03C3, size = $0007; # KERNAL: 65C02: __irq_ret
+KRAM816B: start = $03C3, size = $0007; # KERNAL: 65C816: free space
 FPVARS:   start = $03CA, size = $0009; # MATH
 BVARS:    start = $03D3, size = $002D; # BASIC
 
