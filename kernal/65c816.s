@@ -16,166 +16,166 @@ rom_bank = 1
 .setcpu "65816"
 
 .macro c816_interrupt_impl vector
-    rep #$30       ; 16-bit accumulator and index
-    .I16
-    .A16
-    pha
-    phd
-    lda #0000
-    tcd
-    sep #$20        ; 8-bit accumulator
-    .A8
+	rep #$30       ; 16-bit accumulator and index
+	.I16
+	.A16
+	pha
+	phd
+	lda #0000
+	tcd
+	sep #$20        ; 8-bit accumulator
+	.A8
 
-    phb
-    lda #00
-    pha
-    plb
+	phb
+	lda #00
+	pha
+	plb
 
-    lda rom_bank    ;save ROM bank
-    pha
-    stz rom_bank	;set KERNAL bank
+	lda rom_bank    ;save ROM bank
+	pha
+	stz rom_bank	;set KERNAL bank
 
-    phk
-    pea __irq_native_ret   ;put RTI-style return-address onto the stack
+	phk
+	pea __irq_native_ret   ;put RTI-style return-address onto the stack
 	php
 
-    rep #$20       ; 16-bit accumulator
-    .A16
+	rep #$20       ; 16-bit accumulator
+	.A16
 
-    lda $05,S
-    pha
-    phx            ; save X and Y
-    phy
+	lda $05,S
+	pha
+	phx            ; save X and Y
+	phy
 
-    jmp (vector)
-    .A8
-    .I8
+	jmp (vector)
+	.A8
+	.I8
 .endmacro
 
 .macro irq_brk_common_impl addr
-    .A16
-    .I16
-    tsc
-    ldx #$01D0
-    txs            ; set stack pointer to $01D0
-    pha            ; store old stack pointer on new stack
+	.A16
+	.I16
+	tsc
+	ldx #$01D0
+	txs            ; set stack pointer to $01D0
+	pha            ; store old stack pointer on new stack
 
-    pea __interrupt_65c816_native_ret ; set up CBM IRQ stack frame
-    sec
-    xce            ; enter emulation mode
-    .A8
-    .I8
-    clc
+	pea __interrupt_65c816_native_ret ; set up CBM IRQ stack frame
+	sec
+	xce            ; enter emulation mode
+	.A8
+	.I8
+	clc
 
-    php
+	php
 
-    lda $0B, S
-    pha
-    lda $09, S
-    pha
-    lda $07, S
-    pha
+	lda $0B, S
+	pha
+	lda $09, S
+	pha
+	lda $07, S
+	pha
 
-    jmp (addr)
+	jmp (addr)
 .endmacro
 
 .segment "C816_COP_EMULATED"
 c816_cop_emulated:
-    jmp (iecop)
+	jmp (iecop)
 
 .segment "C816_ABORT_EMULATED"
 c816_abort_emulated:
-    jmp (ieabort)
+	jmp (ieabort)
 
 .segment "C816_NMIB"
 c816_nmib:
-    rep #$30       ; 16-bit accumulator and index
-    jmp (innmi)
+	rep #$30       ; 16-bit accumulator and index
+	jmp (innmi)
 
 c816_irqb:
-    c816_interrupt_impl inirq
+	c816_interrupt_impl inirq
 
 .segment "C816_BRK"
 c816_brk:
-    jmp c816_brk_impl
+	jmp c816_brk_impl
 
 .segment "MEMDRV"
 c816_brk_impl:
-    c816_interrupt_impl inbrk
+	c816_interrupt_impl inbrk
 
 .segment "C816_COP_NATIVE"
 c816_cop_native:
-    jmp (incop)
+	jmp (incop)
 
 .segment "C816_ABORT_NATIVE"
 c816_abort_native:
-    jmp (inabort)
+	jmp (inabort)
 
 .segment "MEMDRV"
 __irq_65c816_first:
-    xba
-    pha
-    xba
-    pha
-    phd
-    lda #00
-    xba
-    lda #00
-    tcd
+	xba
+	pha
+	xba
+	pha
+	phd
+	lda #00
+	xba
+	lda #00
+	tcd
 
-    phb
-    lda #00
-    pha
-    plb
+	phb
+	lda #00
+	pha
+	plb
 
-    lda rom_bank    ;save ROM bank
-    pha
-    stz rom_bank	;set KERNAL bank
+	lda rom_bank    ;save ROM bank
+	pha
+	stz rom_bank	;set KERNAL bank
 
 	pea __irq_native_ret   ;put RTI-style return-address onto the stack
 	php
-    jmp __irq_65c816_saved
+	jmp __irq_65c816_saved
 
 nnirq:
-    irq_brk_common_impl cinv
+	irq_brk_common_impl cinv
 
 nnbrk:
-    irq_brk_common_impl cbinv
+	irq_brk_common_impl cbinv
 
 __interrupt_65c816_native_ret:
-    clc
-    xce            ; exit emulation mode
-    rep #$31       ; 16-bit accumulator, clear carry
-    pla            ; pull old stack pointer
-    tcs            ; restore stack pointer
-    ply
-    plx
-    pla
-    rti
+	clc
+	xce            ; exit emulation mode
+	rep #$31       ; 16-bit accumulator, clear carry
+	pla            ; pull old stack pointer
+	tcs            ; restore stack pointer
+	ply
+	plx
+	pla
+	rti
 
 nnnmi:
-    sec
-    xce
-    .A8
-    .I8
-    clc
-    stz rom_bank
-    jmp (nminv)
+	sec
+	xce
+	.A8
+	.I8
+	clc
+	stz rom_bank
+	jmp (nminv)
 
 nncop:
 nnabort:
 	sep #$20
-    jmp nncop_abort_ret
+	jmp nncop_abort_ret
 
 .popcpu
 
 .segment "C816_CLALL_THUNK"
 c816_clall_thunk:
-    jmp (iclall)
+	jmp (iclall)
 
 .segment "C816_GETIN_THUNK"
 c816_getin_thunk:
-    jmp (igetin)
+	jmp (igetin)
 
 .assert <c816_abort_native = $4C, error, "c816_abort_native's low byte must be JMP ABS"
 .assert >c816_abort_native = <c816_clall_thunk, error, "c816_abort_native's high byte must be equal to c816_clall_thunk's low byte"
