@@ -10,12 +10,20 @@
 
 .import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore
 
-.export start, romnmi
+.export start
 
 .segment "INIT"
 ; start - system reset
 ;
-start	ldx #$ff
+start	; Let diagnostic bank handle diagnostic boot if needed
+	lda #16		     ; ROM Bank 16 = Memory Diagnostic
+	sta rom_bank	     ; Set ROM Bank
+	nop		     ; Memory Diagnostic bank will return
+	nop		     ; to this bank after 4 bytes
+	nop		     ; if diagnostics is not started...
+	nop
+	; Continue normal bootup
+	ldx #$ff
 	sei
 	txs
 
@@ -31,15 +39,3 @@ start	ldx #$ff
 
 	sec
 	jmp enter_basic
-
-romnmi:
-	lda #16		     ; ROM Bank 16 = Memory Diagnostic
-	sta rom_bank	     ; Set ROM Bank
-	nop		     ; Memory Diagnostic bank will return
-	nop		     ; to this bank after 4 bytes
-	nop		     ; if diagnostics is not started...
-	nop
-	jmp nmi		     ; Jmp to original NMI handler
-			     ; I am unable to figure where the nmi
-			     ; address in kernal/vectors.s comes from
-			     ; so I have a static address here....
