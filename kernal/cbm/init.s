@@ -3,6 +3,8 @@
 ;----------------------------------------------------------------------
 ; (C)1983 Commodore Business Machines (CBM)
 ; additions: (C)2020 Michael Steil, License: 2-clause BSD
+.include "banks.inc"
+.include "io.inc"
 
 .feature labels_without_colons
 
@@ -31,13 +33,13 @@ start	ldx #$ff
 	jmp enter_basic
 
 romnmi:
-	lda	#16	; ROM Bank 16 = Memory Diagnostic
-	sta	$01	; Set ROM Bank
-	nop		; Memory Diagnostic bank will return
-	nop		; to this bank after 4 bytes
-	nop		; if diagnostics is not started...
+	lda #16		     ; ROM Bank 16 = Memory Diagnostic
+	sta rom_bank	     ; Set ROM Bank
+	nop		     ; Memory Diagnostic bank will return
+	nop		     ; to this bank after 4 bytes
+	nop		     ; if diagnostics is not started...
 	nop
-	jmp	$03B7	; Jmp to original NMI handler
-			; I am unable to figure where the nmi
-			; address in kernal/vectors.s comes from
-			; so I have a static address here....
+	jmp nmi		     ; Jmp to original NMI handler
+			     ; I am unable to figure where the nmi
+			     ; address in kernal/vectors.s comes from
+			     ; so I have a static address here....
