@@ -24,7 +24,7 @@ set_color:
 ;            c   1: character outside of bounds, not printed
 ;---------------------------------------------------------------
 GRAPH_put_char:
-	KVARS_START
+	KVARS_START_TRASH_X_NZ
 	; XXX change put_char code so that moving the x/y position
 	; XXX around is no longer necessary
 	tax
@@ -47,7 +47,7 @@ GRAPH_put_char:
 	PopW r7
 	PopW r6
 	PopW r2
-	KVARS_END
+	KVARS_END_TRASH_X_NZ
 	rts
 
 put_char:
