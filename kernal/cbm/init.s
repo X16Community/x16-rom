@@ -10,7 +10,7 @@
 
 .import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore
 
-.export start
+.export start, romnmi
 
 .segment "INIT"
 ; start - system reset
@@ -39,3 +39,11 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 
 	sec
 	jmp enter_basic
+
+romnmi: lda	#16
+	sta	rom_bank
+	nop
+	nop
+	nop
+	nop
+	jmp	nmi
