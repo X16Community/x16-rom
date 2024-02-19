@@ -43,30 +43,22 @@ FontTVar4:	    .res 1
 .segment "GRAPH"
 
 GRAPH_get_char_size:
-    KVARS_START
     jsr jsrfar
     .word gr_GRAPH_get_char_size
     .byte BANK_GRAPH
-    KVARS_END
     rts
 GRAPH_put_char:
-    KVARS_START
     jsr jsrfar
     .word gr_GRAPH_put_char
     .byte BANK_GRAPH
-    KVARS_END
     rts
 GRAPH_set_font:
-    KVARS_START
     jsr jsrfar
     .word gr_GRAPH_set_font
     .byte BANK_GRAPH
-    KVARS_END
     rts
 font_init:
-    KVARS_START
     jsr jsrfar
     .word gr_font_init
     .byte BANK_GRAPH
-    KVARS_END
     rts

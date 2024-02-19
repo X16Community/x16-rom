@@ -5,6 +5,12 @@
 .include "regs.inc"
 .include "mac.inc"
 .include "fonts.inc"
+.include "banks.inc"
+
+.import kvswitch_tmp1
+.import kvswitch_tmp2
+
+ram_bank = 0
 
 .import FB_init
 .import FB_get_info

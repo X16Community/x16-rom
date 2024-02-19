@@ -8,6 +8,8 @@
 .include "regs.inc"
 .include "banks.inc"
 
+ram_bank = 0
+
 .import leftMargin, windowTop, rightMargin, windowBottom
 .import FB_VERA
 
@@ -97,6 +99,7 @@ GRAPH_init:
 ;
 ;---------------------------------------------------------------
 GRAPH_clear:
+	KVARS_START_TRASH_A_NZ
 	PushB col1
 	PushB col2
 	lda col_bg
@@ -116,6 +119,7 @@ GRAPH_clear:
 	jsr GRAPH_draw_rect
 	PopB col2
 	PopB col1
+	KVARS_END_TRASH_A_NZ
 	rts
 
 set_window_fullscreen:
@@ -150,6 +154,7 @@ GRAPH_set_window:
 	ora r3H
 	beq set_window_fullscreen
 
+	KVARS_START_TRASH_A_NZ
 	MoveW r0, leftMargin
 	MoveW r1, windowTop
 
@@ -176,6 +181,7 @@ GRAPH_set_window:
 	bne :+
 	dec windowBottom+1
 :	dec windowBottom
+	KVARS_END_TRASH_A_NZ
 	rts
 
 ;---------------------------------------------------------------

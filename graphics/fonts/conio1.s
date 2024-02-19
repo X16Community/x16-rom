@@ -2,9 +2,11 @@
 ;
 ; Font library: control characters
 
+.macpack longbranch
+
 .import GRAPH_clear
 
-.export GRAPH_put_char 
+.export GRAPH_put_char
 
 set_color:
 	sta col1
@@ -22,6 +24,7 @@ set_color:
 ;            c   1: character outside of bounds, not printed
 ;---------------------------------------------------------------
 GRAPH_put_char:
+	KVARS_START
 	; XXX change put_char code so that moving the x/y position
 	; XXX around is no longer necessary
 	tax
@@ -44,8 +47,9 @@ GRAPH_put_char:
 	PopW r7
 	PopW r6
 	PopW r2
+	KVARS_END
 	rts
-		
+
 put_char:
 	cmp #$20
 	bcs @1
@@ -53,7 +57,7 @@ put_char:
 	tay
 	lda PutCharTab00,y
 	ldx PutCharTab00+1,y
-	beq set_color
+	jeq set_color
 	jsr @callroutine
 	clc ; C=0: OK
 	rts
@@ -65,7 +69,7 @@ put_char:
 	tay
 	lda PutCharTab80,y
 	ldx PutCharTab80+1,y
-	beq set_color
+	jeq set_color
 	jsr @callroutine
 	clc ; C=0: OK
 	rts
@@ -196,7 +200,7 @@ control_swap_col:
 control_underline:
 	smbf UNDERLINE_BIT, currentMode
 	rts
-	
+
 control_bold:
 	smbf BOLD_BIT, currentMode
 	rts

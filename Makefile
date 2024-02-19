@@ -419,6 +419,7 @@ $(BUILD_DIR)/codex.bin: $(CFG_DIR)/codex-x16.cfg
 $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym kvswitch_tmp1 kvswitch_tmp2` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym curIndexTable baselineOffset curSetWidth curHeight cardDataPntr currentMode windowTop windowBottom leftMargin rightMargin fontTemp1 fontTemp2 PrvCharWidth FontTVar1 FontTVar2 FontTVar3 FontTVar4`
