@@ -10,6 +10,8 @@
 .import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
+.import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
+.import __KRAM816B_LOAD__, __KRAM816B_RUN__, __KRAM816B_SIZE__
 .import __KVARSB0_LOAD__, __KVARSB0_RUN__, __KVARSB0_SIZE__
 .import __VARFONTS_LOAD__, __VARFONTS_RUN__, __VARFONTS_SIZE__
 .import __VECB0_LOAD__, __VECB0_RUN__, __VECB0_SIZE__
@@ -33,6 +35,7 @@
 .export indfet
 .export stash
 .export stavec
+.export necop, neabort, nncop_abort_ret
 
 .export callkbvec
 
@@ -114,6 +117,15 @@ ramtas:
 	sta __KERNRAM2_RUN__-1,x
 	dex
 	bne @kernram2
+
+	ldx #<__KRAM02B_SIZE__
+
+@kram02b:
+	lda __KRAM02B_LOAD__-1,x
+	sta __KRAM02B_RUN__-1,x
+	dex
+	bne @kram02b
+
 	bra @vecb0
 
 @kernram2_65c816:
@@ -133,6 +145,10 @@ ramtas:
 
 	ldx #(__KERNRAM2_LOAD__ + __KRAM816_SIZE__)
 	lda #(__KERNRAM2_SIZE__ - __KRAM816_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816B_LOAD__
+	lda #(__KRAM816B_SIZE__ - 1)
 	mvn #00,#00
 
 	.A8
@@ -396,11 +412,26 @@ __nmi:
 __brk:
 	jmp (cbinv)
 
+.segment "KRAM02B"
 __irq_ret:
 	pla
 	sta rom_bank    ;restore ROM bank
 	pla
 	rti
+	.res 2
+
+.segment "KRAM816B"
+.pushcpu
+.setcpu "65816"
+
+necop:
+neabort:
+nncop_abort_ret:
+	lda #00
+	trb a:rom_bank
+	rti
+
+.popcpu
 
 .segment "VECB0"
 ; This is a routine in RAM that calls another routine

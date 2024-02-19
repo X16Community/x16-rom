@@ -70,6 +70,8 @@ SEGMENTS {
 	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
 	KRAM816:  load = KERNAL,   run = KRAM816,  type = ro, define = yes;
+	KRAM02B:  load = KERNAL,   run = KRAM02B,  type = ro, define = yes;
+	KRAM816B: load = KERNAL,   run = KRAM816B, type = ro, define = yes;
 	VECB0:    load = KERNAL,   run = VECB0, type = ro, define = yes;
 	JMPTBL:   load = JMPTBL,   type = ro;
 	VECTORS:  load = VECTORS,  type = ro;

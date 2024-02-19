@@ -4,9 +4,10 @@
 
 .import goto_user, reg_a, reg_x, reg_y, softclock_timer_update, scrorg
 .import iecop, ieabort, inirq, inbrk, innmi, incop, inabort
+.import nncop_abort_ret
 
 .export c816_clall_thunk, c816_abort_emulated, c816_cop_emulated, c816_irqb, c816_getin_thunk
-.export necop, neabort, nnirq, nnbrk, nnnmi, nncop, nnabort
+.export nnirq, nnbrk, nnnmi, nncop, nnabort
 .export __irq_65c816_first
 
 rom_bank = 1
@@ -163,12 +164,8 @@ nnnmi:
 
 nncop:
 nnabort:
-    sep #$20
-
-necop:
-neabort:
-    trb a:$0001
-    rti
+	sep #$20
+    jmp nncop_abort_ret
 
 .popcpu
 
