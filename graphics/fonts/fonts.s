@@ -5,6 +5,12 @@
 .include "regs.inc"
 .include "mac.inc"
 .include "fonts.inc"
+.include "banks.inc"
+
+.import kvswitch_tmp1
+.import kvswitch_tmp2
+
+ram_bank = 0
 
 .import FB_init
 .import FB_get_info
@@ -20,31 +26,13 @@
 .import FB_fill_pixels
 .import FB_filter_pixels
 .import FB_move_pixels
-.import col1, col2, col_bg          ;Set during link stage, read from Kernal.sym
+.import col1, col2, col_bg
 
-.export curIndexTable, baselineOffset, curSetWidth, curHeight, cardDataPntr, currentMode, windowTop, windowBottom, leftMargin, rightMargin
+.import baselineOffset, curSetWidth, curHeight, cardDataPntr, currentMode
+.import windowTop, windowBottom, leftMargin, rightMargin, fontTemp1, fontTemp2
+.import PrvCharWidth, FontTVar1, FontTVar2, FontTVar3, FontTVar4
+.importzp curIndexTable
 
-.include "font_internal.inc"
-
-curIndexTable = k_curIndexTable
-baselineOffset = k_baselineOffset
-curSetWidth = k_curSetWidth
-curHeight = k_curHeight
-cardDataPntr = k_cardDataPntr
-currentMode = k_currentMode
-windowTop = k_windowTop
-windowBottom = k_windowBottom
-leftMargin = k_leftMargin
-rightMargin = k_rightMargin
-
-; GEOS private
-fontTemp1       = k_fontTemp1
-fontTemp2       = k_fontTemp2
-PrvCharWidth    = k_PrvCharWidth
-FontTVar1       = k_FontTVar1
-FontTVar2       = k_FontTVar2
-FontTVar3       = k_FontTVar3
-FontTVar4       = k_FontTVar4
 
 .segment "GRAPH"
 
