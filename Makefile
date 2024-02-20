@@ -26,7 +26,6 @@ BUILD_DIR=build/x16
 CFG_DIR=$(BUILD_DIR)/cfg
 
 KERNAL_CORE_SOURCES = \
-	kernal/65c816.s \
 	kernal/declare.s \
 	kernal/vectors.s \
 	kernal/kbdbuf.s \
@@ -65,6 +64,7 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/i2c.s \
 	kernal/drivers/x16/smc.s \
 	kernal/drivers/x16/rtc.s \
+	kernal/drivers/x16/65c816/interrupt.s \
 	kernal/drivers/generic/softclock_timer.s
 
 KERNAL_SOURCES = \
