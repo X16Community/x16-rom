@@ -22,8 +22,6 @@
 .export GRAPH_set_colors
 .export GRAPH_set_window
 
-ram_bank = 0
-
 .segment "GRAPH"
 
 GRAPH_clear:
