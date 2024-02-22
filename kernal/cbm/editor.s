@@ -134,30 +134,35 @@ verbatim	.res 1
 ;
 ;return max rows,cols of screen
 ;
-scrorg
-	phx
-	phy
-	php
-	.byte $E2, $30 ; sep #$30
-	pha
-	tsx
-	lda $102,x
-	and #4 ; interrupt flag set?
-	beq :+
-	set_carry_if_65c816
-	bcc :+
-	pla
-	plp
-	ply
-	plx
-	jmp c816_irqb
-:   pla
-	plp
-	ply
-	plx
-	ldx llen
-	ldy nlines
-	rts
+scrorg	php
+    set_carry_if_65c816
+    bcc @not_65c816
+
+.pushcpu
+.setcpu "65816"
+
+    pha
+    php
+    sep #$20
+    lda $01,S
+    and #4
+    beq @not_interrupt
+    plp
+    pla
+    plp
+    jmp c816_irqb
+
+@not_interrupt
+    plp
+    pla
+
+.popcpu
+
+@not_65c816
+    plp
+    ldx llen
+    ldy nlines
+    rts
 
 .segment "EDITOR"
 ;
