@@ -90,17 +90,32 @@ setbot	stx memstr
 ;
 ;return address of first 6522
 ;
-iobase
-	pha
-	php
-	pla
-	and #4 ; interrupt flag set?
-	beq :+
-	set_carry_if_65c816
-	bcc :+
-	pla
-	jmp c816_cop_emulated
-:   pla
-	ldx #<via1
-	ldy #>via1
-	rts
+iobase	php
+    set_carry_if_65c816
+    bcc @not_65c816
+
+.pushcpu
+.setcpu "65816"
+
+    pha
+    php
+    sep #$20
+    lda $01,S
+    and #4
+    beq @not_interrupt
+    plp
+    pla
+    plp
+    jmp c816_cop_emulated
+
+@not_interrupt
+    plp
+    pla
+
+.popcpu
+
+@not_65c816
+    plp
+    ldx #<via1
+    ldy #>via1
+    rts
