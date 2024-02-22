@@ -290,6 +290,11 @@ BASLOAD_DEPS= \
 	$(wildcard basload/*.asm) \
 	$(wildcard basload/*.inc)
 
+DIAG_DEPS= \
+	$(GENERIC_DEPS) \
+	$(wildcard diag/*.asm) \
+	$(wildcard diag/*.inc)
+
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
 DOS_OBJS     = $(addprefix $(BUILD_DIR)/, $(DOS_SOURCES:.s=.o))
@@ -318,7 +323,8 @@ BANK_BINS = \
 	$(BUILD_DIR)/util.bin \
 	$(BUILD_DIR)/bannex.bin \
 	$(BUILD_DIR)/x16edit-rom.bin \
-	$(BUILD_DIR)/basload-rom.bin
+	$(BUILD_DIR)/basload-rom.bin \
+	$(BUILD_DIR)/diag-rom.bin
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -342,6 +348,13 @@ basload_update:
 	rsync -av --delete --delete-after --exclude=/customrom.bin basloadtmp/ basload/
 	(cd basload && git rev-parse HEAD > .git-commit && rm -rf .git)
 	rm -rf basloadtmp
+
+diag_update:
+	@rm -rf diagtmp
+	git clone https://github.com/jimmydansbo/memdiagrom.git diagtmp
+	rsync -av --delete --delete-after --exclude=/customrom.bin diagtmp/ diag/
+	(cd diag && git rev-parse HEAD > .git-commit && rm -rf .git)
+	rm -rf diagtmp
 
 clean:
 	rm -f $(GIT_SIGNATURE)
@@ -456,6 +469,12 @@ $(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
+
+# Bank 10: Diag
+$(BUILD_DIR)/diag-rom.bin: $(DIAG_DEPS)
+	@mkdir -p $$(dirname $@)
+	(cd diag && make clean && make)
+	cp diag/diag-rom.bin $(BUILD_DIR)/diag-rom.bin
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
