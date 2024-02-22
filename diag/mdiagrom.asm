@@ -1,4 +1,3 @@
-;.org $C000
 .segment "DIAG"
 
 .include "cx16.inc"

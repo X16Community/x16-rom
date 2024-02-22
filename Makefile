@@ -475,6 +475,7 @@ $(BUILD_DIR)/diag-rom.bin: $(DIAG_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd diag && make clean && make)
 	cp diag/diag-rom.bin $(BUILD_DIR)/diag-rom.bin
+	cp diag/diag-rom.sym $(BUILD_DIR)/diag-rom.sym
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
@@ -487,6 +488,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
+	./scripts/symbolize.sh 10 build/x16/diag-rom.sym >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@

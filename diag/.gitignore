@@ -1,4 +1,3 @@
-x16-rom
-x16-smc
 *.bin
 *.map
+*.sym
