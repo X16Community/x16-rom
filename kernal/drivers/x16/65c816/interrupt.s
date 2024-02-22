@@ -5,6 +5,7 @@
 .import goto_user, reg_a, reg_x, reg_y, softclock_timer_update, scrorg
 .import iecop, ieabort, inirq, inbrk, innmi, incop, inabort
 .import nncop_abort_ret
+.import stack_ptr
 
 .export c816_clall_thunk, c816_abort_emulated, c816_cop_emulated, c816_irqb, c816_getin_thunk
 .export nnirq, nnbrk, nnnmi, nncop, nnabort
@@ -55,10 +56,20 @@ rom_bank = 1
 .macro irq_brk_common_impl addr
 	.A16
 	.I16
+	tsx
 	tsc
-	ldx #$01D0
-	txs            ; set stack pointer to $01D0
-	pha            ; store old stack pointer on new stack
+	and #$FF00
+	cmp #$0100
+	beq :+
+	sep #$20
+	.A8
+	lda #$01
+	xba
+	lda stack_ptr
+	rep #$20
+	.A16
+	tcs
+:	phx            ; store old stack pointer on new stack
 
 	pea __interrupt_65c816_native_ret ; set up CBM IRQ stack frame
 	sec

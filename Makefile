@@ -65,6 +65,7 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/smc.s \
 	kernal/drivers/x16/rtc.s \
 	kernal/drivers/x16/65c816/interrupt.s \
+	kernal/drivers/x16/65c816/stack.s \
 	kernal/drivers/generic/softclock_timer.s
 
 KERNAL_SOURCES = \

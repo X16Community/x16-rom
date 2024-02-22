@@ -25,7 +25,8 @@ KVAR:     start = $0200, size = $00BB; # KERNAL
 /*        start = $02BB, size = $0005; # reserved for KERNAL growth */
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
-KERNRAM:  start = $02C4, size = $0020; # KERNAL RAM code
+KRAMJFAR: start = $02C4, size = $001E; # KERNAL: jsrfar3
+KRAM816S: start = $02E2, size = $0002; # KERNAL: 65C816: old stack pointer
 GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 
 /* $0300-$0333: vectors */

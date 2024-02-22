@@ -7,7 +7,7 @@
 .include "banks.inc"
 .include "io.inc"
 
-.import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
+.import __KRAMJFAR_LOAD__, __KRAMJFAR_RUN__, __KRAMJFAR_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
 .import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
@@ -101,9 +101,9 @@ ramtas:
 ;
 ; copy banking code into RAM
 ;
-	ldx #<__KERNRAM_SIZE__
-:	lda __KERNRAM_LOAD__-1,x
-	sta __KERNRAM_RUN__-1,x
+	ldx #<__KRAMJFAR_SIZE__
+:	lda __KRAMJFAR_LOAD__-1,x
+	sta __KRAMJFAR_RUN__-1,x
 	dex
 	bne :-
 
@@ -240,7 +240,7 @@ jsrfar:
 
 ;/////////////////////   K E R N A L   R A M   C O D E  \\\\\\\\\\\\\\\\\\\\\\\
 
-.segment "KERNRAM"
+.segment "KRAMJFAR"
 .export jmpfr
 .assert * = jsrfar3, error, "jsrfar3 must be at specific address"
 ;jsrfar3:
