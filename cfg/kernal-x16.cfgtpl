@@ -17,6 +17,7 @@ SEGMENTS {
 	I2CMUTEX: 	load = I2CMUTEX, type = bss;
 	KVAR2:      load = KVAR2,    type = bss;
 
+	KRAM816S:   load = KRAM816S, type = bss;
 	GDRVVEC:    load = GDRVVEC,  type = bss;
 	KVECTORS:   load = KVECTORS, type = bss;
 	KEYMAP:     load = KEYMAP,   type = bss;
@@ -66,7 +67,7 @@ SEGMENTS {
 	SPRITES:  load = KERNAL,   type = ro;
 	VERA_DRV: load = KERNAL,   type = ro;
 	PALETTE:  load = KERNAL,   type = ro, align = $100;
-	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
+	KRAMJFAR: load = KERNAL,   run = KRAMJFAR, type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
 	KRAM816:  load = KERNAL,   run = KRAM816,  type = ro, define = yes;
 	KRAM02B:  load = KERNAL,   run = KRAM02B,  type = ro, define = yes;
