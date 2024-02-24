@@ -135,30 +135,30 @@ verbatim	.res 1
 ;return max rows,cols of screen
 ;
 scrorg	php
-    set_carry_if_65c816
-    bcc @not_65c816
+	set_carry_if_65c816
+	bcc @not_65c816
 
 .pushcpu
 .setcpu "65816"
-    sep #$20
+	sep #$20
 	pha
-    lda $02,S
-    and #4
-    beq @not_interrupt
+	lda $02,S
+	and #4
+	beq @not_interrupt
 	pla
-    plp
-    jmp c816_irqb
+	plp
+	jmp c816_irqb
 
 @not_interrupt
-    pla
+	pla
 
 .popcpu
 
 @not_65c816
-    plp
-    ldx llen
-    ldy nlines
-    rts
+	plp
+	ldx llen
+	ldy nlines
+	rts
 
 .segment "EDITOR"
 ;
