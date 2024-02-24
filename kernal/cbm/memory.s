@@ -91,28 +91,28 @@ setbot	stx memstr
 ;return address of first 6522
 ;
 iobase	php
-    set_carry_if_65c816
-    bcc @not_65c816
+	set_carry_if_65c816
+	bcc @not_65c816
 
 .pushcpu
 .setcpu "65816"
 
-    sep #$20
+	sep #$20
 	pha
-    lda $02,S
-    and #4
-    beq @not_interrupt
+	lda $02,S
+	and #4
+	beq @not_interrupt
 	pla
-    plp
-    jmp c816_cop_emulated
+	plp
+	jmp c816_cop_emulated
 
 @not_interrupt
-    pla
+	pla
 
 .popcpu
 
 @not_65c816
-    plp
-    ldx #<via1
-    ldy #>via1
-    rts
+	plp
+	ldx #<via1
+	ldy #>via1
+	rts
