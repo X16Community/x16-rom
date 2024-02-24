@@ -97,19 +97,16 @@ iobase	php
 .pushcpu
 .setcpu "65816"
 
-    pha
-    php
     sep #$20
-    lda $01,S
+	pha
+    lda $02,S
     and #4
     beq @not_interrupt
-    plp
-    pla
+	pla
     plp
     jmp c816_cop_emulated
 
 @not_interrupt
-    plp
     pla
 
 .popcpu
