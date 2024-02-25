@@ -1,3 +1,4 @@
+.export STACK_init
 .export STACK_push
 .export STACK_pop
 .export STACK_enter_kernal_stack
@@ -7,10 +8,18 @@
 .setcpu "65816"
 
 .segment "KRAM816S"
-stack_ptr: .res 1
 stack_counter: .res 1
+stack_ptr: .res 1
+stack_one: .res 1
 
 .segment "MACHINE"
+
+.proc STACK_init
+	lda #$01
+	sta stack_one
+	rts
+.endproc
+
 .A16
 .I16
 
@@ -23,26 +32,26 @@ stack_counter: .res 1
 ;--------------------------------------------------------------
 .proc STACK_push
 	ply
-	lda stack_ptr
-	cmp #$0100
-	bcc @counter_zero
-
-	xba
-	inc
-	xba
+	lda stack_counter
+	beq @counter_zero
 
 	sei
-	sta stack_ptr
+
+	inc
+	sta stack_counter
+
 	tsc
 	txs
 	pha
 	phy
+
 	cli
 	rts
 
 @counter_zero:
 	tsc
-	sta stack_ptr
+	xba
+	sta stack_counter
 	txs
 	phy
 	rts
@@ -50,36 +59,29 @@ stack_counter: .res 1
 
 .proc STACK_pop
 	ply
-	lda stack_ptr
-	cmp #$0200
-	bcc @counter_one
-
-	xba
+	lda stack_counter
 	dec
-	xba
+	bit #$00FF
+	beq @counter_one
 
 	sei
-	sta stack_ptr
+	sta stack_counter
 	pla
 	tcs
 	phy
 	rts
 
 @counter_one:
-	stz stack_ptr
+	stz stack_counter
+	inc
+	xba
 	tcs
 	phy
 	rts
 .endproc
 
 .proc STACK_enter_kernal_stack
-	sep #$20
-	.A8
-	lda #$01
-	xba
 	lda stack_ptr
-	rep #$20
-	.A16
 	jmp STACK_push
 .endproc
 

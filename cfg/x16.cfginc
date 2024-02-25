@@ -21,12 +21,12 @@ ZPMATH:   start = $00A9, size = $002B; # MATH
 ZPBASIC:  start = $00D4, size = $002B; # BASIC (last byte used: $FE)
 
 /* $0200-$02FF: always-available variables and RAM code */
-KVAR:     start = $0200, size = $00BB; # KERNAL
-/*        start = $02BB, size = $0005; # reserved for KERNAL growth */
+KVAR:     start = $0200, size = $0095; # KERNAL
+KRAM816S: start = $0295, size = $0003; # KERNAL: 65C816: old stack pointer
+/*        start = $0298, size = $0028; # reserved for KERNAL growth */
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
 KRAMJFAR: start = $02C4, size = $001E; # KERNAL: jsrfar3
-KRAM816S: start = $02E2, size = $0002; # KERNAL: 65C816: old stack pointer
 GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 
 /* $0300-$0333: vectors */
