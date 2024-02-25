@@ -190,7 +190,7 @@ upload_time:
 @1:	lda 0,x
 	pha
 	inx
-	cpx #9
+	cpx #10
 	bne @1
 
 	jsr clock_get_date_time
@@ -209,7 +209,7 @@ upload_time:
 	.word $c000 + 3 * 16
 	.byte BANK_CBDOS
 
-	ldx #8
+	ldx #9
 @4:	pla
 	sta 0,x
 	dex
