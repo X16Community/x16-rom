@@ -86,7 +86,7 @@ ramtas:
 ;
 ; clear bank 0 VARFONTS
 ;
-.assert __VARFONTS_SIZE__ < 256, error, "KVARSB0 overflow!"
+.assert __VARFONTS_SIZE__ < 256, error, "VARFONTS overflow!"
 	ldx #<__VARFONTS_SIZE__
 :	stz __VARFONTS_LOAD__,x
 	dex
