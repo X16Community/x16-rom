@@ -61,13 +61,7 @@ rom_bank = 1
 	and #$FF00
 	cmp #$0100
 	beq :+
-	sep #$20
-	.A8
-	lda #$01
-	xba
 	lda stack_ptr
-	rep #$20
-	.A16
 	tcs
 :	phx            ; store old stack pointer on new stack
 
