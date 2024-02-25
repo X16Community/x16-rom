@@ -9,6 +9,7 @@
 .import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KVARSB0_LOAD__, __KVARSB0_RUN__, __KVARSB0_SIZE__
+.import __VARFONTS_LOAD__, __VARFONTS_RUN__, __VARFONTS_SIZE__
 .import __VECB0_LOAD__, __VECB0_RUN__, __VECB0_SIZE__
 .import memtop
 .import membot
@@ -79,6 +80,15 @@ ramtas:
 .assert __KVARSB0_SIZE__ < 256, error, "KVARSB0 overflow!"
 	ldx #<__KVARSB0_SIZE__
 :	stz __KVARSB0_LOAD__,x
+	dex
+	bne :-
+
+;
+; clear bank 0 VARFONTS
+;
+.assert __VARFONTS_SIZE__ < 256, error, "KVARSB0 overflow!"
+	ldx #<__VARFONTS_SIZE__
+:	stz __VARFONTS_LOAD__,x
 	dex
 	bne :-
 
