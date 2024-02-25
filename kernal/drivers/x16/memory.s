@@ -23,6 +23,7 @@
 
 .import defcb
 
+.import STACK_init
 .import ieeeswitch_init
 .import __irq_65c816_first
 
@@ -155,6 +156,11 @@ ramtas:
 	.I8
 	sec
 	xce
+
+;
+;	initialize stack management
+;
+	jsr STACK_init
 .popcpu
 
 @vecb0:
