@@ -23,7 +23,7 @@
 
 .import defcb
 
-.import STACK_init
+.import stack_init
 .import ieeeswitch_init
 .import __irq_65c816_first
 
@@ -160,7 +160,7 @@ ramtas:
 ;
 ;	initialize stack management
 ;
-	jsr STACK_init
+	jsr stack_init
 .popcpu
 
 @vecb0:

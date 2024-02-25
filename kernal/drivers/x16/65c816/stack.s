@@ -1,8 +1,8 @@
-.export STACK_init
-.export STACK_push
-.export STACK_pop
-.export STACK_enter_kernal_stack
-.export STACK_leave_kernal_stack
+.export stack_init
+.export stack_push
+.export stack_pop
+.export stack_enter_kernal_stack
+.export stack_leave_kernal_stack
 .export stack_ptr
 
 .setcpu "65816"
@@ -14,7 +14,7 @@ stack_one: .res 1
 
 .segment "MACHINE"
 
-.proc STACK_init
+.proc stack_init
 	lda #$01
 	sta stack_one
 	rts
@@ -24,13 +24,13 @@ stack_one: .res 1
 .I16
 
 ;--------------------------------------------------------------
-; STACK_push
+; stack_push
 ;
 ; Function: 
 ; Flags:    M = 0
 ; Output:   
 ;--------------------------------------------------------------
-.proc STACK_push
+.proc stack_push
 	ply
 	lda stack_counter
 	beq @counter_zero
@@ -57,7 +57,7 @@ stack_one: .res 1
 	rts
 .endproc
 
-.proc STACK_pop
+.proc stack_pop
 	ply
 	lda stack_counter
 	dec
@@ -80,11 +80,11 @@ stack_one: .res 1
 	rts
 .endproc
 
-.proc STACK_enter_kernal_stack
+.proc stack_enter_kernal_stack
 	lda stack_ptr
-	jmp STACK_push
+	jmp stack_push
 .endproc
 
-.proc STACK_leave_kernal_stack
-	jmp STACK_pop
+.proc stack_leave_kernal_stack
+	jmp stack_pop
 .endproc
