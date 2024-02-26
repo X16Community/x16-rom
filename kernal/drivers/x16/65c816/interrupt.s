@@ -1,6 +1,7 @@
 .import iclall, igetin
 .import cbinv, cinv, nminv
 .import __irq, __irq_65c816_saved, __irq_native_ret
+.import key, irq_emulated_impl
 
 .import goto_user, reg_a, reg_x, reg_y, softclock_timer_update, scrorg
 .import iecop, ieabort, inirq, inbrk, innmi, incop, inabort
@@ -9,7 +10,7 @@
 
 .export c816_clall_thunk, c816_abort_emulated, c816_cop_emulated, c816_irqb, c816_getin_thunk
 .export nnirq, nnbrk, nnnmi, nncop, nnabort
-.export __irq_65c816_first
+.export __irq_65c816_first, __interrupt_65c816_native_kernal_impl_ret
 
 rom_bank = 1
 
@@ -53,7 +54,7 @@ rom_bank = 1
 	.I8
 .endmacro
 
-.macro irq_brk_common_impl addr
+.macro irq_brk_common_impl addr, emulated_kernal_vector, emulated_kernal_impl
 	.A16
 	.I16
 	tsx
@@ -65,7 +66,15 @@ rom_bank = 1
 	tcs
 :	phx            ; store old stack pointer on new stack
 
-	pea __interrupt_65c816_native_ret ; set up CBM IRQ stack frame
+.ifnblank emulated_kernal_impl
+	lda addr
+	cmp #emulated_kernal_vector
+	bne :+
+	sep #$30
+	jmp emulated_kernal_impl
+.endif
+
+:	pea __interrupt_65c816_native_ret ; set up CBM IRQ stack frame
 	sec
 	xce            ; enter emulation mode
 	.A8
@@ -142,7 +151,7 @@ __irq_65c816_first:
 	jmp __irq_65c816_saved
 
 nnirq:
-	irq_brk_common_impl cinv
+	irq_brk_common_impl cinv, key, irq_emulated_impl
 
 nnbrk:
 	irq_brk_common_impl cbinv
@@ -150,6 +159,7 @@ nnbrk:
 __interrupt_65c816_native_ret:
 	clc
 	xce            ; exit emulation mode
+__interrupt_65c816_native_kernal_impl_ret:
 	rep #$31       ; 16-bit accumulator, clear carry
 	pla            ; pull old stack pointer
 	tcs            ; restore stack pointer
