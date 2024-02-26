@@ -1,13 +1,9 @@
 .segment "DIAG"
 
 .include "cx16.inc"
-.include "vera0.9.inc"
+.include "io.inc"
 .include "i2c.inc"
 .include "macros.inc"
-
-charset_addr		= $1F000
-screen_addr		= $1B000
-VERA_PALETTE_BASE	= $1FA00
 
 ONESEC			= $1900
 ZP_START_OFFSET		= $02

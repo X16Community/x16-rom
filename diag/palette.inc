@@ -1,6 +1,6 @@
 .ifndef PALETTE_INC
 PALETTE_INC=1
-
+; Borrowed from kernal/drivers/x16/screen.s
 default_palette:
 	.word $0000,$0fff,$0800,$0afe,$0c4c,$00c5,$000a,$0ee7
 	.word $0d85,$0640,$0f77,$0333,$0777,$0af6,$008f,$0bbb

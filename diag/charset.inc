@@ -1,6 +1,6 @@
 .ifndef CHARSET_INC
 CHARSET_INC=1
-; Borrowed from x16-rom/charset/petscii.s
+; Borrowed from charset/petscii.s
 charset:
 .byte %00111100
 .byte %01100110
