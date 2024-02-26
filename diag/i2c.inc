@@ -1,8 +1,8 @@
 .ifndef I2C_INC
 I2C_INC=1 
 
-I2C_KBD_CMD2=$1A	; Not sure what these values are, but taken from
-I2C_KBD_VAL=$ED		; set_caps_led function in kernal ps2kbd.s
+KBD_2BYTE_CMD=$1A	; Send a 2 byte command to the keyboard
+KBD_SET_LEDS_CMD=$ED	; Set LEDs command
 
 pr = VIA1+1
 ddr = VIA1+3
