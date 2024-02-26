@@ -31,8 +31,6 @@
 
 .import savehl
 
-.import romnmi
-
 .include "banks.inc"
 
 	.segment "JMPTBL"
@@ -189,6 +187,6 @@ jiobas	jmp iobase      ;return i/o base
 	.byte "MIST"
 
 	.segment "VECTORS"
-	.word nmi     ;program defineable
-	.word start      ;initialization code
-	.word irq        ;interrupt handler
+	.word nmi	;program defineable
+	.word start	;initialization code
+	.word irq	;interrupt handler

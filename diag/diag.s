@@ -1092,9 +1092,6 @@ continue_original:
 	jmp	continue_original
 do_diag:jmp	diag_start
 
-	;signature
-	.byte "JIDA"
-
 .segment "VECTORS"
 .word	diag_start	;nmi - This will not work as it seems SMC sets ROMBANK to 0 on NMI
 .word	diag_start	;start
