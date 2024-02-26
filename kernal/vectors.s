@@ -189,7 +189,6 @@ jiobas	jmp iobase      ;return i/o base
 	.byte "MIST"
 
 	.segment "VECTORS"
-	.word romnmi     ;program defineable
+	.word nmi     ;program defineable
 	.word start      ;initialization code
 	.word irq        ;interrupt handler
-

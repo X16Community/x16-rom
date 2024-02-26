@@ -3,14 +3,13 @@
 ;----------------------------------------------------------------------
 ; (C)1983 Commodore Business Machines (CBM)
 ; additions: (C)2020 Michael Steil, License: 2-clause BSD
-.include "banks.inc"
 .include "io.inc"
 
 .feature labels_without_colons
 
 .import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore
 
-.export start, romnmi
+.export start
 
 .segment "INIT"
 ; start - system reset
@@ -39,11 +38,3 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 
 	sec
 	jmp enter_basic
-
-romnmi: lda	#16
-	sta	rom_bank
-	nop
-	nop
-	nop
-	nop
-	jmp	nmi
