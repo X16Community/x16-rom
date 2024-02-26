@@ -15,6 +15,8 @@ stack_one: .res 1
 .segment "MACHINE"
 
 .proc stack_init
+	.A8
+	.I8
 	lda #$01
 	sta stack_one
 	rts
@@ -31,6 +33,8 @@ stack_one: .res 1
 ; Output:   
 ;--------------------------------------------------------------
 .proc stack_push
+	.A16
+	.I16
 	ply
 	lda stack_counter
 	beq @counter_zero
@@ -58,6 +62,8 @@ stack_one: .res 1
 .endproc
 
 .proc stack_pop
+	.A16
+	.I16
 	ply
 	lda stack_counter
 	dec
@@ -81,10 +87,14 @@ stack_one: .res 1
 .endproc
 
 .proc stack_enter_kernal_stack
+	.A16
+	.I16
 	lda stack_ptr
 	jmp stack_push
 .endproc
 
 .proc stack_leave_kernal_stack
+	.A16
+	.I16
 	jmp stack_pop
 .endproc
