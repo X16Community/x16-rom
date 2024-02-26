@@ -96,8 +96,8 @@ iobase	php
 
 .pushcpu
 .setcpu "65816"
-
 	sep #$20
+	.A8
 	pha
 	lda $02,S
 	and #4

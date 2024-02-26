@@ -306,6 +306,8 @@ __irq:
 
 .pushcpu
 .setcpu "65816"
+.A8
+.I8
 
 .segment "KRAM816"
 .export __irq_65c816_saved
@@ -429,6 +431,8 @@ __irq_ret:
 .segment "KRAM816B"
 .pushcpu
 .setcpu "65816"
+.A8
+.I8
 
 necop:
 neabort:
