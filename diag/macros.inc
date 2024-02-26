@@ -52,12 +52,7 @@ MACROS_INC=1
 
 ; Pattern must be loaded into .A before call
 .macro FILL_ZP
-;	lda	#pattern
-;	.ifnblank start
-;		ldx	#start
-;	.else
-		ldx	#2
-;	.endif
+	ldx	#2
 :	sta	$0000,x
 	inx
 	bne	:-
@@ -155,7 +150,7 @@ loop:	dey
 .scope
 	; Fill memory with test pattern
 fill:	sta	(mem_ptr),y
-	; Ensure that writing to another bank has not affected address on zeropage
+	; Ensure that writing to another page has not affected address on zeropage
 	cpx	mem_ptr+1		; $01-$9F in this loop
 	beq	:+
 	jmp	catastrophic_error

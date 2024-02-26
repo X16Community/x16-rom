@@ -1,7 +1,7 @@
 .segment "DIAG"
 
-.include "cx16.inc"
 .include "io.inc"
+.include "cx16.inc"
 .include "i2c.inc"
 .include "macros.inc"
 
@@ -1068,7 +1068,9 @@ hex_table:	.byte "0123456789ABCDEF"
 .segment "ROMINIT"
 	bra	:+
 continue_original:
-	stz	$01		; Reset ROM bank to 0
+	stz	$01		; Reset ROM bank to 0 to continue loading normal ROM
+
+	; Ask SMC if system is powered on by a longpress
 :	I2C_READ_BYTE I2C_SMC, 9
 	cpx	#1		; If this byte is set to 1
 	beq	do_diag		; poweron has been done with a long-press
@@ -1079,6 +1081,6 @@ do_diag:jmp	start
 	.byte "JIDA"
 
 .segment "VECTORS"
-.word	start	;nmi
+.word	start	;nmi - This will not work as it seems SMC sets ROMBANK to 0 on NMI
 .word	start	;start
 .word	$0000	;irq
