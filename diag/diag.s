@@ -1,7 +1,7 @@
 .segment "DIAG"
 
 .include "io.inc"
-.include "cx16.inc"
+.include "regs.inc"
 .include "i2c.inc"
 .include "macros.inc"
 
@@ -9,6 +9,17 @@ ONESEC			= $1900
 ZP_START_OFFSET		= $02
 START_OFFSET		= $00
 END_OFFSET		= $FF
+
+RAM_BANK_START		= $A000
+RAM_BANK_SIZE		= $2000
+
+BLACK			= $00
+WHITE			= $01
+RED			= $02
+BLUE			= $06
+
+I2C_SMC			= $42
+SMC_activity_led	= $05
 
 TESTUP			= 0
 TESTDOWN		= 1
@@ -19,22 +30,22 @@ MAX_ERR_Y		= $B0+48
 str_ptr			= r0
 mem_ptr			= r1
 num			= r2
-numbanks		= r4l
-num_x			= r4h
-x_cord			= r5l
-y_cord			= r5h
-err_x			= r6l
-err_y			= r6h
+numbanks		= r4L
+num_x			= r4H
+x_cord			= r5L
+y_cord			= r5H
+err_x			= r6L
+err_y			= r6H
 
-err_pattern		= r7l
-err_low_addr		= r7h
-err_test_type		= r8l
+err_pattern		= r7L
+err_low_addr		= r7H
+err_test_type		= r8L
 
 pass_num		= r9
 
-color			= r10l
-testnum			= r10h
-currpattern		= r11l
+color			= r10L
+testnum			= r10H
+currpattern		= r11L
 
 start:
 	sei	; Disable interrupts, we don't have anything handling them
@@ -343,7 +354,7 @@ handle_error:
 	PRINTSTR err_no_bank, ((BLACK<<4)|WHITE)
 	bra	@do_address
 @rambank:
-	lda	RAM_BANK
+	lda	ram_bank
 	jsr	byte2hex
 	PRINTSTR num, ((BLACK<<4)|WHITE)
 	lda	#$3A			; :
@@ -533,7 +544,7 @@ testbase:
 
 ; Fill all available memory banks with a specific testpattern
 fillbanks:
-	stz	RAM_BANK
+	stz	ram_bank
 	ldx	#<RAM_BANK_START
 	stx	mem_ptr
 @memloop:
@@ -548,11 +559,11 @@ fillbanks:
 	stx	mem_ptr+1
 	cpx	#>(RAM_BANK_START+RAM_BANK_SIZE)
 	bne	@pageloop
-	ldy	RAM_BANK
+	ldy	ram_bank
 	cpy	numbanks
 	beq	:+
 	iny
-	sty	RAM_BANK
+	sty	ram_bank
 	pha
 	tya
 	jsr	printnum
@@ -562,7 +573,7 @@ fillbanks:
 
 ; Do an ascending test&invert of all available memory banks
 up_test:
-	stz	RAM_BANK
+	stz	ram_bank
 	ldx	#<RAM_BANK_START
 	stx	mem_ptr
 @memloop:
@@ -584,11 +595,11 @@ up_test:
 	stx	mem_ptr+1
 	cpx	#>(RAM_BANK_START+RAM_BANK_SIZE)
 	bne	@pageloop
-	ldy	RAM_BANK
+	ldy	ram_bank
 	cpy	numbanks
 	beq	:+
 	iny
-	sty	RAM_BANK
+	sty	ram_bank
 	pha
 	tya
 	jsr	printnum
@@ -600,7 +611,7 @@ up_test:
 down_test:
 	pha
 	lda	numbanks
-	sta	RAM_BANK
+	sta	ram_bank
 	jsr	printnum
 	pla
 	ldx	#<(RAM_BANK_START+RAM_BANK_SIZE)
@@ -625,11 +636,11 @@ down_test:
 	stx	mem_ptr+1
 	cpx	#>RAM_BANK_START-1
 	bne	@pageloop
-	ldy	RAM_BANK
+	ldy	ram_bank
 	cpy	#0
 	beq	:+
 	dey
-	sty	RAM_BANK
+	sty	ram_bank
 	pha
 	tya
 	jsr	printnum
@@ -639,7 +650,7 @@ down_test:
 
 ; Test all available memory banks with specific pattern
 testbanks:
-	stz	RAM_BANK
+	stz	ram_bank
 	ldx	#<RAM_BANK_START
 	stx	mem_ptr
 @memloop:
@@ -658,11 +669,11 @@ testbanks:
 	stx	mem_ptr+1
 	cpx	#>(RAM_BANK_START+RAM_BANK_SIZE)
 	bne	@pageloop
-	ldy	RAM_BANK
+	ldy	ram_bank
 	cpy	numbanks
 	beq	:+
 	iny
-	sty	RAM_BANK
+	sty	ram_bank
 	pha
 	tya
 	jsr	printnum
@@ -704,31 +715,31 @@ detectbanks:
 ;
 ; detect number of RAM banks
 ; 
-	stz	RAM_BANK
+	stz	ram_bank
 	lda	RAM_BANK_START	;get value from 00:a000
 	eor	#$FF		;use inverted value as test value for other banks
 	tax
 
 	ldy	#1		;bank to test
-:	sty 	RAM_BANK
+:	sty 	ram_bank
 	lda	RAM_BANK_START	;save current value
 	stx	RAM_BANK_START	;write test value
-	stz	RAM_BANK
+	stz	ram_bank
 	cpx	RAM_BANK_START	;check if 00:a000 is affected = wrap-around
 	beq	@memtest2
-	sty	RAM_BANK
+	sty	ram_bank
 	sta	RAM_BANK_START	;restore value
 	iny			;next bank
 	bne	:-
 
 @memtest2:
-	stz	RAM_BANK	;restore value in 00:a000
+	stz	ram_bank	;restore value in 00:a000
 	txa
 	eor	#$FF
 	sta	RAM_BANK_START
 
 	ldx #1			;start testing from bank 1
-	stx	RAM_BANK
+	stx	ram_bank
 :	ldx	#8		;test 8 addresses in each bank
 :	lda	RAM_BANK_START,x;read, xor, write, compare
 	eor	#$FF
@@ -739,11 +750,11 @@ detectbanks:
 	sta	RAM_BANK_START,x
 	dex			;test next address
 	bne	:-
-	inc	RAM_BANK	;select next ank
-	cpy	RAM_BANK	;stop at last bank that does not wrap-around to bank0
+	inc	ram_bank	;select next ank
+	cpy	ram_bank	;stop at last bank that does not wrap-around to bank0
 	bne	:--
 @test_done:
-	lda	RAM_BANK	;number of RAM banks
+	lda	ram_bank	;number of RAM banks
 	dec
 	rts
 
@@ -1002,7 +1013,7 @@ done:	; Turn activity LED off
 catastrophic_error:
 .scope
 	lda	#24		; 24 loops is approximately 60 seconds
-	sta	RAM_BANK	; RAM_BANK is just used as storage here...
+	sta	ram_bank	; RAM_BANK is just used as storage here...
 loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 	DELAY	ONESEC/2
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
@@ -1015,7 +1026,7 @@ loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 	DELAY	ONESEC/2
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
 	DELAY	ONESEC
-	dec	RAM_BANK
+	dec	ram_bank
 	beq	:+
 	jmp	loop
 	; Switch between VGA & Composit/S-Video output approximately

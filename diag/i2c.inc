@@ -4,8 +4,8 @@ I2C_INC=1
 KBD_2BYTE_CMD=$1A	; Send a 2 byte command to the keyboard
 KBD_SET_LEDS_CMD=$ED	; Set LEDs command
 
-pr = VIA1+1
-ddr = VIA1+3
+pr = via1+1
+ddr = via1+3
 
 SDA = (1 << 0)
 SCL = (1 << 1)
