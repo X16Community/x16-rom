@@ -298,8 +298,6 @@ DIAG_DEPS= \
 	diag/i2c.inc \
 	diag/macros.inc \
 	diag/charset.inc \
-	diag/palette.inc \
-	diag/cx16.inc
 
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
