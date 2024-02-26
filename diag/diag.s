@@ -13,24 +13,28 @@ END_OFFSET		= $FF
 RAM_BANK_START		= $A000
 RAM_BANK_SIZE		= $2000
 
-BLACK			= $00
+BLACK			= $00		; Colors used in Diag ROM
 WHITE			= $01
 RED			= $02
 BLUE			= $06
 
-I2C_SMC			= $42
-SMC_activity_led	= $05
+I2C_SMC			= $42		; I2C address of SMC
+SMC_activity_led	= $05		; Offset of activity LED in SMC
 
-TESTUP			= 0
+TESTUP			= 0		; Test types
 TESTDOWN		= 1
 TESTONLY		= 2
-MAX_ERR_X		= $80
+
+; Maximum coordinates for writing error messages. If these are hit,
+; there is no more room on the screen to write error messages.
+MAX_ERR_X		= $80		
 MAX_ERR_Y		= $B0+48
 
-str_ptr			= r0
-mem_ptr			= r1
-num			= r2
-numbanks		= r4L
+; Variables
+str_ptr			= r0		; Pointer used for printing strings
+mem_ptr			= r1		; Pointer used for testing memory
+num			= r2		; String buffer for byte2hex conversion
+numbanks		= r4L		
 num_x			= r4H
 x_cord			= r5L
 y_cord			= r5H
@@ -41,13 +45,13 @@ err_pattern		= r7L
 err_low_addr		= r7H
 err_test_type		= r8L
 
-pass_num		= r9
+pass_num		= r9		; 16bit test-pass counter
 
 color			= r10L
 testnum			= r10H
 currpattern		= r11L
 
-start:
+diag_start:
 	sei	; Disable interrupts, we don't have anything handling them
 	jmp	basemem_test
 basemem_ret:
@@ -1086,12 +1090,12 @@ continue_original:
 	cpx	#1		; If this byte is set to 1
 	beq	do_diag		; poweron has been done with a long-press
 	jmp	continue_original
-do_diag:jmp	start
+do_diag:jmp	diag_start
 
 	;signature
 	.byte "JIDA"
 
 .segment "VECTORS"
-.word	start	;nmi - This will not work as it seems SMC sets ROMBANK to 0 on NMI
-.word	start	;start
-.word	$0000	;irq
+.word	diag_start	;nmi - This will not work as it seems SMC sets ROMBANK to 0 on NMI
+.word	diag_start	;start
+.word	$0000		;irq
