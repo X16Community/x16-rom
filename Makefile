@@ -192,6 +192,9 @@ BANNEX_SOURCES= \
 	bannex/sprite.s \
 	bannex/basload.s
 
+DIAG_SOURCES = \
+	diag/diag.s
+
 GENERIC_DEPS = \
 	inc/kernal.inc \
 	inc/mac.inc \
@@ -292,8 +295,12 @@ BASLOAD_DEPS= \
 
 DIAG_DEPS= \
 	$(GENERIC_DEPS) \
-	$(wildcard diag/*.asm) \
-	$(wildcard diag/*.inc)
+	diag/i2c.inc \
+	diag/macros.inc \
+	diag/charset.inc \
+	diag/palette.inc \
+	diag/cx16.inc \
+	diag/vera0.9.inc
 
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
@@ -307,6 +314,7 @@ DEMO_OBJS    = $(addprefix $(BUILD_DIR)/, $(DEMO_SOURCES:.s=.o))
 AUDIO_OBJS   = $(addprefix $(BUILD_DIR)/, $(AUDIO_SOURCES:.s=.o))
 UTIL_OBJS    = $(addprefix $(BUILD_DIR)/, $(UTIL_SOURCES:.s=.o))
 BANNEX_OBJS  = $(addprefix $(BUILD_DIR)/, $(BANNEX_SOURCES:.s=.o))
+DIAG_OBJS    = $(addprefix $(BUILD_DIR)/, $(DIAG_SOURCES:.s=.o))
 
 BANK_BINS = \
 	$(BUILD_DIR)/kernal.bin \
@@ -324,7 +332,7 @@ BANK_BINS = \
 	$(BUILD_DIR)/bannex.bin \
 	$(BUILD_DIR)/x16edit-rom.bin \
 	$(BUILD_DIR)/basload-rom.bin \
-	$(BUILD_DIR)/diag-rom.bin
+	$(BUILD_DIR)/diag.bin \
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -348,13 +356,6 @@ basload_update:
 	rsync -av --delete --delete-after --exclude=/customrom.bin basloadtmp/ basload/
 	(cd basload && git rev-parse HEAD > .git-commit && rm -rf .git)
 	rm -rf basloadtmp
-
-diag_update:
-	@rm -rf diagtmp
-	git clone https://github.com/jimmydansbo/memdiagrom.git diagtmp
-	rsync -av --delete --delete-after --exclude=/customrom.bin diagtmp/ diag/
-	(cd diag && git rev-parse HEAD > .git-commit && rm -rf .git)
-	rm -rf diagtmp
 
 clean:
 	rm -f $(GIT_SIGNATURE)
@@ -470,12 +471,11 @@ $(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
 	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
 
-# Bank 10: Diag
-$(BUILD_DIR)/diag-rom.bin: $(DIAG_DEPS)
+# Bank 10: Memory diagnostic
+$(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
 	@mkdir -p $$(dirname $@)
-	(cd diag && make clean && make)
-	cp diag/diag-rom.bin $(BUILD_DIR)/diag-rom.bin
-	cp diag/diag-rom.sym $(BUILD_DIR)/diag-rom.sym
+	$(LD) -C $(CFG_DIR)/diag-x16.cfg $(DIAG_OBJS) -o $@ -m $(BUILD_DIR)/diag.map -Ln $(BUILD_DIR)/diag.sym
+	./scripts/relist.py $(BUILD_DIR)/diag.map $(BUILD_DIR)/diag
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
@@ -488,7 +488,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
-	./scripts/symbolize.sh 10 build/x16/diag-rom.sym >> $@
+	./scripts/symbolize.sh 10 build/x16/diag.sym   >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
@@ -499,3 +499,4 @@ $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@
 	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`  >> $@
+	./scripts/trace_lst.py 10 `find build/x16/diag/ -name \*.rlst`   >> $@

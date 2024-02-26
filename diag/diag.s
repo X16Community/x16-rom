@@ -36,7 +36,9 @@ err_test_type		= r8l
 
 pass_num		= r9
 
-col			= r10l
+color			= r10l
+testnum			= r10h
+currpattern		= r11l
 
 start:
 	sei	; Disable interrupts, we don't have anything handling them
@@ -56,7 +58,7 @@ basemem_ret:
 	stz	pass_num+1
 
 	lda	#((BLUE<<4)|WHITE);Initialize standard color
-	sta	col
+	sta	color
 
 	lda	#0		; Turn all keyboard LEDs off
 	jsr	kbdwrite
@@ -75,242 +77,79 @@ basemem_ret:
 	PRINTSTR num
 
 test_start:
-	ldx	#26
-	stx	num_x
+	ldx	#26			; The bank number being tested is printed
+	stx	num_x			; at X coordinate 26
+	lda	#8			; First line of text is at 1, 8
+	sta	y_cord
 	lda	#1
-	jsr	kbdwrite
-	;00000000
-	GOTOXY #1, #8
-	PRINTSTR fill_pattern
-	PRINTSTR first_pattern
-	lda	#%00000000
-	jsr	fillbanks
+	sta	x_cord
 
+	; Test of banked memory
+	sta	testnum
+	lda	#%00000000		; Test pattern
+	jsr	testpattern
+	inc	y_cord			; Extra line between each test pattern
 	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR first_pattern
-	lda	#%00000000
-	jsr	up_test
 
+	inc	testnum
+	lda	#%01010101		; Test pattern
+	jsr	testpattern
+	inc	y_cord			; Extra line between each test pattern
 	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR first_invert
-	lda	#%11111111
-	jsr	up_test
 
+	inc	testnum
+	lda	#%00110011		; Test pattern
+	jsr	testpattern
+	inc	y_cord			; Extra line between each test pattern
 	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR first_pattern
-	lda	#%00000000
-	jsr	down_test
 
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR first_invert
-	lda	#%11111111
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_final
-	PRINTSTR first_pattern
-	lda	#%00000000
-	jsr	testbanks
-
-	lda	#2
-	jsr	kbdwrite
-	;01010101
-	inc	y_cord
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR fill_pattern
-	PRINTSTR second_pattern
-	lda	#%01010101
-	jsr	fillbanks
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR second_pattern
-	lda	#%01010101
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR second_invert
-	lda	#%10101010
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR second_pattern
-	lda	#%01010101
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR second_invert
-	lda	#%10101010
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_final
-	PRINTSTR second_pattern
-	lda	#%01010101
-	jsr	testbanks
-
-	lda	#3
-	jsr	kbdwrite
-	;00110011
-	inc	y_cord
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR fill_pattern
-	PRINTSTR third_pattern
-	lda	#%00110011
-	jsr	fillbanks
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR third_pattern
-	lda	#%00110011
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR third_invert
-	lda	#%11001100
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR third_pattern
-	lda	#%00110011
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR third_invert
-	lda	#%11001100
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_final
-	PRINTSTR third_pattern
-	lda	#%00110011
-	jsr	testbanks
-
-	lda	#4
-	jsr	kbdwrite
-	;00001111
-	inc	y_cord
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR fill_pattern
-	PRINTSTR fourth_pattern
-	lda	#%00001111
-	jsr	fillbanks
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR fourth_pattern
-	lda	#%00001111
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_up
-	PRINTSTR fourth_invert
-	lda	#%11110000
-	jsr	up_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR fourth_pattern
-	lda	#%00001111
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_dn
-	PRINTSTR fourth_invert
-	lda	#%11110000
-	jsr	down_test
-
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR test_final
-	PRINTSTR fourth_pattern
-	lda	#%00001111
-	jsr	testbanks
+	inc	testnum
+	lda	#%00001111		; Test pattern
+	jsr	testpattern
 
 	lda	#5
 	jsr	kbdwrite
 	inc	y_cord
 	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR low_ram
-	PRINTSTR first_pattern
-	lda	#$2F		; /
-	sta	VERA_DATA0
-	inc	VERA_ADDR_L
-	PRINTSTR first_invert
 	lda	#%00000000
-	jsr	testbase
-
-	inc	y_cord
+	sta	currpattern
+	; Test of base memory
+btest:
 	GOTOXY x_cord, y_cord
 	PRINTSTR low_ram
-	PRINTSTR second_pattern
+	lda	currpattern
+	jsr	printpat
 	lda	#$2F		; /
 	sta	VERA_DATA0
 	inc	VERA_ADDR_L
-	PRINTSTR second_pattern
-	lda	#%01010101
+	lda	currpattern
+	eor	#$FF
+	jsr	printpat
+	lda	currpattern
 	jsr	testbase
-
 	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR low_ram
-	PRINTSTR third_pattern
-	lda	#$2F		; /
-	sta	VERA_DATA0
-	inc	VERA_ADDR_L
-	PRINTSTR third_invert
-	lda	#%00110011
-	jsr	testbase
+	lda	currpattern
+	cmp	#$00
+	bne	:+
+	lda	#$55
+	sta	currpattern
+	bra	btest
+:	cmp	#$55
+	bne	:+
+	lda	#$33
+	sta	currpattern
+	bra	btest
+:	cmp	#$33
+	bne	:+
+	lda	#$0F
+	sta	currpattern
+	bra	btest
 
-	inc	y_cord
-	GOTOXY x_cord, y_cord
-	PRINTSTR low_ram
-	PRINTSTR fourth_pattern
-	lda	#$2F		; /
-	sta	VERA_DATA0
-	inc	VERA_ADDR_L
-	PRINTSTR fourth_invert
-	lda	#%00001111
-	jsr	testbase
-
-	lda	#7
+:	lda	#7			; Show that tests are done
 	jsr	kbdwrite
 	jsr	show_pass_done
 
-	inc	pass_num
+	inc	pass_num		; Update number of passes
 	bne	:+
 	inc	pass_num+1
 :	GOTOXY	#58, #4
@@ -336,16 +175,130 @@ test_start:
 
 	jmp	test_start
 
-; .A = code to show on LEDs in binary
-kbdwrite:
-	pha
-	I2C_WRITE_FIRST_BYTE I2C_KBD_VAL, I2C_SMC, I2C_KBD_CMD2
-	plx
-	lda	kbd_bin_tbl,x
-	I2C_WRITE
-	I2C_STOP
+; Print the pattern currently in .A register
+printpat:
+	cmp	#$00
+	bne	:+
+	jmp	print1stpat	;00000000
+:	cmp	#$FF
+	bne	:+
+	jmp	print1stinv	;11111111
+:	cmp	#$55
+	bne	:+
+	jmp	print2ndpat	;01010101
+:	cmp	#$AA
+	bne	:+
+	jmp	print2ndinv	;10101010
+:	cmp	#$33
+	bne	:+
+	jmp	print3rdpat	;00110011
+:	cmp	#$CC
+	bne	:+
+	jmp	print3rdinv	;11001100
+:	cmp	#$0F
+	bne	:+
+	jmp	print4thpat	;00001111
+:	jmp	print4thinv	;11110000
+print1stpat:
+	PRINTSTR first_pattern
+	rts
+print1stinv:
+	PRINTSTR first_invert
+	rts
+print2ndpat:
+	PRINTSTR second_pattern
+	rts
+print2ndinv:
+	PRINTSTR second_invert
+	rts
+print3rdpat:
+	PRINTSTR third_pattern
+	rts
+print3rdinv:
+	PRINTSTR third_invert
+	rts
+print4thpat:
+	PRINTSTR fourth_pattern
+	rts
+print4thinv:
+	PRINTSTR fourth_invert
 	rts
 
+; Test all memory banks with a specific pattern
+testpattern:
+	sta	currpattern		; Save the pattern for later use
+	lda	testnum			; Show the test number on keyboard LEDs
+	jsr	kbdwrite
+	GOTOXY	x_cord, y_cord
+	PRINTSTR fill_pattern		; Print that banks are being filled
+	lda	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jsr	fillbanks		; Fill banks with current pattern
+
+	inc	y_cord
+	GOTOXY	x_cord, y_cord
+	PRINTSTR test_up		; Print that test is done ascending
+	lda	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jsr	up_test			; Test&invert the banks ascending
+
+	inc	y_cord
+	GOTOXY	x_cord, y_cord
+	PRINTSTR test_up		; Print that test is done ascending
+	lda	currpattern
+	eor	#$FF			; Invert pattern
+	sta	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jsr	up_test			; Test&invert the banks ascending
+
+	inc	y_cord
+	GOTOXY	x_cord, y_cord
+	PRINTSTR test_dn		; Print that test is done descending
+	lda	currpattern
+	eor	#$FF			; Invert pattern
+	sta	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jsr	down_test		; Test&invert the banks descending
+
+	inc	y_cord
+	GOTOXY	x_cord, y_cord
+	PRINTSTR test_dn		; Print that test is done descending
+	lda	currpattern
+	eor	#$FF			; Invert pattern
+	sta	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jsr	down_test		; Test&invert the banks descending
+
+	inc	y_cord
+	GOTOXY	x_cord, y_cord
+	PRINTSTR test_final		; Print that this is final test
+	lda	currpattern
+	eor	#$FF			; Invert pattern
+	sta	currpattern
+	jsr	printpat		; Print the current pattern
+	lda	currpattern
+	jmp	testbanks		; Test the banks
+
+; .A = code to show on LEDs in binary
+kbdwrite:
+	pha		; Store binary code on stack
+	; Tell SMC that we are sending a command to the keyboard
+	; and that we want to set the keyboard LEDs
+	I2C_WRITE_FIRST_BYTE KBD_SET_LEDS_CMD, I2C_SMC, KBD_2BYTE_CMD
+	plx		; Retrieve binary code from stack
+	; The LEDs on the keyboard do not line up with a binary number
+	; kbd_bin_tbl ensures that the number in .X is shown correctly
+	lda	kbd_bin_tbl,x
+	jsr	i2c_write
+	jsr	i2c_stop
+	rts
+
+; Blink the activity light 5 times to show that a pass is completed
 show_pass_done:
 	ldx	#5
 	lda	#$FF
@@ -367,6 +320,7 @@ show_pass_done:
 	jsr	i2c_write_b
 	rts
 
+; Delay for approximately 1 second
 delayone:
 	DELAY ONESEC
 	rts
@@ -446,11 +400,13 @@ handle_error:
 	ldy	err_low_addr		; X register restored by caller
 	rts
 
+; Write on screen that tests have stopped
 print_test_stop:
 	GOTOXY #12, #49
 	PRINTSTR test_stop, ((BLACK<<4)|RED)
 	rts
 
+; Fill basememory pages above stack page with a specific pattern
 fillpages:
 	ldx	#<$0200		; Store initial base address to ZP
 	stx	mem_ptr
@@ -474,6 +430,7 @@ fillpages:
 	bra	@memloop
 :	rts
 
+; Do ascending test&invert of basemem pages above stack page 
 page_up:
 	ldx	#<$0200		; Store initial base address to ZP
 	stx	mem_ptr
@@ -504,6 +461,7 @@ page_up:
 	bra	@memloop
 :	rts
 
+; Do descending test&invert of basemem pages above stack page
 page_down:
 	ldx	#<$9E00
 	stx	mem_ptr
@@ -535,6 +493,7 @@ page_down:
 	bra	@memloop
 :	rts
 
+; Test pattern of base memory pages above stack page
 testpages:
 	ldx	#<$0200		; Store initial base address to ZP
 	stx	mem_ptr
@@ -561,7 +520,8 @@ testpages:
 	stx	mem_ptr+1		; Save new page
 	bra	@memloop
 :	rts
-	
+
+; Do a complete test of base memory
 testbase:
 	jsr	fillpages
 	jsr	page_up
@@ -575,6 +535,7 @@ testbase:
 	jsr	testpages
 	rts
 
+; Fill all available memory banks with a specific testpattern
 fillbanks:
 	stz	RAM_BANK
 	ldx	#<RAM_BANK_START
@@ -603,6 +564,7 @@ fillbanks:
 	bra	@memloop
 :	rts
 
+; Do an ascending test&invert of all available memory banks
 up_test:
 	stz	RAM_BANK
 	ldx	#<RAM_BANK_START
@@ -638,6 +600,7 @@ up_test:
 	bra	@memloop
 :	rts
 
+; Do a descending test&invert of all available memory banks
 down_test:
 	pha
 	lda	numbanks
@@ -678,6 +641,7 @@ down_test:
 	bra	@memloop
 :	rts
 
+; Test all available memory banks with specific pattern
 testbanks:
 	stz	RAM_BANK
 	ldx	#<RAM_BANK_START
@@ -709,7 +673,8 @@ testbanks:
 	pla
 	bra	@memloop
 :	rts
-	
+
+; Convert the byte in .A into a hex in the num string
 byte2hex:
 	ldy	#0
 	pha
@@ -731,12 +696,14 @@ byte2hex:
 	sta	num,y
 	rts
 
+; Print the number in .A as a hexadecimal number at num_x, y_cord coordinates
 printnum:
 	jsr	byte2hex
 	GOTOXY num_x, y_cord
 	PRINTSTR num
 	rts
 
+; "Borrowed" from official ROM
 detectbanks:
 ;
 ; detect number of RAM banks
@@ -784,6 +751,7 @@ detectbanks:
 	dec
 	rts
 
+; Convert X, Y coordinates to VERA address
 gotoxy:
 	txa
 	asl
@@ -794,6 +762,7 @@ gotoxy:
 	sta	VERA_ADDR_M
 	rts
 
+; Print a string, pointed to by str_ptr
 printstr:
 	ldy	#0			; Use .Y as index into string
 @loop:	lda	(str_ptr),y
@@ -819,28 +788,7 @@ vera_wait_ready:
 	bne	vera_wait_ready
 	rts
 
-upload_default_palette:
-	stz	VERA_CTRL
-	lda	#<VERA_PALETTE_BASE
-	sta	VERA_ADDR_L
-	lda	#>VERA_PALETTE_BASE
-	sta	VERA_ADDR_M
-	lda	#(^VERA_PALETTE_BASE) | $10
-	sta	VERA_ADDR_H
-
-	ldx #0
-@loop1:
-	lda default_palette,x
-	sta VERA_DATA0
-	inx
-	bne @loop1
-@loop2:
-	lda default_palette+256,x
-	sta VERA_DATA0
-	inx
-	bne @loop2
-	rts
-
+; Copy character set to VERA
 screen_set_charset:
 	lda	#<charset_addr
 	sta	VERA_ADDR_L
@@ -853,8 +801,8 @@ screen_set_charset:
 	sta	mem_ptr
 	lda	#>charset
 	sta	mem_ptr+1
-	ldx	#8
-	ldy	#0
+	ldx	#2			; 64 charactes * 8 bytes = 512 bytes
+	ldy	#0			; = 2 * 256
 :	lda	(mem_ptr),y
 	sta	VERA_DATA0
 	iny
@@ -864,13 +812,13 @@ screen_set_charset:
 	bne	:-
 	rts
 
+; Initialize VERA
 vera_init:
 	jsr	vera_wait_ready
 	lda	#1
 	sta	VERA_IEN
 	stz	VERA_CTRL
 	jsr	screen_set_charset
-	jsr	upload_default_palette
 
 	; Layer 1 configuration
 	lda	#%01100000		; Map Height = 01b = 64 tiles
@@ -910,8 +858,8 @@ vera_init:
 	sta	VERA_ADDR_M
 	stz	VERA_ADDR_L
 	; Clear the screen with black background
-	ldx	#80
-	ldy	#60
+	ldx	#64
+	ldy	#51
 	
 clrscr:	phx
 @loop:	lda	#$20			; Space character
@@ -953,17 +901,17 @@ i2c_write_b:
 	I2C_START
 	pla			; address from stack 
 	asl
-	I2C_WRITE
+	jsr	i2c_write
 	bcc	:+
 	jmp	error
 :	pla			; offset from stack
-	I2C_WRITE
+	jsr	i2c_write
 	pla			; value from stack
-	I2C_WRITE
-	I2C_STOP
+	jsr	i2c_write
+	jsr	i2c_stop
 	clc
 	bra	end
-error:	sec
+error:	sec			; Ensure stack is cleared on error
 	pla
 	pla
 end:	pla			; Restore registers from stack
@@ -972,91 +920,93 @@ end:	pla			; Restore registers from stack
 	rts
 .endscope
 
+i2c_write:
+	I2C_WRITE
+	rts
+
+i2c_stop:
+	I2C_STOP
+	rts
+
 ; !!!!!!!!!!!!!!!! NO STACK USAGE IN BELOW CODE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 basemem_test:
 	; Turn Activity light on
 	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 	; Test zero-page
-	FILLPAGE $0000, $00, $02
-	TEST_PAGE_UP $0000, $00, $02, catastrophic_error
-	TEST_PAGE_UP $0000, $FF, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $00, $FF, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $FF, $FF, $02, catastrophic_error
-	TEST_PAGE $0000, $00, $02, catastrophic_error
-	FILLPAGE $0000, $55, $02
-	TEST_PAGE_UP $0000, $55, $02, catastrophic_error
-	TEST_PAGE_UP $0000, $AA, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $55, $FF, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $AA, $FF, $02, catastrophic_error
-	TEST_PAGE $0000, $55, $02, catastrophic_error
-	FILLPAGE $0000, $33, $02
-	TEST_PAGE_UP $0000, $33, $02, catastrophic_error
-	TEST_PAGE_UP $0000, $CC, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $33, $FF, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $CC, $FF, $02, catastrophic_error
-	TEST_PAGE $0000, $33, $02, catastrophic_error
-	FILLPAGE $0000, $0F, $02
-	TEST_PAGE_UP $0000, $0F, $02, catastrophic_error
-	TEST_PAGE_UP $0000, $F0, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $0F, $FF, $02, catastrophic_error
-	TEST_PAGE_DN $0000, $F0, $FF, $02, catastrophic_error
-	TEST_PAGE $0000, $0F, $02, catastrophic_error
+	lda	#$00
+@zptest:
+	FILL_ZP
+	TEST_ZP_UP catastrophic_error
+	eor	#$FF
+	TEST_ZP_UP catastrophic_error
+	eor	#$FF
+	TEST_ZP_DN catastrophic_error
+	eor	#$FF
+	TEST_ZP_DN catastrophic_error
+	eor	#$FF
+	TEST_ZP catastrophic_error
+	cmp	#$00
+	beq	@set55
+	cmp	#$55
+	beq	@set33
+	cmp	#$33
+	beq	@set0f
+	bra	@continue
+@set55:	lda	#$55
+	jmp	@zptest
+@set33:	lda	#$33
+	jmp	@zptest
+@set0f:	lda	#$0F
+	jmp	@zptest
+@continue:
 	; zero-page seems to be alright in it self
 
 	; Turn Activity LED off
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
-	; Test base memory 00000000
+
+	; Test base memory
+	lda	#%00000000
+basetest:
 	ldx	#$01	; Store address $0100 to ZP
 	ldy	#$00
 	sty	mem_ptr
 	stx	mem_ptr+1
-	; Compare the written values to ensure they are correct
-	cpy	mem_ptr
-	beq	:+
-	jmp	catastrophic_error
-:	cpx	mem_ptr+1
-	beq	:+
-	jmp	catastrophic_error
-:	TESTMEM %00000000
-
+	TESTMEM
+	cmp	#$00
+	beq	base55
+	cmp	#$55
+	bne	:+
+	jmp	base33
+:	cmp	#$33
+	bne	:+
+	jmp	base0f
+:	jmp	done
+base55:
 	; Turn activity LED on
 	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
-	; Test base memory 01010101
-	; Reset zero-page pointer to $0100
-	ldx	#$01
-	stx	mem_ptr+1
-	ldy	#$00
-	TESTMEM %01010101
-
+	lda	#$55
+	jmp	basetest
+base33:
 	; Turn activity LED off
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
-	; Test base memory 00110011
-	; Reset zero-page pointer to $0100
-	ldx	#$01
-	stx	mem_ptr+1
-	ldy	#$00
-	TESTMEM %00110011
-
+	lda	#$33
+	jmp	basetest
+base0f:
 	; Turn activity LED on
 	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
-	; Test base memory 00001111
-	; Reset zero-page pointer to $0100
-	ldx	#$01
-	stx	mem_ptr+1
-	ldy	#$00
-	TESTMEM %00001111
+	lda	#$0F
+	jmp	basetest
 
-	; Turn activity LED off
+done:	; Turn activity LED off
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
-
 	; Base memory seems to be good now we can start using
 	; stack and zero page for real
 	jmp	basemem_ret
 
-	catastrophic_error:
+catastrophic_error:
 .scope
 	lda	#24		; 24 loops is approximately 60 seconds
-	sta	RAM_BANK
+	sta	RAM_BANK	; RAM_BANK is just used as storage here...
 loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 	DELAY	ONESEC/2
 	I2C_WRITE_BYTE $00, I2C_SMC, SMC_activity_led
@@ -1072,19 +1022,22 @@ loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 	dec	RAM_BANK
 	beq	:+
 	jmp	loop
+	; Switch between VGA & Composit/S-Video output approximately
+	; once a minute
 :	lda	VERA_DC_VIDEO
 	eor	#$03
 	sta	VERA_DC_VIDEO
 .endscope
 	jmp	catastrophic_error
 ;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-kbd_bin_tbl:	.byte 0,1,4,5,2,3,6,7
 
+kbd_bin_tbl:	.byte 0,1,4,5,2,3,6,7
 ; convert ASCII codes to VERA screen codes
 .repeat $20, i
 	.charmap i+$40, i
 .endrepeat
-header:		.asciiz "MEMORY DIAGNOSTIC V0.3 2024 - HTTPS://JNZ.DK?MDIAG"
+;header:	.asciiz "MEMORY DIAGNOSTIC V0.4 2024 - HTTPS://JNZ.DK?MDIAG"
+header:		.asciiz "MEMORY DIAGNOSTIC V0.41 - HTTPS://COMMANDERX16.COM"
 line:		.asciiz "===================================================="
 first_ok:	.asciiz "LOW RAM $0000-$9EFF TESTED OK!                    PASS#:$0000"
 find_banks:	.asciiz "TESTING HIGHEST MEMORY BANK AVAILABLE... $"
@@ -1115,26 +1068,19 @@ hex_table:	.byte "0123456789ABCDEF"
 .endrepeat
 
 .include "charset.inc"
-.include "palette.inc"
-
-romstart=$E997	; This information is found in kernal.sym (search for start)
-romnmi=$E9BD	; This information is found in kernal.sym 
-; start & romnmi in ROM bank 0 uses 4 bytes to switch ROM bank over to
-; ROM bank 16. Hence this code starts at romnmi or romstart address + 4
 
 .segment "ROMINIT"
-	jmp	:+
+	bra	:+
 continue_original:
 	stz	$01		; Reset ROM bank to 0
-.segment "ROMNMI"
 :	I2C_READ_BYTE I2C_SMC, 9
 	cpx	#1		; If this byte is set to 1
 	beq	do_diag		; poweron has been done with a long-press
 	jmp	continue_original
 do_diag:jmp	start
 
-.segment "NAME"
-DEVINFO: .byte "JIMMY DANSBO - V0.3 - 2024"
+	;signature
+	.byte "JIDA"
 
 .segment "VECTORS"
 .word	start	;nmi
