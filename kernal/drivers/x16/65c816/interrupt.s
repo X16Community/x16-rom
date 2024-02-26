@@ -126,6 +126,8 @@ c816_abort_native:
 	jmp (inabort)
 
 .segment "MEMDRV"
+.A8
+.I8
 __irq_65c816_first:
 	xba
 	pha
@@ -161,6 +163,8 @@ __interrupt_65c816_native_ret:
 	xce            ; exit emulation mode
 __interrupt_65c816_native_kernal_impl_ret:
 	rep #$31       ; 16-bit accumulator, clear carry
+	.A16
+	.I16
 	pla            ; pull old stack pointer
 	tcs            ; restore stack pointer
 	ply
@@ -169,6 +173,8 @@ __interrupt_65c816_native_kernal_impl_ret:
 	rti
 
 nnnmi:
+	.A16
+	.I16
 	sec
 	xce
 	.A8
@@ -180,6 +186,7 @@ nnnmi:
 nncop:
 nnabort:
 	sep #$20
+	.A8
 	jmp nncop_abort_ret
 
 .popcpu
