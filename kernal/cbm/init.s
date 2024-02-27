@@ -14,6 +14,7 @@
 .segment "INIT"
 ; start - system reset
 ;
+.assert * = $C010, error, "kernal init must start at $C010"
 start	; Let diagnostic bank handle diagnostic boot if needed
 	lda #16		     ; ROM Bank 16 = Memory Diagnostic
 	sta rom_bank	     ; Set ROM Bank

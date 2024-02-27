@@ -1,12 +1,12 @@
 MEMORY {
 	#include "x16.cfginc"
 
-	DIAG:	start=$C000, size=$4000, fill=yes, fillval=$AA;
+	JMPTBL: start = $C000, size = $0010, fill = yes, fillval = $00;
+	DIAG:	start = $C010, size = $4000, fill = yes, fillval = $AA;
 }
 
 SEGMENTS {
-	DIAG:		load= DIAG, type=ro;
-	/* address of start label in init.s, found in kernal.sym */
-	ROMINIT:	load=DIAG, type=ro, start=$E997;
-	VECTORS:	load=DIAG, type=ro, start=$FFFA;
+	JMPTBL:		load = JMPTBL, type = ro;
+	DIAG:		load = DIAG, type = ro;
+	VECTORS:	load = DIAG, type = ro, start = $FFFA;
 }

@@ -1,3 +1,9 @@
+.segment "JMPTBL"
+	; This is only here to make it easy to start the diagnostics
+	; from normal operating mode.
+	; BANK0,16:SYS$C000
+	jmp	diag_start
+
 .segment "DIAG"
 
 .include "io.inc"
@@ -51,6 +57,18 @@ color			= r10L
 testnum			= r10H
 currpattern		= r11L
 
+
+.assert * = $C010, error, "diag init must start at $C010 like kernal init"
+diag_init:
+	bra	:+
+continue_original:
+	stz	$01		; Reset ROM bank to 0 to continue loading normal ROM
+
+	; Ask SMC if system is powered on by a longpress
+:	I2C_READ_BYTE I2C_SMC, 9
+	cpx	#1		; If this byte is set to 1
+	beq	diag_start	; poweron has been done with a long-press
+	jmp	continue_original
 diag_start:
 	sei	; Disable interrupts, we don't have anything handling them
 	jmp	basemem_test
@@ -1079,18 +1097,6 @@ hex_table:	.byte "0123456789ABCDEF"
 .endrepeat
 
 .include "charset.inc"
-
-.segment "ROMINIT"
-	bra	:+
-continue_original:
-	stz	$01		; Reset ROM bank to 0 to continue loading normal ROM
-
-	; Ask SMC if system is powered on by a longpress
-:	I2C_READ_BYTE I2C_SMC, 9
-	cpx	#1		; If this byte is set to 1
-	beq	do_diag		; poweron has been done with a long-press
-	jmp	continue_original
-do_diag:jmp	diag_start
 
 .segment "VECTORS"
 .word	diag_start	;nmi - This will not work as it seems SMC sets ROMBANK to 0 on NMI
