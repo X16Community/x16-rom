@@ -949,6 +949,14 @@ listpause:
 	bannex_call bannex_pause
 	rts
 
+tilat:
+	bannex_call bannex_tilat
+	rts
+
+attr:
+	bannex_call bannex_attr
+	rts
+
 ;******************************************************************
 ;
 ; EDIT [<string filename>]
