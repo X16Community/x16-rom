@@ -1,9 +1,3 @@
-
-CORE_SOURCE_BASE ?= CBM
-SERIAL_SOURCE_BASE ?= CBM
-# for both also supported
-# * OPENROMS
-
 PRERELEASE_VERSION ?= "47"
 
 ifdef RELEASE_VERSION
@@ -33,44 +27,21 @@ BUILD_DIR=build/x16
 
 CFG_DIR=$(BUILD_DIR)/cfg
 
-KERNAL_CORE_CBM_SOURCES = \
-	kernal/cbm/editor.s \
-	kernal/cbm/channel/channel.s \
-	kernal/cbm/init.s \
-	kernal/cbm/memory.s \
-	kernal/cbm/nmi.s \
-	kernal/cbm/irq.s \
-	kernal/cbm/util.s
-
-KERNAL_SERIAL_CBM_SOURCES = \
-	kernal/cbm/serial.s
-
-KERNAL_SERIAL_OPENROMS_SOURCES = # TODO
-
-KERNAL_CORE_OPENROMS_SOURCES = \
-	kernal/open-roms/open-roms.s
-
 KERNAL_CORE_SOURCES = \
 	kernal/declare.s \
 	kernal/vectors.s \
 	kernal/kbdbuf.s \
 	kernal/memory.s \
 	kernal/lzsa.s \
-	kernal/signature.s
-
-ifeq ($(CORE_SOURCE_BASE),CBM)
-	KERNAL_CORE_SOURCES += $(KERNAL_CORE_CBM_SOURCES)
-else ifeq ($(CORE_SOURCE_BASE),OPENROMS)
-	KERNAL_CORE_SOURCES += $(KERNAL_CORE_OPENROMS_SOURCES)
-else
-$(error Illegal value for CORE_SOURCE_BASE)
-endif
-
-ifeq ($(SERIAL_SOURCE_BASE),CBM)
-	KERNAL_CORE_SOURCES += $(KERNAL_SERIAL_CBM_SOURCES)
-else
-	KERNAL_CORE_SOURCES += $(KERNAL_SERIAL_OPENROMS_SOURCES)
-endif
+	kernal/signature.s \
+	kernal/cbm/editor.s \
+	kernal/cbm/channel/channel.s \
+	kernal/cbm/init.s \
+	kernal/cbm/memory.s \
+	kernal/cbm/nmi.s \
+	kernal/cbm/irq.s \
+	kernal/cbm/util.s \
+	kernal/cbm/serial.s
 
 KERNAL_GRAPH_SOURCES = \
 	kernal/graph/graph.s \
@@ -427,7 +398,12 @@ $(BUILD_DIR)/codex.bin: $(CFG_DIR)/codex-x16.cfg
 # Bank 8 : Graphics
 $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position`
+	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym kvswitch_tmp1 kvswitch_tmp2` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym curIndexTable baselineOffset curSetWidth curHeight cardDataPntr currentMode windowTop windowBottom leftMargin rightMargin fontTemp1 fontTemp2 PrvCharWidth FontTVar1 FontTVar2 FontTVar3 FontTVar4`
+
 
 # Bank 9 : DEMO
 $(BUILD_DIR)/demo.bin: $(DEMO_OBJS) $(DEMO_DEPS) $(CFG_DIR)/demo-x16.cfg

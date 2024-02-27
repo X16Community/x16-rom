@@ -13,6 +13,7 @@ GRAPH_set_font:
 font_init:
 	LoadW r0, SystemFont
 set_font2:
+	KVARS_START
 	ldy #0
 	lda (r0),y
 	sta baselineOffset
@@ -39,4 +40,5 @@ set_font2:
 	sta cardDataPntr+1
 	AddW r0, curIndexTable
 	AddW r0, cardDataPntr
+	KVARS_END
 	rts
