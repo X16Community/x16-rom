@@ -160,6 +160,8 @@ ptrfunc	.word vpeek
 	.word strptr
 	.word rptd
 	.word mwheel
+	.word tdata
+	.word tattr
 ptrend
 num_esc_statements = (ptrfunc - stmdsp2) / 2
 num_esc_functions = (ptrend - ptrfunc) / 2

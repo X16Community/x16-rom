@@ -9,6 +9,12 @@
 .import basic_chkcom
 .export chkcom
 
+.import basic_chkopn
+.export chkopn
+
+.import basic_chkcls
+.export chkcls
+
 .import basic_crdo
 .export crdo
 
@@ -47,6 +53,9 @@ errfc=14
 .import basic_nsnerr6
 .export nsnerr6
 
+.import basic_sngflt
+.export sngflt
+
 ayint:
 	jsr bajsrfar
 	.word basic_ayint
@@ -56,6 +65,18 @@ ayint:
 chkcom:
 	jsr bajsrfar
 	.word basic_chkcom
+	.byte BANK_BASIC
+	rts
+
+chkopn:
+	jsr bajsrfar
+	.word basic_chkopn
+	.byte BANK_BASIC
+	rts
+
+chkcls:
+	jsr bajsrfar
+	.word basic_chkcls
 	.byte BANK_BASIC
 	rts
 
@@ -132,5 +153,11 @@ linprt:
 nsnerr6:
 	jsr bajsrfar
 	.word basic_nsnerr6
+	.byte BANK_BASIC
+	rts
+
+sngflt:
+	jsr bajsrfar
+	.word basic_sngflt
 	.byte BANK_BASIC
 	rts

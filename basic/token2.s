@@ -142,6 +142,8 @@ reslst3
 	.byt "STRPT", 'R' + $80
 	.byt "RPT", '$' + $80
 	.byt "MWHEE", 'L' + $80
+	.byt "TDAT", 'A' + $80
+	.byt "TATT", 'R' + $80
 
 	; add new functions before this line
 	.byt 0
