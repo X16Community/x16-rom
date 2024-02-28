@@ -149,7 +149,6 @@ FB_cursor_position:
 ; FB_cursor_next_line
 ;
 ; Function:  Advances VRAM ptr to next line
-; Pass:      r0     additional x pos
 ;---------------------------------------------------------------
 FB_cursor_next_line:
 	lda #<320
@@ -197,11 +196,13 @@ FB_get_pixel:
 ;            r1  count
 ;---------------------------------------------------------------
 FB_set_pixels:
+	PushB ram_bank
 	PushB r0H
 	PushB r1H
 	jsr set_pixels_FG
 	PopB r1H
 	PopB r0H
+	PopB ram_bank
 	rts
 
 set_pixels_FG:
@@ -210,7 +211,6 @@ set_pixels_FG:
 
 	ldx #0
 @c:	jsr @b
-	inc r0H
 	dec r1H
 	bne @c
 	lda r1L
@@ -218,12 +218,23 @@ set_pixels_FG:
 	rts
 
 @a:	ldx r1L
-@b:	ldy #0
-:	lda (r0),y
+@b:	ldy r0L
+	phy ; PushB r0L, but keep in Y
+	stz r0L
+@f:	lda (r0),y
 	sta VERA_DATA0
 	iny
-	dex
-	bne :-
+	bne @e
+	lda r0H
+	inc
+	cmp #$c0
+	bne @d
+	sbc #$20
+	inc ram_bank
+@d:	sta r0H
+@e:	dex
+	bne @f
+	PopB r0L
 	rts
 
 ;---------------------------------------------------------------

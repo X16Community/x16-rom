@@ -87,7 +87,7 @@ GRAPH_init:
 	lda #0  ; primary:    black
 	ldx #10 ; secondary:  gray
 	ldy #1  ; background: white
-	
+
 	jsr GRAPH_set_colors
 
     jsr GRAPH_clear
@@ -531,6 +531,7 @@ GRAPH_draw_rect:
 ;            r4   height
 ;---------------------------------------------------------------
 GRAPH_draw_image:
+	PushB ram_bank
 	PushW r0
 	PushW r1
 	PushW r4
@@ -545,7 +546,19 @@ GRAPH_draw_image:
 	dec r4H
 :	dec r4L
 
+	ldy r0H
 	AddW r3, r0 ; update pointer
+	tya
+	sec
+	sbc r0H
+	beq @2
+	lda r0H
+	cmp #$c0
+	bcc @2     ; we could go from $bf->$c1
+	sbc #$20
+	sta r0H
+	inc ram_bank
+@2:
 	jsr FB_cursor_next_line
 
 	lda r4L
@@ -555,6 +568,7 @@ GRAPH_draw_image:
 	PopW r4
 	PopW r1
 	PopW r0
+	PopB ram_bank
 	rts
 
 ;---------------------------------------------------------------
