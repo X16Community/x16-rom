@@ -44,15 +44,11 @@ getadr0	jsr getadr
 	sty poker
 	sta poker+1
 	rts
-peek	lda poker+1
-	pha
-	lda poker
-	pha
-	jsr getadr0
+peek	jsr getadr0
 	ldy #0
 	lda poker+1
-	cmp #$a0        ;We don't disturb $00 (ram_bank) here for a low RAM
-	bcs peek1       ;read so that it is possible to read $00 after BLOAD
+	cmp #$a0
+	bcs peek1
 	lda (poker),y   ;Low RAM
 	jmp peek2
 peek3	stz ram_bank
@@ -66,13 +62,17 @@ peek1	cmp #$c0
 peek4	lda #poker	;High RAM or ROM
 	jsr fetch
 peek2	tay
-dosgfl	pla
+dosgfl	jmp sngflt
+poke	jsr frmadr
+	lda poker+1
+	pha
+	lda poker
+	pha
+	jsr combyt
+	pla
 	sta poker
 	pla
 	sta poker+1
-	jmp sngflt
-poke	jsr getnum
-	lda poker+1
 	cmp #$a0
 	bcs pokefr
 	txa
