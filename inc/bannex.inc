@@ -17,3 +17,5 @@ bannex_sprite           = $C02A
 bannex_sprmem           = $C02D
 bannex_basload          = $C030
 bannex_pause            = $C033
+bannex_tdata		= $C036
+bannex_tattr		= $C039

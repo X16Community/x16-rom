@@ -949,6 +949,14 @@ listpause:
 	bannex_call bannex_pause
 	rts
 
+tdata:
+	bannex_call bannex_tdata
+	rts
+
+tattr:
+	bannex_call bannex_tattr
+	rts
+
 ;******************************************************************
 ;
 ; EDIT [<string filename>]
