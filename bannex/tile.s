@@ -9,9 +9,9 @@
 
 .importzp fac, chrgot, chrget, poker
 
-.export tile, tilat, attr
+.export tile, tdata, tattr
 
-.proc attr: near
+.proc tattr: near
 	jsr get_input
 	; Save args for use later
 	sty fac+1	; Y
@@ -26,7 +26,7 @@
 	jmp sngflt
 .endproc
 
-.proc tilat: near
+.proc tdata: near
 	jsr get_input
 	; Save args for use later
 	sty fac+1	; Y

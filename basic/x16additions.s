@@ -949,12 +949,12 @@ listpause:
 	bannex_call bannex_pause
 	rts
 
-tilat:
-	bannex_call bannex_tilat
+tdata:
+	bannex_call bannex_tdata
 	rts
 
-attr:
-	bannex_call bannex_attr
+tattr:
+	bannex_call bannex_tattr
 	rts
 
 ;******************************************************************

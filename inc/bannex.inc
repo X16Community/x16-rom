@@ -17,5 +17,7 @@ bannex_sprite           = $C02A
 bannex_sprmem           = $C02D
 bannex_basload          = $C030
 bannex_pause            = $C033
-bannex_tilat		= $C036
-bannex_attr		= $C039
+bannex_tdata		= $C036
+bannex_tattr		= $C039
+
+XO=37:YO=27:FORX=0TO6:FORY=0TO6:TILEXO+X,YO+Y,TDATA(X,Y),TATTR(X,Y):NEXT:NEXT
