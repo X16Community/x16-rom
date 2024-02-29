@@ -33,10 +33,11 @@ PS2DATA_NEW_STYLE = $02
 ; 
 ; Input:
 ;         Nothing
+;
 ; Output:
 ;         Data fecth method stored in ps2data_style
-;         - SMC version <= 46.0.0 => PS2DATA_OLD_STYLE
-;         - SMC version > 46.0.0 => PS2DATA_NEW_STYLE
+;         - SMC version < 46.0.0 => PS2DATA_OLD_STYLE
+;         - SMC version >= 46.0.0 => PS2DATA_NEW_STYLE
 ;---------------------------------------------------------------
 ps2data_init:
 	KVARS_START
