@@ -56,6 +56,7 @@ KEYCODE_M           = $34       ; 32                        3A                  
 KEYCODE_COMMA       = $35       ; 33                        41                              07 36       ,
 KEYCODE_POINT       = $36       ; 34                        49                              07 37       .
 KEYCODE_SLASH       = $37       ; 35                        4A                              07 38       /
+KEYCODE_INTL1       = $38       ; 73                        51                              07 87       Keyboard Int'l 1
 KEYCODE_RSHIFT      = $39       ; 36                        59                              07 E5       Right Shift
 KEYCODE_LCTRL       = $3A       ; 1D                        14                              07 E0       Left Ctrl
 KEYCODE_LGUI        = $3B       ; E0 5B                     E0 1F                           07 E3       Left GUI
