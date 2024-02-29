@@ -53,6 +53,7 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/x16.s \
 	kernal/drivers/x16/memory.s \
 	kernal/drivers/x16/screen.s \
+	kernal/drivers/x16/ps2data.s \
 	kernal/drivers/x16/ps2kbd.s \
 	kernal/drivers/x16/ps2mouse.s \
 	kernal/drivers/x16/joystick.s \

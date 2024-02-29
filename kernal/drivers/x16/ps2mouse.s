@@ -11,11 +11,11 @@
 .include "mac.inc"
 
 ; code
-.import i2c_read_byte, i2c_read_first_byte, i2c_read_next_byte, i2c_read_stop
+.import i2c_write_byte, i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop
 .import screen_save_state
 .import screen_restore_state
-
 .import sprite_set_image, sprite_set_position
+.import ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_mouse, ps2data_mouse_count
 
 .export mouse_config, mouse_scan, mouse_get, wheel
 
@@ -32,11 +32,10 @@ mousebt:
 	.res 1           ;    cur buttons (1: left, 2: right, 4: third)
 wheel:	.res 1           ;    Intellimouse wheel buffer
 idat:	.res 1           ;    Intellimouse data packet
-device_id:
+mouse_id:
 	.res 1           ;    mouse device ID
 
 I2C_ADDRESS = $42
-I2C_GET_MOUSE_MOVEMENT_OFFSET = $21
 I2C_GET_MOUSE_DEVICE_ID = $22
 BAT_FAIL = $fc
 
@@ -66,7 +65,7 @@ _mouse_config:
 	ldx #I2C_ADDRESS
 	ldy #I2C_GET_MOUSE_DEVICE_ID
 	jsr i2c_read_byte
-	sta device_id
+	sta mouse_id
 	cmp #BAT_FAIL ; return if SMC reports mouse init failed
 	bne :+
 	ply
@@ -153,7 +152,9 @@ _mouse_config:
 	inc
 	jsr sprite_set_position
 	PopW r0H
-	rts
+
+	; set SMC default read operation to fetch only key codes
+	jmp ps2data_keyboard_only
 
 ; show mouse
 mous2:	cmp #$ff
@@ -177,6 +178,12 @@ mous3:	lda msepar
 	ora #$80 ; flag: mouse on
 	sta msepar
 
+	; set SMC default read operation to return key code and mouse packet
+	lda #3
+	ldx mouse_id
+	beq :+
+	lda #4
+:	jsr ps2data_keyboard_and_mouse
 	jmp mouse_update_position
 
 mouse_scan:
@@ -188,14 +195,10 @@ mouse_scan:
 _mouse_scan:
 	bit msepar ; do nothing if mouse is off
 	bpl @a
-	
-	ldx #I2C_ADDRESS
-	ldy #I2C_GET_MOUSE_MOVEMENT_OFFSET
-	jsr i2c_read_first_byte
-	bcs @a ; error
-	bne @b ; no data
-	jmp i2c_read_stop
+	lda ps2data_mouse_count
+	bne @b ; 0 = no data
 @a:	rts
+
 @b:
 .if 0
 	; heuristic to test we're not out
@@ -213,9 +216,12 @@ _mouse_scan:
 	bne @a
 	txa
 .endif
+	; Store status byte
+	lda ps2data_mouse
 	sta mousebt
 
-	jsr i2c_read_next_byte
+	; Add delta X
+	lda ps2data_mouse+1
 	clc
 	adc mousex
 	sta mousex
@@ -227,19 +233,23 @@ _mouse_scan:
 :	adc mousex+1
 	sta mousex+1
 
-	jsr i2c_read_next_byte
-	pha                     ; Push low 8 bits onto stack
-
-	lda device_id		; Fetch Intellimouse byte, if applicable
-	cmp #3			; Device ID 3, mouse wheel only
+	; Add delta Y
+	lda ps2data_mouse+2
+	eor #$ff
+	sec
+	adc mousey
+	sta mousey
+	lda mousebt
+	and #$20
 	beq :+
-	cmp #4			; Device ID 4, mouse wheel and extra buttons
-	bne :+++
+	lda #$ff
+:	eor #$ff
+	adc mousey+1
+	sta mousey+1
 
-:	jsr i2c_read_next_byte
-	sta idat		; Store raw value
-
-	and #15			; Convert 4 bit signed value to 8 bit signed value, needed for device ID 4
+	; Add wheel movement
+	lda ps2data_mouse+3
+	and #15			; Convert 4 bit signed value to 8 bit signed value
 	cmp #8
 	bcc :+
 	ora #240
@@ -249,68 +259,49 @@ _mouse_scan:
 	bvs :+			; Ignore if overflow
 	sta wheel
 
-:	jsr i2c_read_stop       ; Stop I2C transfer
-	ply                     ; Pop low 8 bits to Y
-	lda mousebt             ; Load flags
-	and #$20                ; Check sign bit
-	beq :+                  ; set?
-	lda #$ff                ; sign extend into all of A
-:	eor #$ff                ; invert high 8 bits
-	tax                     ; High 8 bits in X
-	tya                     ; Low 8 bits in A
-	eor #$ff                ; invert low 8 bits
-	; At this point X:A = ~dY (not negative dY, bitwise not)
-	sec                     ; Add 1 to low 8 bits
-	adc mousey              ; Add low 8 bits to mousey
-	sta mousey              ; mousey = result
-	txa                     ; High 8 bits in A
-	adc mousey+1            ; Add high 8 bits to mousey+1
-	sta mousey+1            ; mousey+1 = result
-
-	lda mousebt
+	; Clean up status byte, show only button state
+:	lda mousebt
 	and #7
 	sta mousebt
 
-; check bounds
-	ldy #0
-	ldx #0
-	lda mousex+1
-	bmi @2
-	cpx mousex+1
-	bne @1
-	cpy mousex
-@1:	bcc @3
-	beq @3
-@2:	sty mousex
-	stx mousex+1
-@3:	ldy mousemx
-	ldx mousemx+1
-	cpx mousex+1
-	bne @4
-	cpy mousex
-@4:	bcs @5
-	sty mousex
-	stx mousex+1
-@5:	ldy #0
-	ldx #0
-	lda mousey+1
-	bmi @2a
-	cpx mousey+1
-	bne @1a
-	cpy mousey
-@1a:	bcc @3a
-	beq @3a
-@2a:	sty mousey
-	stx mousey+1
-@3a:	ldy mousemy
-	ldx mousemy+1
-	cpx mousey+1
-	bne @4a
-	cpy mousey
-@4a:	bcs @5a
-	sty mousey
-	stx mousey+1
-@5a:
+	; Check bounds
+
+	lda mousex+1		; x < 0?
+	bpl :+			; No
+	stz mousex		; Yes, x < 0, set x = 0
+	stz mousex+1
+	bra :++
+
+:	sec			; x > max?
+	lda mousemx
+	sbc mousex
+	lda mousemx+1
+	sbc mousex+1
+	bcs :+			; No
+
+	lda mousemx		; Yes, x > max, set x = max
+	sta mousex
+	lda mousemx+1
+	sta mousex+1
+
+:	lda mousey+1		; y < 0?
+	bpl :+			; No
+	stz mousey		; Yes, y < 0, set y = 0
+	stz mousey+1
+	bra :++
+
+:	sec			; y > max?
+	lda mousemy
+	sbc mousey
+	lda mousemy+1
+	sbc mousey+1
+	bcs :+			; No
+
+	lda mousemy		; Yes, y > max, set y = max
+	sta mousey
+	lda mousemy+1
+	sta mousey+1
+:
 
 ; set the mouse sprite position
 mouse_update_position:
@@ -382,7 +373,7 @@ _mouse_get:
 	sta 2,x
 
 @exit:	lda #0		; Return mouse button flags
-	ldx device_id
+	ldx mouse_id
 	cpx #4
 	bne :+
 	lda idat	; Add Intellimouse buttons, if device ID is 4
