@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;Copyright 2022-2023, Stefan Jakobsson
+;Copyright 2022-2024, Stefan Jakobsson
 ;
 ;Redistribution and use in source and binary forms, with or without modification, 
 ;are permitted provided that the following conditions are met:
@@ -147,11 +147,14 @@ exit:
     bcs exit            ;C=1 => init failed
 
     ;Auto indent
-    bbr0 r1+1, :+
+    lda r1+1
+    lsr
+    bcc :+
     inc cmd_auto_indent_status
 
     ;Word wrap
-:   bbr1 r1+1, :+
+:   lsr
+    bcc :+
     inc cmd_wordwrap_mode
 
     ;Tab width (1..9)
@@ -218,6 +221,43 @@ exit:
     rts
 
 .endproc
+
+;******************************************************************************
+;Function name.......: main_loadfile_with_options_entry2
+;Purpose.............: Program entry function that may may set most editor 
+;                      options and load a file from the file system on startup
+;Input...............: List of params:
+;                      
+;                      Reg Bit Description
+;                      -------------------
+;                      X       First bank in banked RAM used by the program (>0)
+;                      Y       Last bank in banked RAM used by the program (>X)
+;                      r0      Pointer to file name
+;                      r1L     File name length, or 0 if no file
+;                      r1H 0   Auto indent on/off
+;                      r1H 1   Word wrap on/off
+;                      r1H 2-7 Unused
+;                      r2L     Tab width (1..9)
+;                      r2H     Word wrap position (10..250)
+;                      r3L     Current device number (8..30)
+;                      r3H 0-3 Screen text color
+;                      r3H 4-7 Screen background color
+;                      r4L 0-3 Header text color
+;                      r4L 4-7 Header background color
+;                      r4H 0-3 Status bar text color
+;                      r4H 4-7 Status bar background color
+;                      r5      Goto line number on start, bits 0-15
+;                      r6L     Goto line number on start, bits 16-23
+;                      r6H     Line break encoding (0=default, 1=LF, 2=CR, 3=CRLF)
+;
+;                      Please note:
+;                      - Settings out of range are silently ignored
+;                      - Color settings are ignored if both text and background 
+;                        color is 0, "black on black"
+;
+;Returns.............: Nothing
+;Error returns.......: None
+
 
 ;******************************************************************************
 ;Function name.......: main_init
