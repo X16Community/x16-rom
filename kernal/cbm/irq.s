@@ -26,7 +26,6 @@
 
 ; VBLANK IRQ handler
 ;
-key
 .macro irq_impl
 	jsr ps2data_fetch
 	jsr mouse_scan  ;scan mouse (do this first to avoid sprite tearing)
