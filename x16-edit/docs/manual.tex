@@ -122,7 +122,8 @@ The Commander X16 was devised by David Murray a.k.a. the
         you want the selection to start and release it where you want the selection to end. 
         Selections can be copied or cut. More on that later.
 
-        The mouse is automatically enabled when you start the editor.
+        The mouse is automatically enabled when you start the editor. The mouse pointer 
+        is hidden while typing on the keyboard, and shown again when you move or click the mouse.
     
     \subsection{User interface}
         X16 Edit's user interface is similar to GNU Nano, and should be mostly self-explanatory.
@@ -182,6 +183,12 @@ The Commander X16 was devised by David Murray a.k.a. the
         On startup, the editor detects the current character set and continues using that.
 
         You may change the character set by pressing Ctrl+E, which cycles through the options.
+    
+    \subsection{Quote mode}
+        The PETSCII character set contains control codes that are commonly used in BASIC programs. The
+        control codes are, for instance, used to clear the screen and to move the cursor. Normally, it is not
+        possible to type PETSCII control codes in the editor. Control codes may
+        be typed by activating the quote mode (Ctrl+Q). You exit quote mode by pressing ESC.
 
     \subsection{Tab stop}
         The default tab stop width is four spaces. 
@@ -223,7 +230,7 @@ The Commander X16 was devised by David Murray a.k.a. the
         \begin{itemize}
             \item if two or more consecutive line breaks are found, 
             \item if a line contains only blank space characters, or
-            \item if the level of indent is different from the previous line.
+            \item if the level of indentation is different from the previous line.
         \end{itemize}
 
     \subsection{Cut, copy and uncut}
@@ -406,10 +413,10 @@ The Commander X16 was devised by David Murray a.k.a. the
     signature consists of the text "X16EDIT" followed by three bytes representing
     the program version (major, minor, patch).
         
-    If the editor's first ROM bank is 10, it can be started from BASIC like this:
+    If the editor's first ROM bank is 16, it can be started from BASIC like this:
 
 \begin{verbatim}
-    BANK 10,10
+    BANK 16,16
     SYS $C000
 \end{verbatim}
 
@@ -426,7 +433,7 @@ The Commander X16 was devised by David Murray a.k.a. the
             \item Load file with options, start the editor with custom options and then loads the specified text file
         \end{itemize}
 
-        Information on how to call the different entry points and code samples are available in Appendix B. 
+        Information on how to call the different entry points and code samples is available in Appendix B. 
 
 \appendix
 \newpage
@@ -470,7 +477,7 @@ The Commander X16 was devised by David Murray a.k.a. the
         space& ---   & Insert non-breaking space \\
         1..9 & ---   & Set tab stop width \\
         ENTER & ---  & Set line break encoding \\
-        F    & ---   & Compile toolbox \\
+        F    & ---   & Programming toolbox \\
     \end{longtable}
 
 \newpage

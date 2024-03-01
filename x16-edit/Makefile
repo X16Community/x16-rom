@@ -26,7 +26,7 @@ $(BUILD_DIR)/X16EDIT.PRG: $(BUILD_DIR)/help.bin $(BUILD_DIR)/help_short.bin $(SR
 # Target for ROM program
 $(BUILD_DIR)/x16edit-rom.bin: $(BUILD_DIR)/help.bin $(BUILD_DIR)/help_short.bin $(SRC_FILES)
 	@mkdir -p $(BUILD_DIR) 
-	cl65 --asm-args -Dtarget_mem=2 -o $@ -t cx16 -C $(CONF_DIR)/x16edit-rom.cfg --mapfile $(BUILD_DIR)/x16edit-rom.map main.asm
+	cl65 --asm-args -Dtarget_mem=2 -o $@ -t cx16 -C $(CONF_DIR)/x16edit-rom.cfg --mapfile $(BUILD_DIR)/x16edit-rom.map -Ln $(BUILD_DIR)/x16edit-rom.sym -l $(BUILD_DIR)/x16edit-rom.lst main.asm
 
 # Clean-up target
 clean:
