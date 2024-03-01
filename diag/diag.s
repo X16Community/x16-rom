@@ -311,7 +311,9 @@ testpattern:
 	sta	currpattern
 	jsr	printpat		; Print the current pattern
 	lda	currpattern
-	jmp	testbanks		; Test the banks
+	jsr	testbanks		; Test the banks
+	jmp	show_pattern_done
+
 
 ; .A = code to show on LEDs in binary
 kbdwrite:
@@ -327,15 +329,33 @@ kbdwrite:
 	jsr	i2c_stop
 	rts
 
-; Blink the activity light 5 times to show that a pass is completed
+show_pattern_done:
+	lda	#$FF
+	jsr	activity_set
+	jsr	delayone
+	lda	#$00
+	jmp	activity_set
+
+activity_set:
+	phx
+	phy
+	ldx	#I2C_SMC
+	ldy	#SMC_activity_led
+	jsr	i2c_write_b
+	ply
+	plx
+	rts
+
+; Blink the activity light 3 times to show that a pass is completed
 show_pass_done:
 	ldx	#5
 	lda	#$FF
 :	phx
 	pha
-	ldx	#I2C_SMC
-	ldy	#SMC_activity_led
-	jsr	i2c_write_b
+	jsr	activity_set
+;	ldx	#I2C_SMC
+;	ldy	#SMC_activity_led
+;	jsr	i2c_write_b
 	jsr	delayone
 	pla
 	eor	#$FF
@@ -344,9 +364,10 @@ show_pass_done:
 	bne	:-
 	; Turn Activity light off
 	lda	#$00
-	ldx	#I2C_SMC
-	ldy	#SMC_activity_led
-	jsr	i2c_write_b
+	jsr	activity_set
+;	ldx	#I2C_SMC
+;	ldy	#SMC_activity_led
+;	jsr	i2c_write_b
 	rts
 
 ; Delay for approximately 1 second
