@@ -1,5 +1,5 @@
-.byte 0,0,0                       ; $FEA8
-.byte 0,0,0                       ; $FEAB
+bridge extapi16                   ; $FEA8
+bridge extapi                     ; $FEAB
 .byte 0,0,0                       ; $FEAE
 bridge mciout                     ; $FEB1
 bridge i2c_batch_read             ; $FEB4
