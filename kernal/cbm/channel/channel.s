@@ -94,6 +94,11 @@ untlk = $ffab
 
 .export savehl
 
+; misc x16 additions
+.export clear_status
+.export get_fa
+
+
 .segment "ZPCHANNEL" : zeropage
 ;                      C64 location
 ;                         VVV
@@ -146,4 +151,5 @@ stah	.res 1           ;$C2
 .include "load.s"
 .include "save.s"
 .include "errorhandler.s"
+.include "x16additions.s"
 

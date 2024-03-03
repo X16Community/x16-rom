@@ -39,7 +39,11 @@ KERNAL_CORE_SOURCES = \
 	kernal/cbm/nmi.s \
 	kernal/cbm/irq.s \
 	kernal/cbm/util.s \
-	kernal/cbm/serial.s
+	kernal/cbm/serial.s \
+	kernal/x16/extapi.s \
+	kernal/x16/65c816/interrupt.s \
+	kernal/x16/65c816/stack.s \
+	kernal/x16/65c816/extapi16.s
 
 KERNAL_GRAPH_SOURCES = \
 	kernal/graph/graph.s \
@@ -64,8 +68,6 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/i2c.s \
 	kernal/drivers/x16/smc.s \
 	kernal/drivers/x16/rtc.s \
-	kernal/drivers/x16/65c816/interrupt.s \
-	kernal/drivers/x16/65c816/stack.s \
 	kernal/drivers/generic/softclock_timer.s
 
 KERNAL_SOURCES = \
@@ -183,6 +185,16 @@ GENERIC_DEPS = \
 
 KERNAL_DEPS = \
 	$(GENERIC_DEPS) \
+	kernal/cbm/channel/channelio.s \
+	kernal/cbm/channel/clall.s \
+	kernal/cbm/channel/close.s \
+	kernal/cbm/channel/errorhandler.s \
+	kernal/cbm/channel/load.s \
+	kernal/cbm/channel/messages.s \
+	kernal/cbm/channel/open.s \
+	kernal/cbm/channel/openchannel.s \
+	kernal/cbm/channel/save.s \
+	kernal/cbm/channel/x16additions.s \
 	$(GIT_SIGNATURE)
 
 KEYMAP_DEPS = \
