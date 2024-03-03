@@ -1,0 +1,12 @@
+MEMORY {
+	#include "x16.cfginc"
+
+	JMPTBL: start = $C000, size = $0010, fill = yes, fillval = $00;
+	DIAG:	start = $C010, size = $4000, fill = yes, fillval = $AA;
+}
+
+SEGMENTS {
+	JMPTBL:		load = JMPTBL, type = ro;
+	DIAG:		load = DIAG, type = ro;
+	VECTORS:	load = DIAG, type = ro, start = $FFFA;
+}

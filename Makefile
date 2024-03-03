@@ -164,6 +164,9 @@ BANNEX_SOURCES= \
 	bannex/sprite.s \
 	bannex/basload.s
 
+DIAG_SOURCES = \
+	diag/diag.s
+
 GENERIC_DEPS = \
 	inc/kernal.inc \
 	inc/mac.inc \
@@ -262,6 +265,12 @@ BASLOAD_DEPS= \
 	$(wildcard basload/*.asm) \
 	$(wildcard basload/*.inc)
 
+DIAG_DEPS= \
+	$(GENERIC_DEPS) \
+	diag/i2c.inc \
+	diag/macros.inc \
+	diag/charset.inc \
+
 KERNAL_OBJS  = $(addprefix $(BUILD_DIR)/, $(KERNAL_SOURCES:.s=.o))
 KEYMAP_OBJS  = $(addprefix $(BUILD_DIR)/, $(KEYMAP_SOURCES:.s=.o))
 DOS_OBJS     = $(addprefix $(BUILD_DIR)/, $(DOS_SOURCES:.s=.o))
@@ -274,6 +283,7 @@ DEMO_OBJS    = $(addprefix $(BUILD_DIR)/, $(DEMO_SOURCES:.s=.o))
 AUDIO_OBJS   = $(addprefix $(BUILD_DIR)/, $(AUDIO_SOURCES:.s=.o))
 UTIL_OBJS    = $(addprefix $(BUILD_DIR)/, $(UTIL_SOURCES:.s=.o))
 BANNEX_OBJS  = $(addprefix $(BUILD_DIR)/, $(BANNEX_SOURCES:.s=.o))
+DIAG_OBJS    = $(addprefix $(BUILD_DIR)/, $(DIAG_SOURCES:.s=.o))
 
 BANK_BINS = \
 	$(BUILD_DIR)/kernal.bin \
@@ -290,7 +300,8 @@ BANK_BINS = \
 	$(BUILD_DIR)/util.bin \
 	$(BUILD_DIR)/bannex.bin \
 	$(BUILD_DIR)/x16edit-rom.bin \
-	$(BUILD_DIR)/basload-rom.bin
+	$(BUILD_DIR)/basload-rom.bin \
+	$(BUILD_DIR)/diag.bin \
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -434,6 +445,12 @@ $(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
 	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
 
+# Bank 10: Memory diagnostic
+$(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
+	@mkdir -p $$(dirname $@)
+	$(LD) -C $(CFG_DIR)/diag-x16.cfg $(DIAG_OBJS) -o $@ -m $(BUILD_DIR)/diag.map -Ln $(BUILD_DIR)/diag.sym
+	./scripts/relist.py $(BUILD_DIR)/diag.map $(BUILD_DIR)/diag
+
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
 	./scripts/symbolize.sh 1 build/x16/keymap.sym  >> $@
@@ -445,6 +462,7 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
+	./scripts/symbolize.sh 10 build/x16/diag.sym   >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
@@ -455,3 +473,4 @@ $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@
 	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`  >> $@
+	./scripts/trace_lst.py 10 `find build/x16/diag/ -name \*.rlst`   >> $@

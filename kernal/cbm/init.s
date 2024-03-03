@@ -3,6 +3,7 @@
 ;----------------------------------------------------------------------
 ; (C)1983 Commodore Business Machines (CBM)
 ; additions: (C)2020 Michael Steil, License: 2-clause BSD
+.include "io.inc"
 
 .feature labels_without_colons
 
@@ -13,7 +14,16 @@
 .segment "INIT"
 ; start - system reset
 ;
-start	ldx #$ff
+.assert * = $C010, error, "kernal init must start at $C010"
+start	; Let diagnostic bank handle diagnostic boot if needed
+	lda #16		     ; ROM Bank 16 = Memory Diagnostic
+	sta rom_bank	     ; Set ROM Bank
+	nop		     ; Memory Diagnostic bank will return
+	nop		     ; to this bank after 4 bytes
+	nop		     ; if diagnostics is not started...
+	nop
+	; Continue normal bootup
+	ldx #$ff
 	sei
 	txs
 

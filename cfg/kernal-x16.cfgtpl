@@ -25,6 +25,7 @@ SEGMENTS {
 	USERPARM:   load = USERPARM, type = bss;
 
 	SIGNATURE:load = SIGNATURE,   type = ro;
+	INIT:     load = KERNAL,   type = ro;
 	EDITOR:   load = KERNAL,   type = ro;
 	SCREEN:   load = KERNAL,   type = ro;
 	KBDBUF:   load = KERNAL,   type = ro;
@@ -44,7 +45,6 @@ SEGMENTS {
 	NVRAM:    load = KERNAL,   type = ro;
 	BEEP:     load = KERNAL,   type = ro;
 	ENTROPY:  load = KERNAL,   type = ro;
-	INIT:     load = KERNAL,   type = ro;
 	MACHINE:  load = KERNAL,   type = ro;
 	MEMDRV:   load = KERNAL,   type = ro;
 	NMI:      load = KERNAL,   type = ro;
