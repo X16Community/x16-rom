@@ -31,6 +31,8 @@
 
 .import savehl
 
+.import extapi, extapi16
+
 .import c816_abort_emulated, c816_clall_thunk, c816_getin_thunk
 
 .include "banks.inc"
@@ -39,10 +41,8 @@
 
 ; *** this is space for new X16 KERNAL vectors ***
 ;
-; !!! DO NOT RELY ON THEIR ADDRESSES JUST YET !!!
-;
-	.byte 0,0,0                    ; $FEA8
-	.byte 0,0,0                    ; $FEAB
+	jmp extapi16                   ; $FEA8
+	jmp extapi                     ; $FEAB
 	.byte 0,0,0                    ; $FEAE
 	jmp mciout                     ; $FEB1
 	jmp i2c_batch_read             ; $FEB4
