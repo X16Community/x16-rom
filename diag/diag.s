@@ -400,9 +400,6 @@ handle_error:
 	lda	ram_bank
 	jsr	byte2hex
 	PRINTSTR num, ((BLACK<<4)|WHITE)
-	lda	#$3A			; :
-	sta	VERA_DATA0
-	stx	VERA_DATA0
 @do_address:
 	lda	#$24			; $
 	sta	VERA_DATA0
@@ -1089,7 +1086,7 @@ kbd_bin_tbl:	.byte 0,1,4,5,2,3,6,7
 ;header:	.asciiz "MEMORY DIAGNOSTIC V0.4 2024 - HTTPS://JNZ.DK?MDIAG"
 header:		.asciiz "MEMORY DIAGNOSTIC V0.41 - HTTPS://COMMANDERX16.COM"
 line:		.asciiz "===================================================="
-first_ok:	.asciiz "LOW RAM $0000-$9EFF TESTED OK!                    PASS#:$0000"
+first_ok:	.asciiz "LOW RAM $0000-$9EFF INITIAL TEST OK!              PASS#:$0000"
 find_banks:	.asciiz "TESTING HIGHEST MEMORY BANK AVAILABLE... $"
 fill_pattern:	.asciiz "FILLING BANK            $00 WITH BINARY PATTERN "
 test_up:	.asciiz "ASCENDING TEST OF BANK  $00 WITH PATTERN "
@@ -1104,12 +1101,12 @@ third_pattern:	.asciiz "00110011"
 third_invert:	.asciiz "11001100"
 fourth_pattern:	.asciiz "00001111"
 fourth_invert:	.asciiz "11110000"
-;err_str:	.asciiz "E$XX:$0000TO$00 ",0
+;err_str:	.asciiz "E$XX$0000:TO$00 ",0
 err_str:	.asciiz "E$"
-err_no_bank:	.asciiz "XX:"
-err_up:		.asciiz "UP$"
-err_dn:		.asciiz "DN$"
-err_to:		.asciiz "TO$"
+err_no_bank:	.asciiz "XX"
+err_up:		.asciiz ":UP$"
+err_dn:		.asciiz ":DN$"
+err_to:		.asciiz ":TO$"
 test_stop:	.asciiz " !!! TOO MANY ERRORS, TEST STOPPED !!! "
 hex_table:	.byte "0123456789ABCDEF"
 ; convert ASCII codes back to normal ASCII
