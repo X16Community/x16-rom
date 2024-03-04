@@ -29,10 +29,10 @@ stack_one: .res 1     ; holds the value #$01 to speed up 16-bit
 ;--------------------------------------------------------------
 ; stack_enter_kernal_stack
 ;
-; Function: change SP to KERNAL (page $01) SP
+; Function: Enters the KERNAL (page $01) stack
 ; Flags:    m = 0, x = 0, e = 0
-; Input:    SP = old stack pointer
-; Output:   SP = KERNAL stack pointer (after rts)
+; Input:    .SP = current stack pointer
+; Output:   .SP = KERNAL stack pointer
 ;--------------------------------------------------------------
 .proc stack_enter_kernal_stack
 	.A16
@@ -44,11 +44,10 @@ stack_one: .res 1     ; holds the value #$01 to speed up 16-bit
 ;--------------------------------------------------------------
 ; stack_push
 ;
-; Function: change SP to new pointer, preserving the old one
-;           at the top of the new stack
+; Function: Pushes a new stack pointer
 ; Flags:    m = 0, x = 0, e = 0
-; Input:    X = new stack pointer, SP = old stack pointer
-; Output:   SP = X - 2 (after rts)
+; Input:    .X = new stack pointer, .SP = current stack pointer
+; Output:   .SP = new stack pointer
 ;--------------------------------------------------------------
 .proc stack_push
 	.A16
@@ -84,10 +83,11 @@ stack_one: .res 1     ; holds the value #$01 to speed up 16-bit
 ;--------------------------------------------------------------
 ; stack_leave_kernal_stack
 ;
-; Function: restore old SP, which is assumed to be in page $01
+; Function: At the end of a section beginning with
+;           stack_enter_kernal_stack, pops the previous SP
 ; Flags:    m = 0, x = 0, e = 0
-; Input:    (SP+2) = old stack pointer if stack_counter > 1
-; Output:   SP = old stack pointer (after rts)
+; Input:    .SP = current stack pointer
+; Output:   .SP = popped stack pointer
 ;--------------------------------------------------------------
 .proc stack_leave_kernal_stack
 	.A16
@@ -98,17 +98,17 @@ stack_one: .res 1     ; holds the value #$01 to speed up 16-bit
 ;--------------------------------------------------------------
 ; stack_pop
 ;
-; Function: change SP to old pointer
+; Function: Pops previous stack pointer
 ; Flags:    m = 0, x = 0, e = 0
-; Input:    (SP+2) = old stack pointer if stack_counter > 1
-; Output:   SP = old stack pointer (after rts)
+; Input:    .SP = current stack pointer
+; Output:   .SP = popped stack pointer
 ;--------------------------------------------------------------
 .proc stack_pop
 	.A16
 	.I16
 	sei
 	ply                ; hold the return address
-	lda stack_counter  ; C = $xxyy where $yy = stack_counter
+	lda stack_counter  ; .C = $xxyy where $yy = stack_counter
 	                   ; and $xx = stack_ptr, the KERNAL
 	                   ; stack pointer
 	dec                ; decrement $xxyy
@@ -125,8 +125,8 @@ stack_one: .res 1     ; holds the value #$01 to speed up 16-bit
 @counter_one:
 	stz stack_counter  ; reset stack_counter to zero
 	                   ; this is the end of the stack popping chain
-	inc                ; C = $xx00 -> $xx01
-	xba                ; C = $01xx (valid KERNAL SP)
+	inc                ; .C = $xx00 -> $xx01
+	xba                ; .C = $01xx (valid KERNAL SP)
 	tcs                ; bring KERNAL SP into effect
 	phy                ; restore return address
 	cli
