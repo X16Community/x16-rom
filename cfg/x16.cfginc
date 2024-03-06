@@ -23,8 +23,8 @@ ZPBASIC:  start = $00D4, size = $002B; # BASIC (last byte used: $FE)
 /* $0200-$02FF: always-available variables and RAM code */
 KVAR:     start = $0200, size = $0095; # KERNAL
 KRAM816S: start = $0295, size = $0003; # KERNAL: 65C816: old stack pointer
-KRAMJFAR816: start = $0298, size = $001C; # KERNAL: jsrfar3n
-/*        start = $02B4, size = $000C; # reserved for KERNAL growth */
+KJFAR816: start = $0298, size = $0019; # KERNAL: jsrfar3n
+/*        start = $02B1, size = $000F; # reserved for KERNAL growth */
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
 KRAMJFAR: start = $02C4, size = $001E; # KERNAL: jsrfar3

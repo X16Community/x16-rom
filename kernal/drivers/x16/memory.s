@@ -8,7 +8,7 @@
 .include "io.inc"
 
 .import __KRAMJFAR_LOAD__, __KRAMJFAR_RUN__, __KRAMJFAR_SIZE__
-.import __KRAMJFAR816_LOAD__, __KRAMJFAR816_RUN__, __KRAMJFAR816_SIZE__
+.import __KJFAR816_LOAD__, __KJFAR816_RUN__, __KJFAR816_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
 .import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
@@ -140,9 +140,9 @@ ramtas:
 	.A16
 	.I16
 
-	ldx #__KRAMJFAR816_LOAD__
-	ldy #__KRAMJFAR816_RUN__
-	lda #(__KRAMJFAR816_SIZE__ - 1)
+	ldx #__KJFAR816_LOAD__
+	ldy #__KJFAR816_RUN__
+	lda #(__KJFAR816_SIZE__ - 1)
 	mvn #00,#00
 
 	ldx #__KRAM816_LOAD__
@@ -277,7 +277,7 @@ jsrfar:
 __jmpfr:
 	jmp $ffff
 
-.segment "KRAMJFAR816"
+.segment "KJFAR816"
 
 .pushcpu
 .setcpu "65816"
@@ -303,9 +303,6 @@ __jmpfr:
 	plp
 	plp
 	rts
-.assert * = jmpfrn, error, "jmpfrn must be at specific address"
-__jmpfrn:
-	jmp $ffff
 
 .popcpu
 

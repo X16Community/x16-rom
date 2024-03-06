@@ -68,7 +68,7 @@ SEGMENTS {
 	VERA_DRV: load = KERNAL,   type = ro;
 	PALETTE:  load = KERNAL,   type = ro, align = $100;
 	KRAMJFAR: load = KERNAL,   run = KRAMJFAR, type = ro, define = yes;
-	KRAMJFAR816: load = KERNAL,   run = KRAMJFAR816, type = ro, define = yes;
+	KJFAR816: load = KERNAL,   run = KJFAR816, type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
 	KRAM816:  load = KERNAL,   run = KRAM816,  type = ro, define = yes;
 	KRAM02B:  load = KERNAL,   run = KRAM02B,  type = ro, define = yes;
