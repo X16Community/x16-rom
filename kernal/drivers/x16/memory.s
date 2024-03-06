@@ -8,6 +8,7 @@
 .include "io.inc"
 
 .import __KRAMJFAR_LOAD__, __KRAMJFAR_RUN__, __KRAMJFAR_SIZE__
+.import __KRAMJFAR816_LOAD__, __KRAMJFAR816_RUN__, __KRAMJFAR816_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
 .import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
@@ -99,6 +100,8 @@ ramtas:
 	dex
 	bne :-
 
+	set_carry_if_65c816
+	bcs @kernram2_65c816
 ;
 ; copy banking code into RAM
 ;
@@ -107,9 +110,6 @@ ramtas:
 	sta __KRAMJFAR_RUN__-1,x
 	dex
 	bne :-
-
-	set_carry_if_65c816
-	bcs @kernram2_65c816
 
 	ldx #<__KERNRAM2_SIZE__
 
@@ -138,6 +138,11 @@ ramtas:
 	rep #$30
 	.A16
 	.I16
+
+	ldx #__KRAMJFAR816_LOAD__
+	ldy #__KRAMJFAR816_RUN__
+	lda #(__KRAMJFAR816_SIZE__ - 1)
+	mvn #00,#00
 
 	ldx #__KRAM816_LOAD__
 	ldy #__KRAM816_RUN__
@@ -271,6 +276,39 @@ jsrfar:
 __jmpfr:
 	jmp $ffff
 
+.segment "KRAMJFAR816"
+
+.pushcpu
+.setcpu "65816"
+
+;jsrfar3n:
+	.A8
+	sta rom_bank    ;set ROM bank
+	rep #$30
+	.A16
+	.I16
+	pla
+	plp
+	jsr jmpfr
+	php
+	pha
+	sep #$20        ; 8 bit accumulator
+	.A8
+	lda $03,S
+	sta rom_bank    ;restore ROM bank
+	lda $02,S       ;overwrite reserved byte...
+	sta $03,S       ;...with copy of .p
+	pla
+	plp
+	plp
+	rts
+	nop
+	nop
+.assert * = jmpfr, error, "jmpfrn must be at specific address"
+__jmpfrn:
+	jmp $ffff
+
+.popcpu
 
 .segment "KERNRAM2"
 

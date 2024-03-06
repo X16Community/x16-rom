@@ -27,6 +27,7 @@ KRAM816S: start = $0295, size = $0003; # KERNAL: 65C816: old stack pointer
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
 KRAMJFAR: start = $02C4, size = $001E; # KERNAL: jsrfar3
+KRAMJFAR816: start = $02C4, size = $001E; # KERNAL: jsrfar3n
 GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 
 /* $0300-$0333: vectors */

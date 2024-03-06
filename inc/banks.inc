@@ -20,6 +20,7 @@ BANK_BASLOAD = $0F
 cbdos_flags= $0268
 status     = $0287 ; channel: status byte
 jsrfar3    = $02c4 ; jsrfar: RAM part
+jsrfar3n   = $02c4 ; jsrfar: RAM part, 65C816 native
 jmpfr      = $02df ; jsrfar: core jmp instruction
 imparm     = $82   ; jsrfar: temporary byte
 stavec     = $03b2 ; stash: argument

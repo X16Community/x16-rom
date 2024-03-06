@@ -4,13 +4,18 @@
 ; .word address
 ; .byte bank
 
-	pha             ;reserve 1 byte on the stack
+	php             ;reserve 1 byte on the stack
 	php             ;save registers & status
+
+	clc
+	.byte $e2, $03 ; sep #$03, set carry if 65c816
+	bcs jsrfarn
+
 	pha
 	phx
 	phy
 
-        tsx
+	tsx
 	lda $106,x      ;return address lo
 	sta imparm
 	clc
@@ -64,3 +69,74 @@ jsrfar2:
 	plp
 	plp
 	rts
+
+.pushcpu
+
+.setcpu "65816"
+
+jsrfarn:
+	rep #$30   ; force 16 bit memory/index
+	.A16
+	.I16
+
+	pha
+	phx
+	phy
+
+	lda $0a,S  ; fetch return address
+	sta imparm
+	clc
+	adc #3
+	sta $0a,S  ; write back return address+3
+	ldy #1
+	lda (imparm),y
+	sta jmpfr+1
+	cmp #$c000
+	bcc jsrfar1n
+; target is in ROM
+	sep #$20   ; 8 bit accumulator
+	.A8
+	.I16
+	lda rom_bank
+	sta $09,S  ; save original bank onto reserved byte
+	iny
+	iny
+	lda (imparm),y
+	ply
+	plx
+	jmp jsrfar3n
+
+; target is in RAM
+jsrfar1n:
+	sep #$20   ; 8 bit accumulator
+	.A8
+	.I16
+	lda ram_bank
+	sta $09,S  ; save original bank onto reserved byte
+	iny
+	iny
+	lda (imparm),y
+	sta ram_bank
+	rep #$30   ; 16 bit memory/index (index should still be 16 bit)
+	.A16
+	.I16
+	ply
+	plx
+	pla
+	plp        ; original register widths popped immediately before call
+	jsr jmpfr
+	php
+	sep #$20   ; 8 bit accumulator
+	.A8
+	.I16
+	pha
+	lda $03,S
+	sta ram_bank
+	lda $02,S  ; overwrite reserved byte
+	sta $03,S  ; with copy of .P
+	pla
+	plp
+	plp
+	rts
+
+.popcpu
