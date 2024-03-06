@@ -11,6 +11,7 @@
 	.byte $c2, $03 ; rep #$03, clear carry/z if 65c816
 	bcc jsrfarn
 
+	clc
 jsrfare:
 	pha
 	phx
@@ -19,7 +20,7 @@ jsrfare:
 	tsx
 	lda $106,x      ;return address lo
 	sta imparm
-	clc
+	; carry is clear
 	adc #3
 	sta $106,x      ;and write back with 3 added
 	lda $107,x      ;return address hi
@@ -80,8 +81,8 @@ jsrfarn:
 	xce
 	bcc :+
 	xce
-	bra jsrfare
-:	rep #$30   ; force 16 bit memory/index
+	bra jsrfare ; with carry cleared
+:	rep #$30    ; force 16 bit memory/index
 	.A16
 	.I16
 
@@ -89,22 +90,22 @@ jsrfarn:
 	phx
 	phy
 
-	lda $09,S  ; fetch return address
+	lda $09,S   ; fetch return address
 	sta imparm
-	clc
+	; carry is clear
 	adc #3
-	sta $09,S  ; write back return address+3
+	sta $09,S   ; write back return address+3
 	ldy #1
 	lda (imparm),y
 	sta jmpfr+1
 	cmp #$c000
 	bcc jsrfar1n
 ; target is in ROM
-	sep #$20   ; 8 bit accumulator
+	sep #$20    ; 8 bit accumulator
 	.A8
 	.I16
 	lda rom_bank
-	sta $08,S  ; save original bank onto reserved byte
+	sta $08,S   ; save original bank onto reserved byte
 	iny
 	iny
 	lda (imparm),y
