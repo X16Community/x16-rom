@@ -82,10 +82,9 @@ jsrfarn:
 	bcc :+
 	xce
 	bra jsrfare ; with carry cleared
-:	rep #$30    ; force 16 bit memory/index
+:	rep #$31    ; force 16 bit memory/index, clear carry
 	.A16
 	.I16
-
 	pha
 	phx
 	phy
