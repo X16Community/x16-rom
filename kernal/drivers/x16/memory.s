@@ -290,19 +290,19 @@ __jmpfr:
 	.A16
 	.I16
 	pla
-	plp
+	plp             ; restore register widths immediately before call
 	jsr jmpfr
 	php
 	pha
-	sep #$20        ; 8 bit accumulator
+	sep #$20        ; 8 bit accumulator (we don't care about index width)
 	.A8
 	lda $03,S
 	sta rom_bank    ;restore ROM bank
 	lda $02,S       ;overwrite reserved byte...
-	sta $03,S       ;...with copy of .p
+	sta $03,S       ;...with copy of .P
 	pla
-	plp
-	plp
+	plp             ; restore flags from state immediately after call
+	plp             ; including register widths
 	rts
 
 .popcpu
