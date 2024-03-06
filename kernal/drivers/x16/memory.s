@@ -100,8 +100,6 @@ ramtas:
 	dex
 	bne :-
 
-	set_carry_if_65c816
-	bcs @kernram2_65c816
 ;
 ; copy banking code into RAM
 ;
@@ -110,6 +108,9 @@ ramtas:
 	sta __KRAMJFAR_RUN__-1,x
 	dex
 	bne :-
+
+	set_carry_if_65c816
+	bcs @kernram2_65c816
 
 	ldx #<__KERNRAM2_SIZE__
 
@@ -302,9 +303,7 @@ __jmpfr:
 	plp
 	plp
 	rts
-	nop
-	nop
-.assert * = jmpfr, error, "jmpfrn must be at specific address"
+.assert * = jmpfrn, error, "jmpfrn must be at specific address"
 __jmpfrn:
 	jmp $ffff
 

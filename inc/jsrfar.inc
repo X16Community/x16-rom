@@ -11,6 +11,7 @@
 	.byte $e2, $03 ; sep #$03, set carry if 65c816
 	bcs jsrfarn
 
+jsrfare:
 	pha
 	phx
 	phy
@@ -75,7 +76,12 @@ jsrfar2:
 .setcpu "65816"
 
 jsrfarn:
-	rep #$30   ; force 16 bit memory/index
+	clc
+	xce
+	bcc :+
+	xce
+	bra jsrfare
+:	rep #$30   ; force 16 bit memory/index
 	.A16
 	.I16
 

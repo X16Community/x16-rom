@@ -3,8 +3,8 @@ MEMORY {
 
 	L0220:    start = $0220, size = $0019; # overlaps with top end of BASIC input line only
 
-	BANK5:      start = $C000, size = $3B00, fill=yes, fillval=$AA;
-	KSUP_CODE2: start = $FB00, size = $03A8, fill=yes, fillval=$AA;
+	BANK5:      start = $C000, size = $3A80, fill=yes, fillval=$AA;
+	KSUP_CODE2: start = $FA80, size = $0428, fill=yes, fillval=$AA;
 	KSUP_VEC2:  start = $FEA8, size = $0158, fill=yes, fillval=$AA;
 }
 
