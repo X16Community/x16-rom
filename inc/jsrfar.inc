@@ -86,14 +86,13 @@ jsrfarn:
 	.A16
 	.I16
 	pha
-	phx
 	phy
 
-	lda $09,S   ; fetch return address
+	lda $07,S   ; fetch return address
 	sta imparm
 	; carry is clear
 	adc #3
-	sta $09,S   ; write back return address+3
+	sta $07,S   ; write back return address+3
 	ldy #1
 	lda (imparm),y
 	sta jmpfr+1
@@ -104,11 +103,10 @@ jsrfarn:
 	.A8
 	.I16
 	lda rom_bank
-	sta $08,S   ; save original bank onto reserved byte
+	sta $06,S   ; save original bank onto reserved byte
 	ldy #3
 	lda (imparm),y
 	ply
-	plx
 	jmp jsrfar3n
 
 ; target is in RAM
@@ -117,16 +115,14 @@ jsrfar1n:
 	.A8
 	.I16
 	lda ram_bank
-	sta $08,S  ; save original bank onto reserved byte
-	iny
-	iny
+	sta $06,S  ; save original bank onto reserved byte
+	lda #3
 	lda (imparm),y
 	sta ram_bank
 	rep #$30   ; 16 bit memory/index
 	.A16
 	.I16
 	ply
-	plx
 	pla
 	plp        ; original register widths popped immediately before call
 	jsr jmpfr
