@@ -122,7 +122,7 @@ jsrfar1n:
 	iny
 	lda (imparm),y
 	sta ram_bank
-	rep #$30   ; 16 bit memory/index (index should still be 16 bit)
+	rep #$30   ; 16 bit memory/index
 	.A16
 	.I16
 	ply
