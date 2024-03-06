@@ -130,7 +130,7 @@ jsrfar1n:
 	pla
 	plp        ; original register widths popped immediately before call
 	jsr jmpfr
-	php
+	php        ; preserve flags immediately after return from call
 	sep #$20   ; 8 bit accumulator
 	.A8
 	.I16
@@ -140,7 +140,7 @@ jsrfar1n:
 	lda $02,S  ; overwrite reserved byte
 	sta $03,S  ; with copy of .P
 	pla
-	plp
+	plp        ; restore flags to state immediately after call
 	plp
 	rts
 

@@ -290,7 +290,7 @@ __jmpfr:
 	.A16
 	.I16
 	pla
-	plp             ; restore register widths immediately before call
+	plp             ; restore all flags immediately before call
 	jsr jmpfr
 	php
 	pha
@@ -302,7 +302,7 @@ __jmpfr:
 	sta $03,S       ;...with copy of .P
 	pla
 	plp             ; restore flags from state immediately after call
-	plp             ; including register widths
+	plp
 	rts
 
 .popcpu
