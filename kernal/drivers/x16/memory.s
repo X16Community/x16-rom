@@ -277,10 +277,11 @@ jsrfar:
 __jmpfr:
 	jmp $ffff
 
-.segment "KJFAR816"
-
 .pushcpu
 .setcpu "65816"
+
+.segment "KJFAR816"
+.assert * = jsrfar3n, error, "jsrfar3n must be at specific address"
 
 ;jsrfar3n:
 	.A8
