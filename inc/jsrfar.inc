@@ -106,8 +106,7 @@ jsrfarn:
 	.I16
 	lda rom_bank
 	sta $08,S   ; save original bank onto reserved byte
-	iny
-	iny
+	ldy #3
 	lda (imparm),y
 	ply
 	plx
