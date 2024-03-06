@@ -293,14 +293,14 @@ __jmpfr:
 	plp             ; restore all flags immediately before call
 	jsr jmpfr
 	php
-	pha
-	sep #$20        ; 8 bit accumulator (we don't care about index width)
+	sep #$20        ; 8 bit accumulator
 	.A8
+	pha             ; Push lower byte of accumulator
 	lda $03,S
 	sta rom_bank    ;restore ROM bank
 	lda $02,S       ;overwrite reserved byte...
 	sta $03,S       ;...with copy of .P
-	pla
+	pla             ; .B remains unchanged and is thus preserved
 	plp             ; restore flags from state immediately after call
 	plp
 	rts
