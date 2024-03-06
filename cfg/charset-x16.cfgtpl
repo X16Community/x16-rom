@@ -10,5 +10,6 @@ SEGMENTS {
 	CHARISO:    load = BANK6,    type = ro;
 	CHARPET2:   load = BANK6,    type = ro;
 	CHARISO2:   load = BANK6,    type = ro;
+	CHARANSI:   load = BANK6,    type = ro;
 	VECTORS:    load = VECTORS,  type = ro;
 }
