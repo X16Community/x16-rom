@@ -89,11 +89,11 @@ jsrfarn:
 	phx
 	phy
 
-	lda $0a,S  ; fetch return address
+	lda $09,S  ; fetch return address
 	sta imparm
 	clc
 	adc #3
-	sta $0a,S  ; write back return address+3
+	sta $09,S  ; write back return address+3
 	ldy #1
 	lda (imparm),y
 	sta jmpfr+1
@@ -104,7 +104,7 @@ jsrfarn:
 	.A8
 	.I16
 	lda rom_bank
-	sta $09,S  ; save original bank onto reserved byte
+	sta $08,S  ; save original bank onto reserved byte
 	iny
 	iny
 	lda (imparm),y
@@ -118,7 +118,7 @@ jsrfar1n:
 	.A8
 	.I16
 	lda ram_bank
-	sta $09,S  ; save original bank onto reserved byte
+	sta $08,S  ; save original bank onto reserved byte
 	iny
 	iny
 	lda (imparm),y
