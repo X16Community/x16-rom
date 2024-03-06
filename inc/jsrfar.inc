@@ -7,9 +7,9 @@
 	php             ;reserve 1 byte on the stack
 	php             ;save registers & status
 
-	clc
-	.byte $e2, $03 ; sep #$03, set carry if 65c816
-	bcs jsrfarn
+	sec
+	.byte $c2, $03 ; rep #$03, clear carry/z if 65c816
+	bcc jsrfarn
 
 jsrfare:
 	pha
@@ -76,7 +76,7 @@ jsrfar2:
 .setcpu "65816"
 
 jsrfarn:
-	clc
+	; carry is clear
 	xce
 	bcc :+
 	xce
