@@ -75,7 +75,8 @@ joystick_scan:
 	ldx #bit_jclk
 	ldy #8
 l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-	nop          ; Delay for slow SNES controllers
+	pha          ; Delay for slow SNES controllers
+	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -94,7 +95,8 @@ l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 
 	ldy #8
 l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-
+	pha          ; Delay for slow SNES controllers
+	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -113,7 +115,8 @@ l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 
 	ldy #8
 l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-
+	pha          ; Delay for slow SNES controllers
+	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -130,8 +133,8 @@ l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	dey
 	bne l3
 
-	; force present if controller ID (bits 8-11) is not 15
-	
+	; force presence if controller ID (bits 8-11) is not 15
+
 	lda joy1+1
 	and #%00001111
 	cmp #15
