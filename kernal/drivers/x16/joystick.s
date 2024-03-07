@@ -77,8 +77,6 @@ joystick_scan:
 l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	pha          ; Delay for slow SNES controllers
 	pla
-	pha
-	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -99,8 +97,6 @@ l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	pha          ; Delay for slow SNES controllers
 	pla
-	pha
-	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -120,8 +116,6 @@ l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	ldy #8
 l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	pha          ; Delay for slow SNES controllers
-	pla
-	pha
 	pla
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
