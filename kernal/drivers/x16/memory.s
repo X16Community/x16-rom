@@ -285,10 +285,10 @@ __jmpfr:
 
 ;jsrfar3n:
 	.A8
-	sta rom_bank    ;set ROM bank
-	rep #$30
-	.A16
 	.I16
+	sta rom_bank    ;set ROM bank
+	rep #$20
+	.A16
 	pla
 	plp             ; restore all flags immediately before call
 	jsr jmpfr

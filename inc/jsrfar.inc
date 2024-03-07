@@ -78,11 +78,15 @@ jsrfar2:
 
 jsrfarn:
 	; carry is clear
+	php
+	sei
 	xce
 	bcc :+
 	xce
+	plp
 	bra jsrfare ; with carry cleared
-:	rep #$31    ; force 16 bit memory/index, clear carry
+:	plp
+	rep #$31    ; force 16 bit memory/index, clear carry
 	.A16
 	.I16
 	pha
@@ -101,7 +105,6 @@ jsrfarn:
 ; target is in ROM
 	sep #$20    ; 8 bit accumulator
 	.A8
-	.I16
 	lda rom_bank
 	sta $06,S   ; save original bank onto reserved byte
 	ldy #3
@@ -113,15 +116,13 @@ jsrfarn:
 jsrfar1n:
 	sep #$20   ; 8 bit accumulator
 	.A8
-	.I16
 	lda ram_bank
 	sta $06,S  ; save original bank onto reserved byte
 	lda #3
 	lda (imparm),y
 	sta ram_bank
-	rep #$30   ; 16 bit memory/index
+	rep #$20   ; 16 bit accumulator
 	.A16
-	.I16
 	ply
 	pla
 	plp        ; original register widths popped immediately before call
@@ -129,7 +130,6 @@ jsrfar1n:
 	php        ; preserve flags immediately after return from call
 	sep #$20   ; 8 bit accumulator
 	.A8
-	.I16
 	pha
 	lda $03,S
 	sta ram_bank
