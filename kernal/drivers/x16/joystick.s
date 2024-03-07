@@ -81,7 +81,7 @@ joystick_scan:
 l1:	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
-				; process while NES clock is high (bits change)
+	           ; process while NES clock is high (bits change)
 	rol        ; Move bit 7 into C
 	rol joy1   ; Roll C into joy1
 	rol        ; Move bit 6 into C
@@ -99,7 +99,7 @@ l1:	lda nes_data ; Read all controller bits
 l2:	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
-				; process while NES clock is high (bits change)
+	           ; process while NES clock is high (bits change)
 	rol        ; Move bit 7 into C
 	rol joy1+1 ; Roll C into joy1
 	rol        ; Move bit 6 into C
@@ -116,7 +116,8 @@ l2:	lda nes_data ; Read all controller bits
 	ldy #8
 l3:	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
-				; process while NES clock is high (bits change)
+
+	           ; process while NES clock is high (bits change)
 	rol        ; Move bit 7 into C
 	rol joy1+2 ; Roll C into joy1
 	rol        ; Move bit 6 into C
@@ -130,7 +131,7 @@ l3:	lda nes_data ; Read all controller bits
 	dey
 	bne l3
 
-	; force present if controller ID (bits 8-11) is not 15
+	; force presence if controller ID (bits 8-11) is not 15
 
 	lda joy1+1
 	and #%00001111
