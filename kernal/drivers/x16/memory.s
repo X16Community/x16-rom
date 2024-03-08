@@ -8,6 +8,7 @@
 .include "io.inc"
 
 .import __KRAMJFAR_LOAD__, __KRAMJFAR_RUN__, __KRAMJFAR_SIZE__
+.import __KJFAR816_LOAD__, __KJFAR816_RUN__, __KJFAR816_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
 .import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
 .import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
@@ -138,6 +139,11 @@ ramtas:
 	rep #$30
 	.A16
 	.I16
+
+	ldx #__KJFAR816_LOAD__
+	ldy #__KJFAR816_RUN__
+	lda #(__KJFAR816_SIZE__ - 1)
+	mvn #00,#00
 
 	ldx #__KRAM816_LOAD__
 	ldy #__KRAM816_RUN__
@@ -271,6 +277,35 @@ jsrfar:
 __jmpfr:
 	jmp $ffff
 
+.pushcpu
+.setcpu "65816"
+
+.segment "KJFAR816"
+.assert * = jsrfar3n, error, "jsrfar3n must be at specific address"
+
+;jsrfar3n:
+	.A8
+	.I16
+	sta rom_bank    ;set ROM bank
+	rep #$20
+	.A16
+	pla
+	plp             ; restore all flags immediately before call
+	jsr jmpfr
+	php
+	sep #$20        ; 8 bit accumulator
+	.A8
+	pha             ; Push lower byte of accumulator
+	lda $03,S
+	sta rom_bank    ;restore ROM bank
+	lda $02,S       ;overwrite reserved byte...
+	sta $03,S       ;...with copy of .P
+	pla             ; .B remains unchanged and is thus preserved
+	plp             ; restore flags from state immediately after call
+	plp
+	rts
+
+.popcpu
 
 .segment "KERNRAM2"
 
