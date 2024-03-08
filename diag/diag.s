@@ -10,6 +10,7 @@
 .include "regs.inc"
 .include "i2c.inc"
 .include "macros.inc"
+.include "banks.inc"
 
 ONESEC			= $1900
 ZP_START_OFFSET		= $02
@@ -62,7 +63,7 @@ currpattern		= r11L
 diag_init:
 	bra	:+
 continue_original:
-	stz	$01		; Reset ROM bank to 0 to continue loading normal ROM
+	stz	rom_bank	; Reset ROM bank to 0 to continue loading normal ROM
 
 	; Ask SMC if system is powered on by a longpress
 :	I2C_READ_BYTE I2C_SMC, 9
@@ -91,6 +92,8 @@ basemem_ret:
 
 	lda	#0		; Turn all keyboard LEDs off
 	jsr	kbdwrite
+
+	jsr	write_nmi_handler
 
 	GOTOXY #6, #1
 	PRINTSTR header
@@ -174,7 +177,9 @@ btest:
 	sta	currpattern
 	bra	btest
 
-:	lda	#7			; Show that tests are done
+:	jsr	write_nmi_handler
+
+	lda	#7			; Show that tests are done
 	jsr	kbdwrite
 	jsr	show_pass_done
 
@@ -203,6 +208,18 @@ btest:
 	sta	VERA_DC_VIDEO
 
 	jmp	test_start
+
+write_nmi_handler:
+	lda	nmi_handler,y
+	sta	nmi,y
+	iny
+	cpy	#7
+	bne	write_nmi_handler
+	rts
+nmi_handler:
+	lda	#16
+	sta	rom_bank
+	jmp	diag_start
 
 ; Print the pattern currently in .A register
 printpat:
