@@ -4,16 +4,23 @@
 ; .word address
 ; .byte bank
 
-	pha             ;reserve 1 byte on the stack
+	php             ;reserve 1 byte on the stack
 	php             ;save registers & status
+
+	sec
+	.byte $c2, $03 ; rep #$03, clear carry/z if 65c816
+	bcc jsrfarn
+
+	clc
+jsrfare:
 	pha
 	phx
 	phy
 
-        tsx
+	tsx
 	lda $106,x      ;return address lo
 	sta imparm
-	clc
+	; carry is clear
 	adc #3
 	sta $106,x      ;and write back with 3 added
 	lda $107,x      ;return address hi
@@ -64,3 +71,73 @@ jsrfar2:
 	plp
 	plp
 	rts
+
+.pushcpu
+
+.setcpu "65816"
+
+jsrfarn:
+	; carry is clear
+	php
+	sei
+	xce
+	bcc :+
+	xce
+	plp
+	bra jsrfare ; with carry cleared
+:	plp
+	rep #$31    ; force 16 bit memory/index, clear carry
+	.A16
+	.I16
+	pha
+	phy
+
+	lda $07,S   ; fetch return address
+	sta imparm
+	; carry is clear
+	adc #3
+	sta $07,S   ; write back return address+3
+	ldy #1
+	lda (imparm),y
+	sta jmpfr+1
+	cmp #$c000
+	bcc jsrfar1n
+; target is in ROM
+	sep #$20    ; 8 bit accumulator
+	.A8
+	lda rom_bank
+	sta $06,S   ; save original bank onto reserved byte
+	ldy #3
+	lda (imparm),y
+	ply
+	jmp jsrfar3n
+
+; target is in RAM
+jsrfar1n:
+	sep #$20   ; 8 bit accumulator
+	.A8
+	lda ram_bank
+	sta $06,S  ; save original bank onto reserved byte
+	lda #3
+	lda (imparm),y
+	sta ram_bank
+	rep #$20   ; 16 bit accumulator
+	.A16
+	ply
+	pla
+	plp        ; original register widths popped immediately before call
+	jsr jmpfr
+	php        ; preserve flags immediately after return from call
+	sep #$20   ; 8 bit accumulator
+	.A8
+	pha
+	lda $03,S
+	sta ram_bank
+	lda $02,S  ; overwrite reserved byte
+	sta $03,S  ; with copy of .P
+	pla
+	plp        ; restore flags to state immediately after call
+	plp
+	rts
+
+.popcpu
