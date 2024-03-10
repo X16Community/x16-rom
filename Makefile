@@ -327,6 +327,9 @@ all: $(BUILD_DIR)/rom.bin $(ROM_LABELS) $(ROM_LST)
 $(BUILD_DIR)/rom.bin: $(BANK_BINS)
 	cat $(BANK_BINS) > $@
 
+test: FORCE $(BUILD_DIR)/rom.bin
+	for f in test/unit/*/*.py; do PYTHONPATH="test/unit" python3 -B $${f}; done
+
 x16edit_update:
 	@rm -rf x16edittmp
 	git clone https://github.com/stefan-b-jakobsson/x16-edit.git x16edittmp
