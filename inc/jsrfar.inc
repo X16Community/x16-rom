@@ -118,7 +118,7 @@ jsrfar1n:
 	.A8
 	lda ram_bank
 	sta $06,S  ; save original bank onto reserved byte
-	lda #3
+	ldy #3
 	lda (imparm),y
 	sta ram_bank
 	rep #$20   ; 16 bit accumulator
