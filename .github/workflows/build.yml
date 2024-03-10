@@ -31,6 +31,16 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/r')
         run: |
           RELEASE_VERSION=$(echo "$GITHUB_REF_NAME" | grep -oP '[0-9]+$') make
+      - name: Build Test Emulator
+        run: |
+          git clone https://github.com/X16Community/x16-emulator.git
+          cd x16-emulator
+          git checkout 65c816
+          make all
+      - name: Run Unit Tests
+        run: |
+          export PATH="$(pwd)/x16-emulator:$PATH"
+          make test
       - name: Archive Build Result
         run: |
           mkdir artifact
