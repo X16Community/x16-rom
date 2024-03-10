@@ -13,7 +13,7 @@ jobs:
           python-version: '3.9'
       - name: Install Dependencies
         run: |
-          sudo apt-get install -y make build-essential
+          sudo apt-get install -y make build-essential libsdl2-dev
           git clone https://github.com/cc65/cc65.git
           cd cc65
           make -j4
