@@ -274,7 +274,30 @@ io_err:
     bra close_file
 
 eof:
-    jsr writebuf
+    ;Check if file ends with newline
+    ldx index
+    beq :+ ;Empty buffer, add final newline
+    lda file_buf-1,x
+    cmp #LF ;Last char is LF, no need to add final newline
+    beq :+++
+    cmp #CR ;Last char is CR, no need to add final newline
+    beq :+++
+
+    ;Write buffer to file, and add final newline
+:   jsr writebuf
+
+    ldx file_linebreak_encoding
+    beq :+ ;newline=LF
+    lda #CR
+    jsr KERNAL_CHROUT
+    cpx #1 ;newline=CR
+    beq close_file
+:   lda #LF
+    jsr KERNAL_CHROUT
+    bra close_file
+
+    ;File ends with newline, just write buffer to file
+:   jsr writebuf
 
 close_file:
     lda #1
