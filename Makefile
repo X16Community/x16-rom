@@ -113,7 +113,9 @@ CHARSET_SOURCES= \
 	charset/iso-8859-15.s \
 	charset/petscii2.s \
 	charset/iso-8859-15_2.s \
-	charset/ascii-cp437.s
+	charset/ascii-cp437.s \
+	charset/iso-8859-5.s \
+	charset/iso-8859-5_2.s
 
 GRAPH_SOURCES= \
 	graphics/jmptbl.s \
