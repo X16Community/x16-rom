@@ -251,6 +251,81 @@ launch:
 	rts
 .endproc
 
+do_diag:
+	; clear screen
+	lda #$93
+	jsr bsout
+	
+@ln1:	stz VERA_ADDR_L
+	lda #>VERA_TILEMAP+1
+	sta VERA_ADDR_M
+	lda #($20 | ^VERA_TILEMAP)
+	sta VERA_ADDR_H
+	ldx #0
+:	lda warning1,x
+	beq @ln2
+	sta VERA_DATA0
+	inx
+	bra :-
+@ln2:	stz VERA_ADDR_L
+	inc VERA_ADDR_M
+	inc VERA_ADDR_M
+	ldx #0
+:	lda warning2,x
+	beq @ln3
+	sta VERA_DATA0
+	inx
+	bra :-
+@ln3:	stz VERA_ADDR_L
+	inc VERA_ADDR_M
+	ldx #0
+:	lda warning3,x
+	beq @ln4
+	sta VERA_DATA0
+	inx
+	bra :-
+@ln4:	stz VERA_ADDR_L
+	inc VERA_ADDR_M
+	ldx #0
+:	lda warning4,x
+	beq @ln5
+	sta VERA_DATA0
+	inx
+	bra :-
+@ln5:	stz VERA_ADDR_L
+	inc VERA_ADDR_M
+	inc VERA_ADDR_M
+	ldx #0
+:	lda warning5,x
+	beq @ln6
+	sta VERA_DATA0
+	inx
+	bra :-
+@ln6:	stz VERA_ADDR_L
+	inc VERA_ADDR_M
+	inc VERA_ADDR_M
+	ldx #0
+:	lda warning6,x
+	beq @getchoice
+	sta VERA_DATA0
+	inx
+	bra :-
+@getchoice:
+	jsr getin
+	beq @getchoice
+	cmp #27		;ESC
+	bne @enter
+	; clear screen
+	lda #$93
+	jsr bsout
+	jmp show_menu
+@enter:	cmp #13
+	bne @getchoice
+	jsr ujsrfar
+	.word $C000
+	.byte BANK_DIAG
+	rts
+
 to_basic:
 	lda #$93 ; clear screen
 	jsr bsout
@@ -261,13 +336,13 @@ menu_title:
 	scrcode "X16 MENU"
 	.byte 0
 
-MENUITEM_CNT = 4
+MENUITEM_CNT = 5
 
 menuitems:
-	.word menu0, menu1, menu2, menu3, 0
+	.word menu0, menu1, menu2, menu3, menu4, 0
 
 menu_jumptable:
-	.word util_control, util_hexedit, x16edit, to_basic
+	.word util_control, util_hexedit, x16edit, do_diag, to_basic
 
 menu0:
 	scrcode "CONTROL PANEL"
@@ -279,5 +354,27 @@ menu2:
 	scrcode "TEXT EDITOR"
 	.byte 0
 menu3:
+	scrcode "DIAGNOSTICS"
+	.byte 0
+menu4:
 	scrcode "EXIT TO BASIC"
+	.byte 0
+
+warning1:
+	scrcode "!!!!! WARNING !!!!!"
+	.byte 0
+warning2:
+	scrcode " ONLY WAY TO EXIT"
+	.byte 0
+warning3:
+	scrcode " DIAGNOSTIC IS TO"
+	.byte 0
+warning4:
+	scrcode "POWERCYCLE OR RESET"
+	.byte 0
+warning5:
+	scrcode "   ENTER=ACCEPT"
+	.byte 0
+warning6:
+	scrcode "    ESC=CANCEL"
 	.byte 0
