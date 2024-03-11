@@ -204,8 +204,25 @@ monitor:
 	phx
 	lda reg_p
 	pha
+
+	; Skip over pushing 65C816 stack if running on a 65C02
+	sec
+	.byte $c2, $03
+	bcs @cmd_cont_c02
+
+	lda #0
+	pha
+	pha
+	pha
 	lda reg_a
 	pha
+	lda #0
+	pha
+	bra @cmd_cont_c816
+@cmd_cont_c02:
+	lda reg_a
+	pha
+@cmd_cont_c816:
 	lda bank_ro
 	pha
 	phy
