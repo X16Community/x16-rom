@@ -204,8 +204,25 @@ monitor:
 	phx
 	lda reg_p
 	pha
+
+	; Skip over pushing 65C816 stack if running on a 65C02
+	sec
+	.byte $c2, $03
+	bcs @cmd_cont_c02
+
+	lda #0
+	pha
+	pha
+	pha
 	lda reg_a
 	pha
+	lda #0
+	pha
+	bra @cmd_cont_c816
+@cmd_cont_c02:
+	lda reg_a
+	pha
+@cmd_cont_c816:
 	lda bank_ro
 	pha
 	phy
@@ -219,10 +236,18 @@ monitor:
 	phy
 	bra @end
 @basic:
+	; For 65C816 emulated mode
+	; in the case of BRK, __irq_65c816 pushes things in this order
+	;   (original real RTI-style return)
+	;   .B, .A, .D (two bytes), .DB, rombank, ret h, ret l, .P
+	;   .A (dummy copy of rombank), .X, .Y
+
+	; For 65C02
 	; We were called from BASIC
 	; in the case of BRK, the RAM __irq pushes things in this order
 	;   (original real RTI-style return)
-	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
+	;   .A, rombank, ret h, ret l, .P, .A (dummy copy of ret l), .X, .Y
+
 	; load the values from BASIC as this is our best guess
 	; which assumes MONITOR was called explicitly rather than
 	; via a BRK instruction.
@@ -231,8 +256,25 @@ monitor:
 	phx
 	lda $030f
 	pha
+
+	; Skip over pushing 65C816 stack if running on a 65C02
+	sec
+	.byte $c2, $03
+	bcs @basic_cont_c02
+
+	lda #0
+	pha
+	pha
+	pha
 	lda $030c
 	pha
+	lda #0
+	pha
+	bra @basic_cont_c816
+@basic_cont_c02:
+	lda $030c
+	pha
+@basic_cont_c816:
 	lda bank_ro
 	pha
 	phy
