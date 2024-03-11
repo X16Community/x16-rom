@@ -6,9 +6,12 @@
 
 .feature labels_without_colons
 
+.include "65c816.inc"
 .include "io.inc"
 
 .import nsave, nload, nclall, ngetin, nstop, nbsout, nbasin, nclrch, nckout, nchkin, nclose, nopen, nnmi, timb, key, cinv, receive_scancode_resume
+.import necop, neabort, nnirq, nnbrk, nnnmi, nncop, nnabort
+.import c816_cop_emulated
 .importzp tmp2
 .export iobase, membot, memtop, restor, vector
 
@@ -48,6 +51,9 @@ vectss	.word key,timb,nnmi
 	.word nclall
 	.word receive_scancode_resume
 	.word nload,nsave
+	.word necop,neabort
+	.word nnirq,nnbrk,nnnmi
+	.word nncop,nnabort
 vectse
 
 
@@ -84,7 +90,29 @@ setbot	stx memstr
 ;
 ;return address of first 6522
 ;
-iobase
+iobase	php
+	set_carry_if_65c816
+	bcc @not_65c816
+
+.pushcpu
+.setcpu "65816"
+	sep #$20
+	.A8
+	pha
+	lda $02,S
+	and #4
+	beq @not_interrupt
+	pla
+	plp
+	jmp c816_cop_emulated
+
+@not_interrupt
+	pla
+
+.popcpu
+
+@not_65c816
+	plp
 	ldx #<via1
 	ldy #>via1
 	rts

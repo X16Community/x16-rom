@@ -80,6 +80,9 @@ MODIFIER_SHIFT = 1
 
 .import callkbvec
 
+.import c816_irqb
+
+.include "65c816.inc"
 .include "banks.inc"
 .include "mac.inc"
 
@@ -127,14 +130,38 @@ nlinesp1	.res 1          ;    X16: y resolution + 1
 nlinesm1	.res 1          ;    X16: y resolution - 1
 verbatim	.res 1
 
-.segment "EDITOR"
-
+.segment "C816_SCRORG"
 ;
 ;return max rows,cols of screen
 ;
-scrorg	ldx llen
+scrorg	php
+	set_carry_if_65c816
+	bcc @not_65c816
+
+.pushcpu
+.setcpu "65816"
+	sep #$20
+	.A8
+	pha
+	lda $02,S
+	and #4
+	beq @not_interrupt
+	pla
+	plp
+	jmp c816_irqb
+
+@not_interrupt
+	pla
+
+.popcpu
+
+@not_65c816
+	plp
+	ldx llen
 	ldy nlines
 	rts
+
+.segment "EDITOR"
 ;
 ;read/plot cursor position
 ;

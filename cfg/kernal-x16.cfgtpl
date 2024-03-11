@@ -17,6 +17,7 @@ SEGMENTS {
 	I2CMUTEX: 	load = I2CMUTEX, type = bss;
 	KVAR2:      load = KVAR2,    type = bss;
 
+	KRAM816S:   load = KRAM816S, type = bss;
 	GDRVVEC:    load = GDRVVEC,  type = bss;
 	KVECTORS:   load = KVECTORS, type = bss;
 	KEYMAP:     load = KEYMAP,   type = bss;
@@ -32,14 +33,25 @@ SEGMENTS {
 	PS2:      load = KERNAL,   type = ro;
 	PS2KBD:   load = KERNAL,   type = ro;
 	PS2MOUSE: load = KERNAL,   type = ro;
-	JOYSTICK: load = KERNAL,   type = ro;
-	IEEESWTCH:load = KERNAL,   type = ro;
 	SERIAL:   load = KERNAL,   type = ro;
 	MEMORY:   load = KERNAL,   type = ro;
 	LZSA:     load = KERNAL,   type = ro;
 	RS232:    load = KERNAL,   type = ro;
 	CHANNEL:  load = KERNAL,   type = ro;
 	CLOCK:    load = KERNAL,   type = ro;
+	C816_UTIL: load = KERNAL,  type = ro;
+	C816_ABORT_NATIVE: load = KERNAL, type = ro, start = $E44C; # low byte: JMP abs, high byte equals low byte of C816_CLALL_THUNK
+	JOYSTICK: load = KERNAL,   type = ro;
+	IEEESWTCH:load = KERNAL,   type = ro;
+	C816_GETIN_THUNK: load = KERNAL, type = ro, start = $E7EF;  # low byte equals high byte of C816_COP_NATIVE, high byte equals low byte of C816_BRK
+	CLOCK_TIMER: load = KERNAL, type = ro, start = $E94C;       # low byte: JMP abs, high byte equals low byte of C816_SCRORG
+	C816_SCRORG: load = KERNAL, type = ro, start = $E9E9;       # low byte equals high byte of CLOCK_TIMER, high byte chosen at random
+	C816_CLALL_THUNK: load = KERNAL, type = ro, start = $EAE4;  # low byte equals high byte of C816_ABORT_NATIVE, high byte = NOP
+	C816_BRK: load = KERNAL, type = ro, start = $EAE7;        # low byte equals high byte of C816_GETIN_THUNK, high byte = nop
+	C816_NMIB: load = KERNAL, type = ro, start = $EAEA;         # low byte equals NOP and high byte of C816_CLALL_THUNK, high byte = NOP
+	C816_COP_NATIVE: load = KERNAL, type = ro, start = $EF4C; # low byte: JMP abs, high byte equals low byte of C816_GETIN_THUNK
+	C816_COP_EMULATED: load = KERNAL, type = ro;
+	C816_ABORT_EMULATED: load = KERNAL, type = ro;
 	I2C:      load = KERNAL,   type = ro;
 	RTC:      load = KERNAL,   type = ro;
 	NVRAM:    load = KERNAL,   type = ro;
@@ -55,8 +67,12 @@ SEGMENTS {
 	SPRITES:  load = KERNAL,   type = ro;
 	VERA_DRV: load = KERNAL,   type = ro;
 	PALETTE:  load = KERNAL,   type = ro, align = $100;
-	KERNRAM:  load = KERNAL,   run = KERNRAM,  type = ro, define = yes;
+	KRAMJFAR: load = KERNAL,   run = KRAMJFAR, type = ro, define = yes;
+	KJFAR816: load = KERNAL,   run = KJFAR816, type = ro, define = yes;
 	KERNRAM2: load = KERNAL,   run = KERNRAM2, type = ro, define = yes;
+	KRAM816:  load = KERNAL,   run = KRAM816,  type = ro, define = yes;
+	KRAM02B:  load = KERNAL,   run = KRAM02B,  type = ro, define = yes;
+	KRAM816B: load = KERNAL,   run = KRAM816B, type = ro, define = yes;
 	VECB0:    load = KERNAL,   run = VECB0, type = ro, define = yes;
 	JMPTBL:   load = JMPTBL,   type = ro;
 	VECTORS:  load = VECTORS,  type = ro;

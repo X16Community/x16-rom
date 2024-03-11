@@ -1,7 +1,7 @@
 .segment "JMPTBL"
 	; This is only here to make it easy to start the diagnostics
 	; from normal operating mode.
-	; BANK0,16:SYS$C000
+	; BANK0,7:SYS$C000
 	jmp	diag_start
 
 .segment "DIAG"
@@ -217,7 +217,7 @@ write_nmi_handler:
 	bne	write_nmi_handler
 	rts
 nmi_handler:
-	lda	#16
+	lda	#BANK_DIAG
 	sta	rom_bank
 	jmp	diag_start
 

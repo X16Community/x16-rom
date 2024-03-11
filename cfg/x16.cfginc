@@ -21,11 +21,13 @@ ZPMATH:   start = $00A9, size = $002B; # MATH
 ZPBASIC:  start = $00D4, size = $002B; # BASIC (last byte used: $FE)
 
 /* $0200-$02FF: always-available variables and RAM code */
-KVAR:     start = $0200, size = $00BB; # KERNAL
-/*        start = $02BB, size = $0005; # reserved for KERNAL growth */
+KVAR:     start = $0200, size = $0095; # KERNAL
+KRAM816S: start = $0295, size = $0003; # KERNAL: 65C816: old stack pointer
+KJFAR816: start = $0298, size = $0019; # KERNAL: jsrfar3n
+/*        start = $02B1, size = $000F; # reserved for KERNAL growth */
 I2CMUTEX: start = $02C0, size = $0001; # I2C MUTEX FLAG
 GRAPHVAR: start = $02C1, size = $0003; # GRAPH BANK VARS
-KERNRAM:  start = $02C4, size = $0020; # KERNAL RAM code
+KRAMJFAR: start = $02C4, size = $001E; # KERNAL: jsrfar3
 GDRVVEC:  start = $02E4, size = $001C; # framebuffer driver vectors
 
 /* $0300-$0333: vectors */
@@ -34,7 +36,10 @@ KVECTORS: start = $0314, size = $002E; # KERNAL vectors
 
 /* $036A-$03FF: variables and RAM code */
 KVAR2:    start = $036A, size = $0021; # KERNAL: screen editor state
-KERNRAM2: start = $038B, size = $003F; # KERNAL: banked IRQ/NMI, fetch, stash
+KERNRAM2: start = $038B, size = $0038; # KERNAL: banked IRQ/NMI, fetch, stash
+KRAM816:  start = $038B, size = $001D; # KERNAL: 65C816: IRQ
+KRAM02B:  start = $03C3, size = $0007; # KERNAL: 65C02: __irq_ret
+KRAM816B: start = $03C3, size = $0007; # KERNAL: 65C816: free space
 FPVARS:   start = $03CA, size = $0009; # MATH
 BVARS:    start = $03D3, size = $002D; # BASIC
 

@@ -3,11 +3,16 @@
 ;----------------------------------------------------------------------
 ; (C)2019 Michael Steil, License: 2-clause BSD
 
+.include "65c816.inc"
 .include "banks.inc"
 .include "io.inc"
 
-.import __KERNRAM_LOAD__, __KERNRAM_RUN__, __KERNRAM_SIZE__
+.import __KRAMJFAR_LOAD__, __KRAMJFAR_RUN__, __KRAMJFAR_SIZE__
+.import __KJFAR816_LOAD__, __KJFAR816_RUN__, __KJFAR816_SIZE__
 .import __KERNRAM2_LOAD__, __KERNRAM2_RUN__, __KERNRAM2_SIZE__
+.import __KRAM816_LOAD__, __KRAM816_RUN__, __KRAM816_SIZE__
+.import __KRAM02B_LOAD__, __KRAM02B_RUN__, __KRAM02B_SIZE__
+.import __KRAM816B_LOAD__, __KRAM816B_RUN__, __KRAM816B_SIZE__
 .import __KVARSB0_LOAD__, __KVARSB0_RUN__, __KVARSB0_SIZE__
 .import __VARFONTS_LOAD__, __VARFONTS_RUN__, __VARFONTS_SIZE__
 .import __VECB0_LOAD__, __VECB0_RUN__, __VECB0_SIZE__
@@ -19,7 +24,9 @@
 
 .import defcb
 
+.import stack_init
 .import ieeeswitch_init
+.import __irq_65c816_first
 
 .export ramtas
 .export enter_basic
@@ -30,6 +37,7 @@
 .export indfet
 .export stash
 .export stavec
+.export necop, neabort, nncop_abort_ret
 
 .export callkbvec
 
@@ -95,18 +103,73 @@ ramtas:
 ;
 ; copy banking code into RAM
 ;
-	ldx #<__KERNRAM_SIZE__
-:	lda __KERNRAM_LOAD__-1,x
-	sta __KERNRAM_RUN__-1,x
+	ldx #<__KRAMJFAR_SIZE__
+:	lda __KRAMJFAR_LOAD__-1,x
+	sta __KRAMJFAR_RUN__-1,x
 	dex
 	bne :-
+
+	set_carry_if_65c816
+	bcs @kernram2_65c816
 
 	ldx #<__KERNRAM2_SIZE__
-:	lda __KERNRAM2_LOAD__-1,x
+
+@kernram2:
+	lda __KERNRAM2_LOAD__-1,x
 	sta __KERNRAM2_RUN__-1,x
 	dex
-	bne :-
+	bne @kernram2
 
+	ldx #<__KRAM02B_SIZE__
+
+@kram02b:
+	lda __KRAM02B_LOAD__-1,x
+	sta __KRAM02B_RUN__-1,x
+	dex
+	bne @kram02b
+
+	bra @vecb0
+
+@kernram2_65c816:
+.pushcpu
+.setcpu "65816"
+	clc
+	xce
+	clc
+	rep #$30
+	.A16
+	.I16
+
+	ldx #__KJFAR816_LOAD__
+	ldy #__KJFAR816_RUN__
+	lda #(__KJFAR816_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816_LOAD__
+	ldy #__KRAM816_RUN__
+	lda #(__KRAM816_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #(__KERNRAM2_LOAD__ + __KRAM816_SIZE__)
+	lda #(__KERNRAM2_SIZE__ - __KRAM816_SIZE__ - 1)
+	mvn #00,#00
+
+	ldx #__KRAM816B_LOAD__
+	lda #(__KRAM816B_SIZE__ - 1)
+	mvn #00,#00
+
+	.A8
+	.I8
+	sec
+	xce
+
+;
+;	initialize stack management
+;
+	jsr stack_init
+.popcpu
+
+@vecb0:
 ;
 ; copy editor basin vectoring code (and perhaps other extended vectors)
 ;
@@ -189,7 +252,7 @@ jsrfar:
 
 ;/////////////////////   K E R N A L   R A M   C O D E  \\\\\\\\\\\\\\\\\\\\\\\
 
-.segment "KERNRAM"
+.segment "KRAMJFAR"
 .export jmpfr
 .assert * = jsrfar3, error, "jsrfar3 must be at specific address"
 ;jsrfar3:
@@ -214,11 +277,40 @@ jsrfar:
 __jmpfr:
 	jmp $ffff
 
+.pushcpu
+.setcpu "65816"
+
+.segment "KJFAR816"
+.assert * = jsrfar3n, error, "jsrfar3n must be at specific address"
+
+;jsrfar3n:
+	.A8
+	.I16
+	sta rom_bank    ;set ROM bank
+	rep #$20
+	.A16
+	pla
+	plp             ; restore all flags immediately before call
+	jsr jmpfr
+	php
+	sep #$20        ; 8 bit accumulator
+	.A8
+	pha             ; Push lower byte of accumulator
+	lda $03,S
+	sta rom_bank    ;restore ROM bank
+	lda $02,S       ;overwrite reserved byte...
+	sta $03,S       ;...with copy of .P
+	pla             ; .B remains unchanged and is thus preserved
+	plp             ; restore flags from state immediately after call
+	plp
+	rts
+
+.popcpu
 
 .segment "KERNRAM2"
 
 .assert * = irq, error, "irq must be at specific address"
-.export __irq
+.export __irq, __irq_ret
 __irq:
 	; If this stack preserve order is ever changed, check
 	; and update the MONITOR entry code as it makes assumptions
@@ -243,6 +335,45 @@ __irq:
 	jmp (cinv)      ;...no...irq
 
 	.res 2
+
+;.assert __KRAM816B_RUN__ = __KRAM816A_RUN__ + __KRAM816A_SIZE__ + 4, error, "KRAM816B must start at specific address"
+.assert * - __KERNRAM2_RUN__ = $1d, error, "KRAM816 must end at specific address"
+
+.pushcpu
+.setcpu "65816"
+.A8
+.I8
+
+.segment "KRAM816"
+.export __irq_65c816_saved
+__irq_65c816:
+	; If this stack preserve order is ever changed, check
+	; and update the MONITOR entry code as it makes assumptions
+	; about what happens here upon BRK.
+	jmp __irq_65c816_first ; save A, DP, and bank
+
+__irq_65c816_saved:
+	pha		;set up CBM IRQ stack frame
+	phx
+	phy
+	lda $0D,S	    ;get old p status
+	and #$10        ;break flag?
+	.byte $D0, <(__brk - (* + 1)) ;...yes (__brk is in a different segment, so ca65 doesn't accept bne)
+	jmp (cinv)      ;...no...irq
+
+.export __irq_native_ret
+__irq_native_ret:
+	pla
+	sta rom_bank
+	plb
+	pld
+	pla
+	xba
+	pla
+	xba
+	rti
+
+.popcpu
 
 .segment "MEMDRV"
 
@@ -324,11 +455,28 @@ __nmi:
 __brk:
 	jmp (cbinv)
 
+.segment "KRAM02B"
 __irq_ret:
 	pla
 	sta rom_bank    ;restore ROM bank
 	pla
 	rti
+	.res 2
+
+.segment "KRAM816B"
+.pushcpu
+.setcpu "65816"
+.A8
+.I8
+
+necop:
+neabort:
+nncop_abort_ret:
+	lda #00
+	trb a:rom_bank
+	rti
+
+.popcpu
 
 .segment "VECB0"
 ; This is a routine in RAM that calls another routine

@@ -31,16 +31,18 @@
 
 .import savehl
 
+.import extapi, extapi16
+
+.import c816_abort_emulated, c816_clall_thunk, c816_getin_thunk
+
 .include "banks.inc"
 
 	.segment "JMPTBL"
 
 ; *** this is space for new X16 KERNAL vectors ***
 ;
-; !!! DO NOT RELY ON THEIR ADDRESSES JUST YET !!!
-;
-	.byte 0,0,0                    ; $FEA8
-	.byte 0,0,0                    ; $FEAB
+	jmp extapi16                   ; $FEA8
+	jmp extapi                     ; $FEAB
 	.byte 0,0,0                    ; $FEAE
 	jmp mciout                     ; $FEB1
 	jmp i2c_batch_read             ; $FEB4
@@ -129,7 +131,7 @@
 	jmp mouse_scan         ; $FF71: mouse_scan - read mouse state                  [unsupported C128: JMPFAR – goto another bank]
 	jmp indfet             ; $FF74: [C128] FETCH – LDA (fetvec),Y from any bank
 	jmp stash              ; $FF77: [C128] STASH – STA (stavec),Y to any bank
-	.byte 0,0,0            ; $FF7A:                                                [unsupported C128: CMPARE]
+	.byte 0, 0, 0          ; $FF7A:                                                [unsupported C128: CMPARE]
 	jmp primm              ; $FF7D: [C128] PRIMM – print string following the caller’s code
 
 	;KERNAL revision
@@ -176,15 +178,16 @@ bsout	jmp (ibsout)    ;output to channel
 	jmp clock_set_timer ;set timer (SETTIM)
 	jmp clock_get_timer ;read timer (RDTIM)
 stop	jmp (istop)     ;scan stop key
-getin	jmp (igetin)    ;get char from q
-clall	jmp (iclall)    ;close all files
-	jmp clock_update ;increment timer (UDTIM)
-jscrog	jmp scrorg      ;screen org
+getin	jmp c816_getin_thunk    ;get char from q
+
+clall	.byte $EA, $4C, <c816_clall_thunk ;close all files
+	.byte >c816_clall_thunk, $EA, $4C ;increment timer (UDTIM)
+jscrog	.byte <clock_update, >clock_update, >scrorg ;screen org
+
 jplot	jmp plot        ;read/set x,y coord
 jiobas	jmp iobase      ;return i/o base
-
-	;signature
-	.byte "MIST"
+	.byte 0,0
+	.word c816_abort_emulated
 
 	.segment "VECTORS"
 	.word nmi	;program defineable
