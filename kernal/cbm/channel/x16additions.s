@@ -3,7 +3,7 @@ clear_status:
     stz status
     rts
 
-getlfs:
+extapi_getlfs:
     lda la
     ldx fa
     ldy sa

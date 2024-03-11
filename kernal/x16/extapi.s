@@ -1,5 +1,5 @@
 .import clear_status
-.import getlfs
+.import extapi_getlfs
 
 .export extapi
 
@@ -32,5 +32,5 @@ secrts:
 apitbl:
     .word secrts-1 ; slot 0 is reserved
     .word clear_status-1      ; API 1
-    .word getlfs-1            ; API 2
+    .word extapi_getlfs-1     ; API 2
 
