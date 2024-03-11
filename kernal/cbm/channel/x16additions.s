@@ -3,6 +3,8 @@ clear_status:
     stz status
     rts
 
-get_fa:
-    lda fa
+extapi_getlfs:
+    lda la
+    ldx fa
+    ldy sa
     rts

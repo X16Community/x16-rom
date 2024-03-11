@@ -1,11 +1,12 @@
 .import clear_status
-.import get_fa
+.import extapi_getlfs
 
 .export extapi
 
 .segment "UTIL"
 
-; This API call expects and requires e=1
+; This API call expects and requires
+; m=1,x=1,sp=$01xx (or e=1)
 extapi:
     pha ; reserve two free spots on the stack
     pha
@@ -31,5 +32,5 @@ secrts:
 apitbl:
     .word secrts-1 ; slot 0 is reserved
     .word clear_status-1      ; API 1
-    .word get_fa-1            ; API 2
+    .word extapi_getlfs-1     ; API 2
 
