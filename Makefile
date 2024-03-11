@@ -309,15 +309,14 @@ BANK_BINS = \
 	$(BUILD_DIR)/basic.bin \
 	$(BUILD_DIR)/monitor.bin \
 	$(BUILD_DIR)/charset.bin \
-	$(BUILD_DIR)/codex.bin \
+	$(BUILD_DIR)/diag.bin \
 	$(BUILD_DIR)/graph.bin \
 	$(BUILD_DIR)/demo.bin \
 	$(BUILD_DIR)/audio.bin \
 	$(BUILD_DIR)/util.bin \
 	$(BUILD_DIR)/bannex.bin \
 	$(BUILD_DIR)/x16edit-rom.bin \
-	$(BUILD_DIR)/basload-rom.bin \
-	$(BUILD_DIR)/diag.bin \
+	$(BUILD_DIR)/basload-rom.bin
 
 ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
@@ -348,7 +347,6 @@ basload_update:
 clean:
 	rm -f $(GIT_SIGNATURE)
 	rm -rf $(BUILD_DIR)
-	$(MAKE) -C codex clean
 
 $(GIT_SIGNATURE): FORCE
 	@mkdir -p $(BUILD_DIR)
@@ -411,9 +409,11 @@ $(BUILD_DIR)/charset.bin: $(CHARSET_OBJS) $(CHARSET_DEPS) $(CFG_DIR)/charset-x16
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/charset-x16.cfg $(CHARSET_OBJS) -o $@ -m $(BUILD_DIR)/charset.map -Ln $(BUILD_DIR)/charset.sym
 
-# Bank 7 : CodeX
-$(BUILD_DIR)/codex.bin: $(CFG_DIR)/codex-x16.cfg
-	$(MAKE) -C codex
+# Bank 7: Memory diagnostic
+$(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
+	@mkdir -p $$(dirname $@)
+	$(LD) -C $(CFG_DIR)/diag-x16.cfg $(DIAG_OBJS) -o $@ -m $(BUILD_DIR)/diag.map -Ln $(BUILD_DIR)/diag.sym
+	./scripts/relist.py $(BUILD_DIR)/diag.map $(BUILD_DIR)/diag
 
 # Bank 8 : Graphics
 $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
@@ -464,12 +464,6 @@ $(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
 	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
 
-# Bank 10: Memory diagnostic
-$(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
-	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/diag-x16.cfg $(DIAG_OBJS) -o $@ -m $(BUILD_DIR)/diag.map -Ln $(BUILD_DIR)/diag.sym
-	./scripts/relist.py $(BUILD_DIR)/diag.map $(BUILD_DIR)/diag
-
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
 	./scripts/symbolize.sh 1 build/x16/keymap.sym  >> $@
@@ -478,10 +472,10 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 4 build/x16/basic.sym   >> $@
 	./scripts/symbolize.sh 5 build/x16/monitor.sym >> $@
 	./scripts/symbolize.sh 6 build/x16/charset.sym >> $@
+	./scripts/symbolize.sh 7 build/x16/diag.sym   >> $@
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
-	./scripts/symbolize.sh 10 build/x16/diag.sym   >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
@@ -489,7 +483,8 @@ $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 3 `find build/x16/fat32/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst` >> $@
+	./scripts/trace_lst.py 7 `find build/x16/diag/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
 	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@
 	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`  >> $@
-	./scripts/trace_lst.py 10 `find build/x16/diag/ -name \*.rlst`   >> $@
+

@@ -64,12 +64,7 @@ monitor:
 	jmp clean_return
 
 ;***************
-codex:
-   jsr bjsrfar
-   .word $c000
-   .byte BANK_CODEX
-	; does not return
-
+codex:  ; syntax error now that CODEX is gone
 ;***************
 geos: ; syntax error now that GEOS is gone
 	ldx #errsn
