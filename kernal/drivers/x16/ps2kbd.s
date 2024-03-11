@@ -58,6 +58,11 @@ KBDNAM_LEN = 14
 .segment "ZPKERNAL" : zeropage
 ckbtab:	.res 2           ;    used for keyboard lookup
 
+.segment "ZPKBD": zeropage
+kbtmp:  .res 1           ;    meant for exclusive use in kbd_scan
+                         ;   The routine formerly used tmp2 which
+                         ;   can conflict with usage outside of the ISR
+
 .segment "KVARSB0"
 
 prefix:	.res 1           ;    PS/2: prefix code (e0/e1)
@@ -320,7 +325,7 @@ is_reg_key:
 	; Pause/break key?
 	cmp #KEYCODE_PAUSEBRK
 	bne :+
-	
+
 	ldx #$03 * 2 ; stop (-> run)
 	lda shflag
 	lsr ; shift -> C
@@ -354,7 +359,7 @@ cont: 	jsr find_table
 ; the tables use modifiers $C6 (Alt/AltGr) and $C7 (Shift+Alt/AltGr).
 ; If we don't find a table and the modifier is (Shift+)Alt/AltGr,
 ; try these modifier codes.
-	lda tmp2
+	lda kbtmp
 	cmp #$82
 	beq @again
 	cmp #$83
@@ -377,7 +382,7 @@ cont: 	jsr find_table
 ; scan dead key tables; if nothing found, it's unassigned
 @maybe_dead:
 	sty dk_scan
-	lda tmp2
+	lda kbtmp
 	sta dk_shift
 @skip:	rts
 
@@ -496,14 +501,14 @@ handle_caps:
 
 find_table:
 .assert keymap_data = $a000, error; so we can ORA instead of ADC and carry
-	sta tmp2
+	sta kbtmp
 	lda #<keymap_data
 	sta ckbtab
 	lda #>keymap_data
 	sta ckbtab+1
 	ldx #TABLE_COUNT
 @loop:	lda (ckbtab)
-	cmp tmp2
+	cmp kbtmp
 	beq @ret        ; .C = 1: found
 	lda ckbtab
 	eor #$80

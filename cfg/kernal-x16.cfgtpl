@@ -10,6 +10,7 @@ MEMORY {
 SEGMENTS {
 	ZPKERNAL:   load = ZPKERNAL, type = zp;
 	ZPCHANNEL:  load = ZPKERNAL, type = zp;
+	ZPKBD:      load = ZPKERNAL, type = zp;
 	ZPFONTS:    load = ZPKERNAL, type = zp;
 
 	KVAR:       load = KVAR,     type = bss;
