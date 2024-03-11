@@ -25,14 +25,14 @@ available via a function key.
 ^D        Set current device number
 ^T        Set text color (default white)
 ^B        Set background color (default blue)
-^M        Show memory usage (1 bank=251 bytes of text)
+^M        Show memory usage (1 block=251 bytes of text)
 ^SPACE    Insert non-breaking space
 ^1..9     Set tab width
-^ENTER    Set line break encoding
+^RETURN   Set line break encoding
 ^F        Programming toolbox (ROM only)
 
 
-X16 Edit, Copyright 2020-2023, Stefan Jakobsson.
+X16 Edit, Copyright 2020-2024, Stefan Jakobsson.
 
 Released under the BSD 2-Clause license, available in 
 the enclosed "license" file.

@@ -11,7 +11,7 @@ N   =New     B=Backgr color
 K   =Cut     M=Mem free
 DEL =Del Ln  C=Copy
 1..9=Tab w   U=Uncut/paste
-ENT =Ln brk enc
+RET =Ln brk enc
 
 X16 Edit, (c) Stefan Jakobsson,
 released under BSD 2-Clause
