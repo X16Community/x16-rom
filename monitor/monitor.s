@@ -293,17 +293,26 @@ brk_entry2:
 	sta cbinv + 1 ; BRK vector
 	plp
 
+	; For 65C816 emulated mode
+	; in the case of BRK, __irq_65c816 pushes things in this order
+	;   (original real RTI-style return)
+	;   .B, .A, .D (two bytes), .DB, rombank, ret h, ret l, .P
+	;   .A (dummy copy of rombank), .X, .Y
+
+	; For 65C02
 	; in the case of BRK, the RAM __irq pushes things in this order
 	;   (original real RTI-style return)
-	;   A, rombank, ret h, ret l, P, A (dummy copy of ret l), X, Y
+	;   .A, rombank, ret h, ret l, P, .A (dummy copy of ret l), .X, .Y
+
 	; let's pull them off in reverse order
 	pla
 	sta reg_y
 	pla
 	sta reg_x
-	pla
+
 	; dummy A
-	
+	pla
+
 	; pull off RTI style return (which includes fake P flags)
 	pla
 	pla
@@ -317,9 +326,26 @@ brk_entry2:
 	lda ram_bank
 	sta bank_ra
 
+	; Skip over 65C816 stack if running on a 65C02
+	sec
+	.byte $c2, $03
+	bcs brk_cont_c02
+
+	pla ; Data Bank register
+	pla ; DP low
+	pla ; DP high
+
+	pla
+	sta reg_a ; preserved A
+
+	pla ; .B
+	bra brk_cont_c816
+
+brk_cont_c02:
 	pla
 	sta reg_a ; real preserved A from __irq
 
+brk_cont_c816:
 	pla
 	sta reg_p ; this is the real processor flag reg at BRK
 
