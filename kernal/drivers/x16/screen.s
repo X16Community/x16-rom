@@ -670,16 +670,22 @@ screen_restore_state:
 ;
 ;   In:   .a     charset
 ;                0: use pointer in .x/.y
-;                1: ISO
+;                1: ISO (ISO-8859-15)
 ;                2: PET upper/graph
 ;                3: PET upper/lower
+;                4: Thin PET upper/graph
+;                5: Thin PET upper/lower
+;                6: Thin ISO (ISO-8859-15)
+;                7: CP437 (ANSI)
+;                8: Cyrillic (ISO-8859-5)
+;                9: Thin Cyrillic (ISO-8859-5)
 ;         .x/.y  pointer to charset
 ;---------------------------------------------------------------
 screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #7
+	cmp #10
 	bcs @nope
 	sta tmp2+1
 	lda mode
@@ -687,19 +693,16 @@ screen_set_charset:
 	ora tmp2+1
 	sta mode
 	lda tmp2+1
-	cmp #6
-	beq @cpyiso2
-	cmp #5
-	beq cpypet4
-	cmp #4
-	beq cpypet3
-	cmp #3
-	beq cpypet2
-	cmp #2
-	beq cpypet1
-	bra cpyiso
+	dec
+	asl
+	tax
+	jmp (charcpytbl,x)
 @nope:	rts ; ignore unsupported values
-@cpyiso2: jmp cpyiso2
+
+charcpytbl:
+	.word cpyiso1, cpypet2, cpypet3, cpypet4
+	.word cpypet5, cpyiso6, cpyansi7, cpycyr8
+	.word cpycyr9
 
 ; 0: custom character set
 cpycustom:
@@ -723,13 +726,13 @@ copyv:	ldy #0
 	rts
 
 ; 1: ISO character set
-cpyiso:	lda #$c8
+cpyiso1:	lda #$c8
 	sta tmp2+1       ;character data at ROM 0800
 	ldx #8
 	jmp copyv
 
 ; 2: PETSCII upper/graph character set
-cpypet1:
+cpypet2:
 	lda #$c0
 	sta tmp2+1       ;character data at ROM 0000
 	ldx #4
@@ -741,7 +744,7 @@ cpypet1:
 	jmp copyv
 
 ; 3: PETSCII upper/lower character set
-cpypet2:
+cpypet3:
 	lda #$c4
 	sta tmp2+1       ;character data at ROM 0400
 	ldx #4
@@ -753,7 +756,7 @@ cpypet2:
 	jmp copyv
 
 ; 4: Alternate PETSCII upper/graph character set
-cpypet3:
+cpypet4:
 	lda #$d0
 	sta tmp2+1       ;character data at ROM 1000
 	ldx #4
@@ -765,7 +768,7 @@ cpypet3:
 	jmp copyv
 
 ; 5: Alternate PETSCII upper/lower character set
-cpypet4:
+cpypet5:
 	lda #$d4
 	sta tmp2+1       ;character data at ROM 1400
 	ldx #4
@@ -777,8 +780,26 @@ cpypet4:
 	jmp copyv
 
 ; 6: ISO character set #2
-cpyiso2:	lda #$d8
+cpyiso6:	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
+	ldx #8
+	jmp copyv
+
+; 7: ANSI character set
+cpyansi7:	lda #$e0
+	sta tmp2+1       ;character data at ROM 2000
+	ldx #8
+	jmp copyv
+
+; 8: Cyrillic character set
+cpycyr8:	lda #$e8
+	sta tmp2+1       ;character data at ROM 2800
+	ldx #8
+	jmp copyv
+
+; 9: Cyrillic character set #2
+cpycyr9:	lda #$f0
+	sta tmp2+1       ;character data at ROM 3000
 	ldx #8
 	jmp copyv
 
