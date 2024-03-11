@@ -14,8 +14,6 @@ LD           = ld65
 
 # global includes
 ASFLAGS     += -I inc
-# for monitor
-ASFLAGS     += -D CPU_65C02=1
 # KERNAL version number
 ASFLAGS     +=  $(VERSION_DEFINE)
 # put all symbols into .sym files

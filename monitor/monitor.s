@@ -137,9 +137,7 @@ tmp13		:= BUF + 13
 tmp14		:= BUF + 14
 tmp16		:= BUF + 16
 tmp17		:= BUF + 17
-.if .defined(CPU_65C02)
 tmp_opcode	:= tmp12
-.endif
 
 ram_code_end = __monitor_ram_code_RUN__ + __monitor_ram_code_SIZE__
 reg_pc_hi	:= ram_code_end + 5
