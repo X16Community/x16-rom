@@ -600,24 +600,12 @@ screen_save_state:
 	ply
 	lda VERA_CTRL
 	pha
-	; Begin temp code to support old vera, must be 0.3.x or higher
-	lda #%01111110
-	sta VERA_CTRL
-	lda $9f29
-	cmp #'V'
-	bne :+
-	lda $9f2a
-	bne :+
-	lda $9f2b
-	cmp #$03
-	bcc :+
-	; End temp code to support old vera
 	lda #%00000100
 	sta VERA_CTRL
 	lda $9f29
 	pha
 	stz $9f29
-:	stz VERA_CTRL
+	stz VERA_CTRL
 	lda VERA_ADDR_L
 	pha
 	lda VERA_ADDR_M
@@ -641,23 +629,11 @@ screen_restore_state:
 	sta VERA_ADDR_M
 	pla
 	sta VERA_ADDR_L
-	; Begin temp code to support old vera
-	lda #%01111110
-	sta VERA_CTRL
-	lda $9f29
-	cmp #'V'
-	bne :+
-	lda $9f2a
-	bne :+
-	lda $9f2b
-	cmp #$03
-	bcc :+
-	; End temp code to support old vera
 	lda #%00000100
 	sta VERA_CTRL
 	pla
 	sta $9f29
-:	pla
+	pla
 	sta VERA_CTRL
 	phy
 	phx
