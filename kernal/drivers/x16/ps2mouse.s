@@ -18,6 +18,7 @@
 .import ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_mouse, ps2data_mouse_count
 
 .export mouse_config, mouse_scan, mouse_get, wheel
+.export mouse_sprite_offset
 
 .segment "KVARSB0"
 
@@ -34,6 +35,10 @@ wheel:	.res 1           ;    Intellimouse wheel buffer
 idat:	.res 1           ;    Intellimouse data packet
 mouse_id:
 	.res 1           ;    mouse device ID
+mouse_spr_xoff:
+	.res 2           ;    mouse sprite X offset
+mouse_spr_yoff:
+	.res 2           ;    mouse sprite Y offset
 
 I2C_ADDRESS = $42
 I2C_GET_MOUSE_DEVICE_ID = $22
@@ -60,6 +65,12 @@ _mouse_config:
 
 	; clear mouse wheel buffer
 	stz wheel
+
+	; reset offset parameters
+	stz mouse_spr_xoff
+	stz mouse_spr_xoff+1
+	stz mouse_spr_yoff
+	stz mouse_spr_yoff+1
 
 	; fetch mouse device ID
 	ldx #I2C_ADDRESS
@@ -315,6 +326,18 @@ mouse_update_position:
 
 	ldx #r0
 	jsr mouse_get
+
+	; add the configurable offsets to the cursor position
+	AddW mouse_spr_xoff, r0
+	AddW mouse_spr_yoff, r1
+
+	; clear the high bits of X/Y
+	; sprite_set_position treats -X as a request
+	; to hide sprites
+	lda #$fc
+	trb r0H
+	trb r1H
+
 	lda #0
 	jsr sprite_set_position
 
@@ -382,6 +405,23 @@ _mouse_get:
 
 	ldx wheel
 	stz wheel
+	rts
+
+mouse_sprite_offset:
+	KVARS_START_TRASH_A_NZ
+	bcs @get
+
+@set:
+	MoveW r0, mouse_spr_xoff
+	MoveW r1, mouse_spr_yoff
+	bra @end
+@get:
+	MoveW mouse_spr_xoff, r0
+	MoveW mouse_spr_yoff, r1
+
+@end:
+	KVARS_END_TRASH_A_NZ
+	clc
 	rts
 
 ; This is the Susan Kare mouse pointer
