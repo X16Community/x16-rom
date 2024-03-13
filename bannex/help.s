@@ -174,16 +174,34 @@ ym2151:
 
 	jsr printstring
 	.byte "UNKNOWN",13,0
-	bra final
+	bra cpu
 
 ym_isopm:
 	jsr printstring
 	.byte "YM2151 (OPM)",13,0
-	bra final
+	bra cpu
 
 ym_isopp:
 	jsr printstring
 	.byte "YM2164 (OPP)",13,0
+
+cpu:
+	jsr printstring
+	.byte "CPU: 65C",0
+
+	sec
+	.byte $c2, $03 ; SEP #$03, clear carry if 65C816
+	bcc cpu816
+
+cpu02:
+	jsr printstring
+	.byte "02",13,0
+	bra final
+
+cpu816:
+	jsr printstring
+	.byte "816",13,0
+
 
 final:
 	jsr printstring
