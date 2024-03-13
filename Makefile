@@ -472,19 +472,23 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 4 build/x16/basic.sym   >> $@
 	./scripts/symbolize.sh 5 build/x16/monitor.sym >> $@
 	./scripts/symbolize.sh 6 build/x16/charset.sym >> $@
-	./scripts/symbolize.sh 7 build/x16/diag.sym   >> $@
+	./scripts/symbolize.sh 7 build/x16/diag.sym    >> $@
+	./scripts/symbolize.sh 8 build/x16/graph.sym   >> $@
+	./scripts/symbolize.sh 9 build/x16/demo.sym    >> $@
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
-	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`   > $@
-	./scripts/trace_lst.py 2 `find build/x16/dos/ -name \*.rlst`     >> $@
-	./scripts/trace_lst.py 3 `find build/x16/fat32/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst` >> $@
-	./scripts/trace_lst.py 7 `find build/x16/diag/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`   >> $@
-	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`    >> $@
-	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`  >> $@
+	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`     > $@
+	./scripts/trace_lst.py 2 `find build/x16/dos/ -name \*.rlst`       >> $@
+	./scripts/trace_lst.py 3 `find build/x16/fat32/ -name \*.rlst`     >> $@
+	./scripts/trace_lst.py 4 `find build/x16/basic/ -name \*.rlst`     >> $@
+	./scripts/trace_lst.py 5 `find build/x16/monitor/ -name \*.rlst`   >> $@
+	./scripts/trace_lst.py 7 `find build/x16/diag/ -name \*.rlst`      >> $@
+	./scripts/trace_lst.py 8 `find build/x16/graphics/ -name \*.rlst`  >> $@
+	./scripts/trace_lst.py 9 `find build/x16/demo/ -name \*.rlst`      >> $@
+	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`     >> $@
+	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`      >> $@
+	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`    >> $@
 
