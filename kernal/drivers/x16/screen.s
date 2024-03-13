@@ -768,15 +768,23 @@ cpyansi7:	lda #$e0
 	jmp copyv
 
 ; 8: Cyrillic character set
-cpycyr8:	lda #$e8
+cpycyr8:		lda #$c8
+	sta tmp2+1       ;character data at ROM 0800
+	ldx #4
+	jsr copyv
+	lda #$e8
 	sta tmp2+1       ;character data at ROM 2800
-	ldx #8
+	ldx #4
 	jmp copyv
 
 ; 9: Cyrillic character set #2
-cpycyr9:	lda #$f0
-	sta tmp2+1       ;character data at ROM 3000
-	ldx #8
+cpycyr9:	lda #$d8
+	sta tmp2+1       ;character data at ROM 1800
+	ldx #4
+	jsr copyv
+	lda #$ec
+	sta tmp2+1       ;character data at ROM 2C00
+	ldx #4
 	jmp copyv
 
 
