@@ -1,5 +1,6 @@
 .import clear_status
 .import extapi_getlfs
+.import mouse_sprite_offset
 
 .export extapi
 
@@ -31,6 +32,6 @@ secrts:
 
 apitbl:
     .word secrts-1 ; slot 0 is reserved
-    .word clear_status-1      ; API 1
-    .word extapi_getlfs-1     ; API 2
-
+    .word clear_status-1         ; API 1
+    .word extapi_getlfs-1        ; API 2
+    .word mouse_sprite_offset-1  ; API 3
