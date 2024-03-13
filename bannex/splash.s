@@ -167,11 +167,21 @@ iniend:
 	bne @ok ; assume major version > 0 is fine
 	lda $9f2b
 	cmp #3
-	bcs @ok ; assume version 0.3.x or higher is okay
+	bcc @notok ; assume version < 0.3.x is not okay
+	lda $9f2c
+	cmp #3     ; 0.3.3 is problematic
+	beq @badvera
+	bra @ok
 @notok:
 	stz VERA_CTRL
 	lda #<updatevera
 	ldy #>updatevera
+	jsr strout
+	bra @ok
+@badvera:
+	stz VERA_CTRL
+	lda #<badvera
+	ldy #>badvera
 	jsr strout
 @ok:
 	stz VERA_CTRL
@@ -286,4 +296,12 @@ updatevera:
 	.byte "0.3.1 OR LATER.",13
 	.byte "LATER ROMS MAY NOT BOOT WITH THE",13
 	.byte "CURRENT VERA VERSION.",13
+	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
+
+badvera:
+	.byte 13,"YOUR VERA'S FIRMWARE VERSION IS KNOWN",13
+	.byte "TO HAVE VISUAL GLITCHES. PLEASE CHECK",13
+	.byte "FOR A VERSION NEWER THAN 0.3.3, OR",13
+	.byte "DOWNGRADE TO VERSION 0.3.2.",13
+	.byte "RELEASES: HTTPS://GITHUB.COM/X16COMMUNITY/VERA-MODULE/RELEASES/",13
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
