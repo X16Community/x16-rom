@@ -43,3 +43,4 @@ fat32_set_time          = $C066
 sdcard_init             = $C069
 sdcard_check_alive      = $C06C
 
+sdcard_set_fast_mode    = $C06F

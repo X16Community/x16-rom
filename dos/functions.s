@@ -1095,10 +1095,10 @@ test_rom_checksum:
 ;---------------------------------------------------------------
 ; set_fast_serial
 ;
-; In:   a  fast serial (0/1)
+; In:   a  fast serial (0/1/2/3)
 ;---------------------------------------------------------------
 set_fast_serial:
-	; do nothing
+	fat32_call sdcard_set_fast_mode
 	lda #0
 	rts
 

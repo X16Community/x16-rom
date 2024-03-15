@@ -6,7 +6,7 @@
 	.include "lib.inc"
 	.include "sdcard.inc"
 
-	.export sector_buffer, sector_buffer_end, sector_lba
+	.export sector_buffer, sector_buffer_end, sector_lba, sdcard_set_fast_mode
 
 	.bss
 cmd_idx = sdcard_param
@@ -22,13 +22,10 @@ sdcard_param:
 sector_lba:
 	.res 4 ; dword (part of sdcard_param) - LBA of sector to read/write
 	.res 1
+sd_fast:
+	.res 1 ; Bitmask: WR------ where R = auto_tx and W = fast writes
 
 timeout_cnt:       .byte 0
-
-; XXX disabled for now; on real hardware, this returns
-; XXX all 0xFE bytes with all tested SD cards
-;FAST_READ=1
-;FAST_WRITE=1
 
 	.code
 
@@ -329,73 +326,12 @@ sdcard_read_sector:
 	clc
 	rts
 
-.ifdef FAST_READ
-@start:	; Enable auto-tx mode
-	lda SPI_CTRL
-	ora #SPI_CTRL_AUTOTX
-	sta SPI_CTRL
+@start:
+	bit sd_fast
+	bvs @fast
 
-	; Start first read transfer
-	lda SPI_DATA			; Auto-tx
-	ldy #0				; 2
-
-	; Efficiently read first 256 bytes (hide SPI transfer time)
- 	ldy #0				; 2
-@3:	lda SPI_DATA			; 4
-	sta sector_buffer + 0, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 1, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 2, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 3, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 4, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 5, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 6, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 7, y	; 5
-	tya				; 2
-	clc				; 2
-	adc #8				; 2
-	tay				; 2
-	bne @3				; 2+1
-
-	; Efficiently read second 256 bytes (hide SPI transfer time)
-@4:	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 0, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 1, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 2, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 3, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 4, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 5, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 6, y	; 5
-	lda SPI_DATA			; 4
-	sta sector_buffer + 256 + 7, y	; 5
-	tya				; 2
-	clc				; 2
-	adc #8				; 2
-	tay				; 2
-	bne @4				; 2+1
-
-	; Disable auto-tx mode
-	lda SPI_CTRL
-	and #(SPI_CTRL_AUTOTX ^ $FF)
-	sta SPI_CTRL
-
-	; Next read is now already done (first CRC byte), read second CRC byte
-	jsr spi_read
-
-.else
-@start:	; Read 512 bytes of sector data
+@slow:
+	; Read 512 bytes of sector data
 	ldx #$FF
 	ldy #0
 @3:	stx SPI_DATA		; 4
@@ -419,7 +355,73 @@ sdcard_read_sector:
 	; Read CRC bytes
 	jsr spi_read
 	jsr spi_read
-.endif
+
+	jmp @after
+@fast:
+	; Enable auto-tx mode
+	lda SPI_CTRL
+	ora #SPI_CTRL_AUTOTX
+	sta SPI_CTRL
+
+	; Start first read transfer
+	lda SPI_DATA			; Auto-tx
+	ldy #0				; 2
+
+	; Efficiently read first 256 bytes (hide SPI transfer time)
+ 	ldy #0				; 2
+@3f:	lda SPI_DATA			; 4
+	sta sector_buffer + 0, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 1, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 2, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 3, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 4, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 5, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 6, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 7, y	; 5
+	tya				; 2
+	clc				; 2
+	adc #8				; 2
+	tay				; 2
+	bne @3f				; 2+1
+
+	; Efficiently read second 256 bytes (hide SPI transfer time)
+@4f:	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 0, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 1, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 2, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 3, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 4, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 5, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 6, y	; 5
+	lda SPI_DATA			; 4
+	sta sector_buffer + 256 + 7, y	; 5
+	tya				; 2
+	clc				; 2
+	adc #8				; 2
+	tay				; 2
+	bne @4f				; 2+1
+
+	; Disable auto-tx mode
+	lda SPI_CTRL
+	and #(SPI_CTRL_AUTOTX ^ $FF)
+	sta SPI_CTRL
+
+	; Next read is now already done (first CRC byte), read second CRC byte
+	jsr spi_read
+@after:
 	; Success
 	jsr deselect
 	sec
@@ -448,22 +450,24 @@ sdcard_write_sector:
 	lda #$FE
 	jsr spi_write
 
-.ifdef FAST_WRITE
+	bit sd_fast
+	bpl @slow
 	; Send 512 bytes of sector data
 	; NOTE: Direct access of SPI registers to speed up.
 	;       Make sure 9 CPU clock cycles take longer than 640 ns (eg. CPU max 14MHz)
 	ldy #0
-@1:	lda sector_buffer, y		; 4
+@1f:	lda sector_buffer, y		; 4
 	sta SPI_DATA			; 4
 	iny				; 2
-	bne @1				; 2 + 1
+	bne @1f				; 2 + 1
 
 	; Y already 0 at this point
-@2:	lda sector_buffer + 256, y	; 4
+@2f:	lda sector_buffer + 256, y	; 4
 	sta SPI_DATA			; 4
 	iny				; 2
-	bne @2				; 2 + 1
-.else
+	bne @2f				; 2 + 1
+	bra @after
+@slow:
 	; Send 512 bytes of sector data
 	ldy #0
 @1:	lda sector_buffer, y		; 4
@@ -476,7 +480,7 @@ sdcard_write_sector:
 	spi_write_macro
 	iny				; 2
 	bne @2				; 2 + 1
-.endif
+@after:
 	; Dummy CRC
 	lda #0
 	jsr spi_write
@@ -557,4 +561,25 @@ sdcard_check_alive:
 	php
 	jsr deselect
 	plp
+	rts
+
+;-----------------------------------------------------------------------------
+; sdcard_set_fast_mode
+;
+; .A = 0: fast mode off
+; .A = 1: fast reads
+; .A = 2: fast writes
+; .A = 3: fast reads and writes
+;-----------------------------------------------------------------------------
+sdcard_set_fast_mode:
+	pha
+	lda #$c0
+	trb sd_fast
+	pla
+	and #3
+	ror
+	ror
+	ror
+	tsb sd_fast
+	sec
 	rts
