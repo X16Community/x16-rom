@@ -577,7 +577,7 @@ sdcard_set_fast_mode:
 	trb sd_fast
 	pla
 	and #3
-	ror
+	lsr
 	ror
 	ror
 	tsb sd_fast
