@@ -54,6 +54,7 @@
 
 .import sdcard_init
 .import sdcard_check_alive
+.import sdcard_set_fast_mode
 
 .import fat32_set_time
 
@@ -103,3 +104,5 @@
 
 	jmp sdcard_init             ; $C069
 	jmp sdcard_check_alive      ; $C06C
+
+	jmp sdcard_set_fast_mode    ; $C06F
