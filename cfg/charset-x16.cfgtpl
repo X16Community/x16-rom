@@ -13,6 +13,6 @@ SEGMENTS {
 	CHARANSI:   load = BANK6,    type = ro;
 	CHARCYR:    load = BANK6,    type = ro;
 	CHARCYR2:   load = BANK6,    type = ro;
-	CHAR???:    load = BANK6,    type = ro;
-	CHAR???2:   load = BANK6,    type = ro;
+	CHARLAE:    load = BANK6,    type = ro;
+	CHARLAE2:   load = BANK6,    type = ro;
 }

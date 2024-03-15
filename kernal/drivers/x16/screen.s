@@ -655,13 +655,15 @@ screen_restore_state:
 ;                7: CP437 (ANSI)
 ;                8: Cyrillic (ISO-8859-5)
 ;                9: Thin Cyrillic (ISO-8859-5)
+;               10: Eastern Latin (ISO-8859-16)
+;               11: Thin Eastern Latin (ISO-8859-16)
 ;         .x/.y  pointer to charset
 ;---------------------------------------------------------------
 screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #10
+	cmp #12
 	bcs @nope
 	sta tmp2+1
 	lda mode
@@ -678,7 +680,7 @@ screen_set_charset:
 charcpytbl:
 	.word cpyiso1, cpypet2, cpypet3, cpypet4
 	.word cpypet5, cpyiso6, cpyansi7, cpycyr8
-	.word cpycyr9
+	.word cpycyr9, cpylaeA, cpylaeB
 
 ; 0: custom character set
 cpycustom:
@@ -783,6 +785,26 @@ cpycyr9:	lda #$d8
 	ldx #4
 	jsr copyv
 	lda #$ec
+	sta tmp2+1       ;character data at ROM 2C00
+	ldx #4
+	jmp copyv
+
+; 10: Eastern latin character set
+cpylaeA:	lda #$c8
+	sta tmp2+1       ;character data at ROM 1800
+	ldx #4
+	jsr copyv
+	lda #$f0
+	sta tmp2+1       ;character data at ROM 2C00
+	ldx #4
+	jmp copyv
+
+; 11: Eastern latin character set #2
+cpylaeB:	lda #$d8
+	sta tmp2+1       ;character data at ROM 1800
+	ldx #4
+	jsr copyv
+	lda #$f4
 	sta tmp2+1       ;character data at ROM 2C00
 	ldx #4
 	jmp copyv
