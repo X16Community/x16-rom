@@ -9,7 +9,7 @@
 .include "sdcard.inc"
 .include "text_input.inc"
 
-.import sector_buffer, sector_buffer_end, sector_lba
+.import sector_buffer, sector_buffer_end, sector_lba, sdcard_set_fast_mode
 
 .import filename_char_ucs2_to_internal, filename_char_internal_to_ucs2
 .import filename_cp437_to_internal, filename_char_internal_to_cp437
@@ -1245,6 +1245,9 @@ fat32_init:
 
 	; No time set up
 	sta fat32_time_year
+
+	lda #0 ; default to slow/traditional SD accesses
+	jsr sdcard_set_fast_mode
 
 	sec
 	rts
