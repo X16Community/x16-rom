@@ -795,7 +795,7 @@ cpylaeA:	lda #$c8
 	ldx #4
 	jsr copyv
 	lda #$f0
-	sta tmp2+1       ;character data at ROM 2C00
+	sta tmp2+1       ;character data at ROM 3000
 	ldx #4
 	jmp copyv
 
@@ -805,7 +805,7 @@ cpylaeB:	lda #$d8
 	ldx #4
 	jsr copyv
 	lda #$f4
-	sta tmp2+1       ;character data at ROM 2C00
+	sta tmp2+1       ;character data at ROM 3400
 	ldx #4
 	jmp copyv
 
