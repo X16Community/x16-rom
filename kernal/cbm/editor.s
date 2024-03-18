@@ -42,6 +42,8 @@ MODIFIER_SHIFT = 1
 .export cursor_blink
 .export check_charset_switch
 
+.export iso_cursor_char
+
 .export tblx
 .export pntr
 
@@ -129,6 +131,9 @@ nlines	.res 1           ;$DA y resolution
 nlinesp1	.res 1          ;    X16: y resolution + 1
 nlinesm1	.res 1          ;    X16: y resolution - 1
 verbatim	.res 1
+
+.segment "KVARSB0"
+isocurch:	.res 1          ;    ISO mode cursor char, usually $9F
 
 .segment "C816_SCRORG"
 ;
@@ -856,6 +861,13 @@ isosk
 	lda #6
 isocon
 	jsr screen_set_charset
+
+	; Set default ISO cursor blink character
+	KVARS_START_TRASH_A_NZ
+	lda #$9f
+	sta isocurch
+	KVARS_END_TRASH_A_NZ
+
 	lda mode
 	ora #$40
 	bra isosto
@@ -1219,6 +1231,8 @@ dspp	ldy #1
 	jmp screen_set_char_color
 
 cursor_blink:
+	KVARS_START_TRASH_A_NZ
+
 	lda blnsw       ;blinking crsr ?
 	bne @5          ;no
 	dec blnct       ;time to blink ?
@@ -1239,18 +1253,19 @@ cursor_blink:
 	ldx color       ;blink in this color
 @1	bit mode
 	bvc @3          ;not ISO
-	cmp #$9f
+	cmp isocurch
 	bne @2
 	lda gdbln
 	bra @4
-@2	lda #$9f
+@2	lda isocurch
 	bra @4
 @3	eor #$80        ;blink it
 @4	ldy pntr
 	jsr screen_set_char_color       ;display it
 	jsr screen_restore_state
 
-@5	rts
+@5	KVARS_END_TRASH_A_NZ
+	rts
 
 ; call with .a: shflag
 check_charset_switch:
@@ -1281,6 +1296,15 @@ clear_cursor:
 	sta blnon
 @1:	rts
 
+iso_cursor_char:
+	KVARS_START
+	bcs @get
+	stx isocurch
+@get:
+	ldx isocurch
+	KVARS_END
+	rts
+
 runtb	.byt "LOAD",$d,"RUN:",$d
 runtb_end:
 
@@ -1296,7 +1320,7 @@ fkeytb	.byt "LIST:", 13, 0
 beeplo: .lobytes 526,885,1404
 beephi: .hibytes 526,885,1404
 
-ldtbl_bit:	
+ldtbl_bit:
 .repeat 8
 	.byte $01,$02,$04,$08,$10,$20,$40,$80
 .endrepeat
