@@ -5,7 +5,7 @@
 
 .feature labels_without_colons
 
-.import plot, scrorg, iclall, igetin, istop, savesp, loadsp, ibsout, ibasin, iclrch, ickout, ichkin, iclose, iopen, setnam, setlfs, readst, talk, listn, unlsn, untlk, ciout, acptr, settmo, kbd_scan, tksa, secnd, setmsg, ramtas, ioinit, cint, cmpare, stash, indfet, jsrfar, screen_set_charset, screen_mode, lkupsa, lkupla, close_all, enter_basic, macptr, mciout
+.import plot, scrorg, iclall, igetin, istop, savesp, loadsp, ibsout, ibasin, iclrch, ickout, ichkin, iclose, iopen, setnam, setlfs, readst, talk, listn, unlsn, untlk, ciout, acptr, settmo, kbd_scan, tksa, secnd, setmsg, ramtas, ioinit, cint, cmpare, stash, indfet, jsrfar, screen_set_charset, screen_mode, lkupsa, lkupla, close_all, enter_basic, macptr, mciout, pfkey
 .import FB_move_pixels, FB_filter_pixels, FB_fill_pixels, FB_set_8_pixels_opaque, FB_set_8_pixels, FB_set_pixels, FB_set_pixel, FB_get_pixels, FB_get_pixel, FB_cursor_next_line, FB_cursor_position, FB_set_palette, FB_get_info, FB_init
 .import memory_decompress, memory_crc, memory_copy, memory_fill
 .import monitor
@@ -124,7 +124,7 @@
 	jmp lkupsa             ; $FF5C: [C128] LKUPSA - look up secondary address
 	jmp screen_mode        ; $FF5F: screen_mode - get/set screen mode              [unsupported C128: SWAPPER]
 	jmp screen_set_charset ; $FF62: activate 8x8 text mode charset                 [incompatible with C128: DLCHR – init 80-col character RAM]
-	.byte 0,0,0            ; $FF65: [C128] PFKEY – program a function key          [NYI]
+	jmp pfkey              ; $FF65: [C128] PFKEY – program a function key
 	jmp mouse_config       ; $FF68: mouse_config - configure mouse pointer         [unsupported C128: SETBNK – set bank for I/O operations]
 	jmp mouse_get          ; $FF6B: mouse_get - get state of mouse                 [unsupported C128: GETCFG – lookup MMU data for given bank]
 	jmp jsrfar             ; $FF6E: [C128] JSRFAR – gosub in another bank          [incompatible with C128]

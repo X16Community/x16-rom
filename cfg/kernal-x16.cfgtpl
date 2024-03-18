@@ -30,7 +30,6 @@ SEGMENTS {
 	INIT:     load = KERNAL,   type = ro;
 	EDITOR:   load = KERNAL,   type = ro;
 	SCREEN:   load = KERNAL,   type = ro;
-	KBDBUF:   load = KERNAL,   type = ro;
 	PS2:      load = KERNAL,   type = ro;
 	PS2KBD:   load = KERNAL,   type = ro;
 	PS2MOUSE: load = KERNAL,   type = ro;
@@ -52,6 +51,7 @@ SEGMENTS {
 	C816_COP_NATIVE: load = KERNAL, type = ro, start = $EF4C; # low byte: JMP abs, high byte equals low byte of C816_GETIN_THUNK
 	C816_COP_EMULATED: load = KERNAL, type = ro;
 	C816_ABORT_EMULATED: load = KERNAL, type = ro;
+	KBDBUF:   load = KERNAL,   type = ro;
 	CLOCK:    load = KERNAL,   type = ro;
 	I2C:      load = KERNAL,   type = ro;
 	RTC:      load = KERNAL,   type = ro;
