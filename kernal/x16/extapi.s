@@ -2,6 +2,7 @@
 .import extapi_getlfs
 .import mouse_sprite_offset
 .import joystick_ps2_keycodes
+.import iso_cursor_char
 
 .export extapi
 
@@ -37,3 +38,4 @@ apitbl:
     .word extapi_getlfs-1         ; API 2
     .word mouse_sprite_offset-1   ; API 3
     .word joystick_ps2_keycodes-1 ; API 4
+    .word iso_cursor_char-1       ; API 5
