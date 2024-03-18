@@ -1319,7 +1319,8 @@ pfkey:
 	KVARS_START
 	cpy #11 ; max length is 10 characters
 	bcs @error
-	cpx #10 ; max keynum is 9
+	dex    ; input shuld be 1-9, shifted to 0-8
+	cpx #9 ; max keynum is 9 (shifted to 8)
 	bcs @error
 	phy ; preserve Y (length)
 	phx ; preserve X (keynum)
