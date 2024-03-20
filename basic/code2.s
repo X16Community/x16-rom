@@ -36,9 +36,14 @@ rescon	lda bufofs,x
 	sec
 	sbc reslst,y
 	beq reser
+	cmp #32
+	beq reser
 	cmp #128
+	beq :+
+	cmp #160
 	bne nthis
-	ora count
+	lda #128
+:	ora count
 getbpt	ldy bufptr
 stuffh	inx
 	iny
@@ -86,6 +91,10 @@ rescon2	lda bufofs,x
 	sec
 	sbc reslst2,y
 	beq reser2
+	cmp #32
+	beq reser2
+	cmp #160
+	beq resfnd
 	cmp #128
 	bne nthis2
 
@@ -123,6 +132,10 @@ rescon3	lda bufofs,x
 	sec
 	sbc reslst3,y
 	beq reser3
+	cmp #32
+	beq reser3
+	cmp #160
+	beq resfnd
 	cmp #128
 	beq resfnd
 
