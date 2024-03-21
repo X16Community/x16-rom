@@ -16,6 +16,7 @@ nwrap=4 ;max number of physical lines per logical line
 .export cint   ; initialize screen
 .export prt    ; print character
 .export loop5  ; input a line until carriage return
+.export pfkey  ; program function key
 
 .importzp mhz  ; constant
 
@@ -133,7 +134,11 @@ nlinesm1	.res 1          ;    X16: y resolution - 1
 verbatim	.res 1
 
 .segment "KVARSB0"
-isocurch:	.res 1          ;    ISO mode cursor char, usually $9F
+isocurch:
+	.res 1          ; ISO mode cursor char, usually $9F
+fkeytb:
+	.res 99         ; Programmable F key macros
+runtb = fkeytb+88;
 
 .segment "C816_SCRORG"
 ;
@@ -231,6 +236,8 @@ cint	jsr iokeys
 	sta blnct
 	sta blnsw
 
+	jsr set_fkey_defaults
+
 ; clear screen, populate ldtb1 with non-continuing lines
 clsr	lda #$ff
 	ldx #7
@@ -301,7 +308,7 @@ loop3
 	lda shflag      ;Clear 40/80 key bit
 	and #(255-MODIFIER_4080)
 	sta shflag
-	
+
 	and #MODIFIER_SHIFT
 	bne scrpnc
 	jsr screen_toggle_default_nvram
@@ -384,12 +391,14 @@ lp21	plp             ;restore I
 	bne lp22
 ; put SHIFT+STOP text into keyboard buffer
 	jsr kbdbuf_clear
+	KVARS_START_TRASH_A_NZ
 	ldx #0
 :	lda runtb,x
+	beq :+
 	jsr kbdbuf_put
 	inx
-	cpx #runtb_end-runtb
 	bne :-
+:	KVARS_END_TRASH_A_NZ
 	jmp loop3
 
 lp22	pha
@@ -401,16 +410,16 @@ lp22	pha
 	cmp #4
 	rol              ;convert to f1-f8 -> 0-7
 	and #7
+	KVARS_START_TRASH_X_NZ
 	ldx #0
 	tay
 	beq lp27
-lp25	lda fkeytb,x     ;search for replacement
-	beq lp26
-	inx
-	bne lp25
-lp26	inx
+lp25	lda #0
+	clc
+lp26	adc #11
 	dey
-	bne lp25
+	bne lp26
+	tax
 lp27	jsr kbdbuf_clear
 lp24	lda fkeytb,x
 	jsr kbdbuf_put
@@ -418,7 +427,8 @@ lp24	lda fkeytb,x
 	beq lp28
 	inx
 	bne lp24
-lp28	pla
+lp28	KVARS_END_TRASH_X_NZ
+	 pla
 loop3a	jmp loop3
 ;
 lp29	pla
@@ -1305,17 +1315,76 @@ iso_cursor_char:
 	KVARS_END
 	rts
 
-runtb	.byt "LOAD",$d,"RUN:",$d
-runtb_end:
+pfkey:
+	KVARS_START
+	cpy #11 ; max length is 10 characters
+	bcs @error
+	dex    ; input shuld be 1-9, shifted to 0-8
+	cpx #9 ; max keynum is 9 (shifted to 8)
+	bcs @error
+	phy ; preserve Y (length)
+	phx ; preserve X (keynum)
+	tax ; pointer is in ZP
+	; get pointer out of arbitrary ZP into kernal ZP
+	lda 0,x
+	sta tmp2
+	lda 1,x
+	sta tmp2+1
+	; convert key number to offset into table
+	; multiply X by 11
+	plx ; restore X (keynum)
+	beq @found
+	clc
+	lda #0
+:	adc #11
+	dex
+	bne :-
+	tax
+@found:
+	ply ; restore Y (length)
+	beq @terminate
+@loop:
+	lda (tmp2)
+	sta fkeytb,x
+	inc tmp2
+	bne :+
+	inc tmp2+1
+:	inx
+	dey
+	bne @loop
+@terminate:
+	lda #0
+	sta fkeytb,x
+@good:
+	clc
+	bra @end
+@error:
+	sec
+@end:
+	KVARS_END
+	rts
 
-fkeytb	.byt "LIST:", 13, 0
-	.byt "SAVE", '"', "@:", 0
-	.byt "LOAD ", '"', 0
-	.byt "S", 'C' + $80, "-1:REM", 0
-	.byt "RUN:", 13, 0
-	.byt "MONITOR:", 13, 0
-	.byt "DOS",'"', "$",13, 0
-	.byt "DOS", '"', 0
+set_fkey_defaults:
+	KVARS_START_TRASH_A_NZ
+	ldx #<(fkeydtb_end-fkeydtb)
+:	lda fkeydtb-1,x
+	sta fkeytb-1,x
+	dex
+	bne :-
+	KVARS_END_TRASH_A_NZ
+	rts
+
+fkeydtb:
+	.byt "LIST:", 13, 0, 0, 0, 0, 0
+	.byt "SAVE", '"', "@:", 0, 0, 0, 0
+	.byt "LOAD ", '"', 0, 0, 0, 0, 0
+	.byt "S", 'C' + $80, "-1:REM", 0, 0 ,0
+	.byt "RUN:", 13, 0, 0, 0, 0, 0, 0
+	.byt "MONITOR:", 13, 0, 0
+	.byt "DOS",'"', "$",13, 0, 0, 0, 0, 0
+	.byt "DOS", '"', 0, 0, 0, 0 ,0, 0, 0
+	.byt "LOAD",$d,"RUN:",$d, 0
+fkeydtb_end:
 
 beeplo: .lobytes 526,885,1404
 beephi: .hibytes 526,885,1404
