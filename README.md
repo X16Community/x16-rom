@@ -99,7 +99,7 @@ Release Notes
 -------------
 ### **Unreleased Changes**
 
-This is a major update, with substantial new features and bug fixes. This ROM requires a matching emulator version.
+This is a major update with new features and bug fixes. This ROM requires a matching emulator version.
 
 * BUILD
 	* Removed all 6502/65C02 define switches in the source. [Fulgen301]
@@ -152,6 +152,7 @@ This is a major update, with substantial new features and bug fixes. This ROM re
 	* Calling POKE with pointer functions such as `POKE <address>,POINTER(<var>)` should now work properly inline. Prior to this change, the expression in the second argument could corrupt the POKE pointer.
 	* The splash screen warns if you're using known buggy VERA version 0.3.3.
 	* BASIC can now tokenize keywords with lowercase letters in ISO mode.
+	* The detected CPU type is now shown in the output of the `HELP` command.
 * MATH:
 	* Implement VAL_1 in the FP library. This singular routine requires all of BASIC zeropage to be intact ($A9-$FF), not just shared BASIC/MATH zeropage ($A9-$D3). [irmen]
 * GRAPH
