@@ -133,11 +133,10 @@ This is a major update, with substantial new features and bug fixes. This ROM re
 	* Implemented the C128 `PFKEY` API call. Within the KERNAL screen editor, the actions of the function keys F1-F8, as well as the SHIFT+RUN action can be changed.
 * DOS
 	* Implemented turning on ___experimental___ fast reads (auto_tx) and writes for SD card accesses, implemented via the channel 15 command `"U0>Bn"` where `n` is a value from 0 to 3.
-
-		0) Turn off fast reads/writes
-		1) Fast reads (auto_tx)
-		2) Fast writes
-		3) Both
+		* 0 = Turn off fast reads/writes
+		* 1 = Fast reads (auto_tx)
+		* 2 = Fast writes
+		* 3 = Both
 * FAT32
 	* Implemented renaming across directories (file move).
 	* Prevent clobbering a directory upon file overwrite. [stefan-b-jakobsson]
