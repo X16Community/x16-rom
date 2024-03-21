@@ -95,9 +95,82 @@ Credits
 
 See [LICENSE.md](LICENSE.md)
 
-
 Release Notes
 -------------
+### **Unreleased Changes**
+
+This is a major update, with substantial new features and bug fixes. This ROM requires a matching emulator version.
+
+* BUILD
+	* Removed all 6502/65C02 define switches in the source. [Fulgen301]
+	* Removed CODEX.
+	* Removed open-roms and related define switches. [Fulgen301]
+	* New DIAG memory diagnostics. With support in the SMC (version 47 or higher), a long power button press to turn the system on will memory diagnostics rather than booting the ROM.
+* KERNAL
+	* 65C816 CPU support: new indirect vectors, interrupt-handling code, and API. The bulk of the legwork for this support was done by [Fulgen301].
+		* The KERNAL's 65C816 support is only active when a 65C816 CPU is detected. On a 65C02, it will still continue to operate as before.
+		* The KERNAL still by and large operates as on a 65C02. The BASIC interpreter still runs as if it were on a 65C02 and is unaware of 65C816 code.
+		* When operating under a 65C816, the KERNAL sets up native and emulation mode IRQ/BRK handlers. When in native mode, the default native ISR handler chains to the emulation mode handler, so native 65C816 applications can still benefit from ISRs that are only aware of 65C02 instructions.
+		* With very limited exceptions, the traditional KERNAL API must still be called with 8 bit memory/index registers, and with the stack pointer at $01xx.
+		* The `jsrfar` API call has been made fully 16-bit native capable.
+		* A new `extapi16` API call at `$FEA8` was created for additional 65C816-specific calls, which include informing the KERNAL of stack relocations.
+		* Relocated the "MIST" signature due to the overlap with the 65C816 ROM vectors. This is a breaking change for the emulator, so an update to emulator R47 is required.
+	* Change timing to improve SNES controller compatibilty. [jburks]
+	* When attempting to open IEC device 1 (not implemented on X16), the logical file was erroneously left half-open.
+	* When calling monitor via the kernal API ($FECC), exiting the monitor via the run command (G) should now work. [irmen]
+	* Rearranged low RAM to free up space for new 65C816 trampolines. The row continuation table (62 bytes) has been transformed into a bitmap (8 bytes). Relocated VARFONTS to bank 0 RAM.
+	* The day of week in the RTC was not being set correctly in the `rtc_set_date_time` function.
+	* When opening a file, the KERNAL uploads the current time to DOS/FAT32 in case updating the timestamp on a file when opening for write is needed. With the RTC date functions using an extra byte of ZP now that they pass the day of week, this ZP location was not being properly preserved around the call to DOS.
+	* Support for faster/shorter PS/2 I2C transactions if the SMC version is >= 47.x.x. [stefan-b-jakobsson]
+	* New `extapi` KERNAL API call at `$FEAB` (unrelated to the 65C816 call `extapi16`) implements an additional API table for miscellaneous kernal calls. The specific call is selected via the .A register, and the rest of the registers can be used for parameters to the call.
+		1. `clear_status` resets the IEC status byte
+		2. `getlfs` useful for getting the last device used
+		3. `mouse_sprite_offset` good for custom mouse cursors where the locus is at a position in the sprite other than x=0, y=0
+		4. `joystick_ps2_keycodes` can remap the keyboard joystick
+		5. `iso_cursor_char` sets the blinking cursor screen code to a character other than $9F while in ISO mode.
+	* Solved a race in kbd_scan if a KERNAL call was in progress was interrupted by the default ISR.
+	* Removed support for preserving state in the KERNAL ISR for VERA 0.1.1. VERA 0.3.1 is the new minimum version.
+	* Implemented the C128 `PFKEY` API call. Within the KERNAL screen editor, the actions of the function keys F1-F8, as well as the SHIFT+RUN action can be changed.
+* DOS
+	* Implemented turning on ___experimental___ fast reads (auto_tx) and writes for SD card accesses, implemented via the channel 15 command `"U0>Bn"` where `n` is a value from 0 to 3.
+		* 0 = Turn off fast reads/writes
+		* 1 = Fast reads (auto_tx)
+		* 2 = Fast writes
+		* 3 = Both
+* FAT32
+	* Implemented renaming across directories (file move).
+	* Prevent clobbering a directory upon file overwrite. [stefan-b-jakobsson]
+* KEYMAP
+	* The PS/2 "MENU" key is now recognized and returns a petscii $06. [stefan-b-jakobsson]
+	* The PS/2 "INTL 1" key is now recognized and can be used in layouts that support it, such as pt-BR. [stefan-b-jakobsson]
+* BASIC
+	* Quoted numerics for changing the default device number, such as with DOS"9" should now work. [irmen]
+	* `LIST` output can be paused and unpaused with the space bar. While paused, PgDn and Down will advance the listing by a page and by a line respectively. [zpc0070]
+	* Prevent the `OLD` command from hanging if there is no program listing to restore. [JimmyDansbo]
+	* The butterfly on the splash screen is now symmetrical. [stefanoborini]
+	* New `TDATA()` and `TATTR()` functions to return the screen code at specific tile addresses on VERA layer 1. [JimmyDansbo]
+	* Calling POKE with pointer functions such as `POKE <address>,POINTER(<var>)` should now work properly inline. Prior to this change, the expression in the second argument could corrupt the POKE pointer.
+	* The splash screen warns if you're using known buggy VERA version 0.3.3.
+	* BASIC can now tokenize keywords with lowercase letters in ISO mode.
+* MATH:
+	* Implement VAL_1 in the FP library. This singular routine requires all of BASIC zeropage to be intact ($A9-$FF), not just shared BASIC/MATH zeropage ($A9-$D3). [irmen]
+* GRAPH
+	* Fix FB_get_pixels and FB_set_pixels overflow when the number of pixels is a multiple of 256. [irmen]
+	* GRAPH_put_image is now RAM bank-wrap aware.
+* CHARSET
+	* Improve the appearance of some glyphs in the ISO character sets. [akumanatt]
+	* Add ANSI character set [tomxp411]
+	* Add Cyrillic (ISO-8859-5) character sets. [adiee5]
+	* Add Eastern European (ISO-8859-16) character sets. [adiee5]
+* AUDIO
+	* Change initialization order to avoid reading uninitialized memory during init.
+* UTILITIES
+	* Control Panel: When modifying the vertical scaling, clear the 240p flag if set.
+	* Control Panel: Fix date setting bug when the current year is a leap year.
+	* Stefan B. Jakobsson's X16-Edit has been updated to fix a few minor bugs.
+	* Stefan B. Jakobsson's BASLOAD has been included in the ROM and can be called via X16-Edit.
+
+
 ### Release 46 ("Winnipeg")
 
 This is mainly a minor bugfix release.
