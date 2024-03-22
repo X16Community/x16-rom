@@ -255,6 +255,8 @@ ld80	ldx eal
 ld81	lda verck
 	dec
 	beq ld64 ; loading to VRAM
+	jsr untlk ; close channel
+	jsr clsei ; close file
 	jmp error16  ;"out of memory", tried to load or verify into I/O space
 
 ;subroutine to print to console:
