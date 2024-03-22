@@ -33,7 +33,12 @@ mustcr	sty bufptr
 reser	iny
 	inx
 rescon	lda bufofs,x
-	sec
+	cmp #128
+	bcs :+
+	cmp #97
+	bcc :+
+	sbc #32
+:	sec
 	sbc reslst,y
 	beq reser
 	cmp #128
@@ -83,7 +88,12 @@ nthis1	iny
 reser2	iny
 	inx
 rescon2	lda bufofs,x
-	sec
+	cmp #128
+	bcs :+
+	cmp #97
+	bcc :+
+	sbc #32
+:	sec
 	sbc reslst2,y
 	beq reser2
 	cmp #128
@@ -120,7 +130,12 @@ nthis12	iny
 reser3	iny
 	inx
 rescon3	lda bufofs,x
-	sec
+	cmp #128
+	bcs :+
+	cmp #97
+	bcc :+
+	sbc #32
+:	sec
 	sbc reslst3,y
 	beq reser3
 	cmp #128
