@@ -256,7 +256,7 @@ ld81	lda verck
 	dec
 	beq ld64        ; loading to VRAM
 	bit status      ; eoi?
-	bvc ld70        ; yes...exit normally
+	bvs ld70        ; yes...exit normally
 	jsr untlk       ; close channel
 	jsr clsei       ; close file
 	jsr prnto       ; print end of load (should always say $9F00)
