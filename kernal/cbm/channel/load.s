@@ -257,6 +257,7 @@ ld81	lda verck
 	beq ld64 ; loading to VRAM
 	jsr untlk ; close channel
 	jsr clsei ; close file
+	jsr prnto ; print end of load (should always say $9F00)
 	jmp error16  ;"out of memory", tried to load or verify into I/O space
 
 ;subroutine to print to console:
