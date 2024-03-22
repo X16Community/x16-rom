@@ -46,6 +46,9 @@ error7	lda #7          ;not output file
 error8	lda #8          ;missing file name
 	bra :+
 error9	lda #9          ;bad device #
+	bra :+
+error16
+	lda #16         ;out of memory
 ;
 :	pha             ;error number on stack
 	jsr clrch       ;restore i/o channels
