@@ -128,6 +128,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 		3. `mouse_sprite_offset` good for custom mouse cursors where the locus is at a position in the sprite other than x=0, y=0
 		4. `joystick_ps2_keycodes` can remap the keyboard joystick
 		5. `iso_cursor_char` sets the blinking cursor screen code to a character other than $9F while in ISO mode.
+		6. `ps2kbd_typematic` sets the keyboard repeat delay and repeat rate.
 	* Solved a race in kbd_scan if a KERNAL call was in progress was interrupted by the default ISR.
 	* Removed support for preserving state in the KERNAL ISR for VERA 0.1.1. VERA 0.3.1 is the new minimum version.
 	* Implemented the C128 `PFKEY` API call. Within the KERNAL screen editor, the actions of the function keys F1-F8, as well as the SHIFT+RUN action can be changed.
