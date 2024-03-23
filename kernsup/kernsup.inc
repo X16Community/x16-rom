@@ -70,7 +70,7 @@ bridge lkupla              ; $FF59: LKUPLA
 bridge lkupsa              ; $FF5C: LKUPSA
 bridge screen_mode         ; $FF5F: get/set screen mode
 bridge screen_set_charset  ; $FF62: activate 8x8 text mode charset
-bridge pfkey               ; $FF65: PFKEY – program a function key
+.byte 0, 0, 0              ; $FF65: 
 bridge mouse_config        ; $FF68: mouse_config
 bridge mouse_get           ; $FF6B: mouse_get
 jmp xjsrfar                ; $FF6E: JSRFAR – gosub in another bank

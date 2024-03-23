@@ -33,6 +33,7 @@ MODIFIER_4080 = 32
 MODIFIER_SHIFT = 1
 
 .include "io.inc"
+.include "regs.inc"
 
 ; kernal
 .export crsw
@@ -1333,23 +1334,13 @@ iso_cursor_char:
 	rts
 
 pfkey:
-	KVARS_START
+	KVARS_START_TRASH_A_NZ
 	cpy #11 ; max length is 10 characters
 	bcs @error
 	dex    ; input shuld be 1-9, shifted to 0-8
 	cpx #9 ; max keynum is 9 (shifted to 8)
 	bcs @error
-	phy ; preserve Y (length)
-	phx ; preserve X (keynum)
-	tax ; pointer is in ZP
-	; get pointer out of arbitrary ZP into kernal ZP
-	lda 0,x
-	sta tmp2
-	lda 1,x
-	sta tmp2+1
-	; convert key number to offset into table
-	; multiply X by 11
-	plx ; restore X (keynum)
+	txa
 	beq @found
 	clc
 	lda #0
@@ -1358,14 +1349,14 @@ pfkey:
 	bne :-
 	tax
 @found:
-	ply ; restore Y (length)
+	tya
 	beq @terminate
 @loop:
-	lda (tmp2)
+	lda (r0)
 	sta fkeytb,x
-	inc tmp2
+	inc r0L
 	bne :+
-	inc tmp2+1
+	inc r0H
 :	inx
 	dey
 	bne @loop
@@ -1378,7 +1369,7 @@ pfkey:
 @error:
 	sec
 @end:
-	KVARS_END
+	KVARS_END_TRASH_A_NZ
 	rts
 
 set_fkey_defaults:
