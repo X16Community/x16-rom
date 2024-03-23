@@ -4,6 +4,7 @@
 .import joystick_ps2_keycodes
 .import iso_cursor_char
 .import ps2kbd_typematic
+.import pfkey
 
 .export extapi
 
@@ -41,3 +42,4 @@ apitbl:
     .word joystick_ps2_keycodes-1 ; API 4
     .word iso_cursor_char-1       ; API 5
     .word ps2kbd_typematic-1      ; API 6
+    .word pfkey-1                 ; API 7
