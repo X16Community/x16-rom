@@ -141,3 +141,5 @@ kbdbuf_put                   = $fec3
 
 bsave                        = $feba
 mciout                       = $feb1
+extapi                       = $feab
+extapi16                     = $fea8

@@ -12,6 +12,7 @@
 .export rtc_get_nvram, rtc_set_nvram, rtc_check_nvram_checksum
 
 .export fetch_keymap_from_nvram
+.export fetch_typematic_from_nvram
 
 .segment "RTC"
 
@@ -270,4 +271,32 @@ fetch_keymap_from_nvram:
 
 @exit:
 	lda #0
+	rts
+
+fetch_typematic_from_nvram:
+	; Verify NVRAM checksum
+	jsr rtc_check_nvram_checksum
+	bcs @exit ; I2C error
+	bne @exit ; Checksum mismatch
+
+	ldy #0
+	jsr rtc_get_nvram
+	bcs @exit ; I2C error
+
+	and #1
+	beq :+
+	clc
+	adc #12 ; second profile (plus the #1 from above) = 13
+:
+	clc
+	adc #12 ; typematic byte
+	tay
+	jsr rtc_get_nvram
+	bcs @exit ; I2C error
+	clc
+	eor #$ab
+	rts
+
+@exit:
+	lda #$ab
 	rts

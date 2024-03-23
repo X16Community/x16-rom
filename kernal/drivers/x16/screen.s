@@ -835,7 +835,6 @@ screen_set_defaults_from_nvram:
 	ldy #0
 	jsr rtc_get_nvram
 
-	
 screen_set_mode_from_nvram:
 	and #1
 	pha

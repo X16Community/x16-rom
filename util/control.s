@@ -41,6 +41,7 @@ safemode       := BSS_BASE+$2E
 tmp1           := BSS_BASE+$2F
 tmp2           := BSS_BASE+$30    ;2 bytes
 tmp3           := BSS_BASE+$32    ;2 bytes
+typematic      := BSS_BASE+$34    ;bit 7 set if using default
 
 ptr            := $D4             ;Borrowed ZP from BASIC (poker)
 
@@ -85,6 +86,15 @@ plot            = $fff0
 	jsr get_screen_dimensions
 	jsr get_current_color_scheme
 	jsr get_nvram
+
+	; set typematic to "default" on entry (from active profile)
+	ldy #12
+	lda nvram_buffer
+	beq :+
+	ldy #25
+:	lda nvram_buffer,y
+	eor #$ab
+	sta typematic
 
 	stz VERA_CTRL
 	; fall through to main menu
@@ -293,7 +303,7 @@ menutext:
 	.byte " SCREEN MODE",13
 	.byte " SCREEN GEOMETRY",13
 	.byte " TIME AND DATE",13
-	.byte " KEYBOARD LAYOUT",13
+	.byte " KEYBOARD CONFIG",13
 	.byte " SAVE SETTINGS",13
 	.byte " EXIT TO BASIC",13,13
 	.byte "VIDEO OUTPUT MODE",13
@@ -1166,18 +1176,18 @@ col_screen_text:
 .proc keyboard_layout_menu: near
 	lda #0
 	sta menu_l
-	lda #0
+	lda #2
 	sta menu_h
 	lda #$93
 	jsr bsout
+	stz menu_select
 klm0:	ldy #0
 klm1:	lda key_menu_text,y
 	beq klm2
 	jsr bsout
 	iny
 	jmp klm1
-klm2:	stz menu_select
-	jsr kl_print_current
+klm2:	jsr kl_print_current
 	jsr highlight_menu_option
 
 klm3:	jsr getin       ;get keyboard input
@@ -1205,28 +1215,95 @@ klm9:	cmp #27			;Esc
 klma:	bra klm3
 
 kl_execute:
-kle2:	
+kle2:
 	jsr kl_apply_layout
 	lda #4
 	sta menu_select
 	jmp main_menu
 
 kl_cursor_left:
+	lda menu_select
+	beq @1
+	cmp #2
+	beq @2
+	; change rate
+	bit typematic
+	bmi kllr
+	lda typematic
+	and #%00011111
+	bne :+
+	lda typematic
+	and #%01100000
+	ora #%10000001
+	sta typematic
+:	dec typematic
+	rts
+@1:
 	lda layout
 	beq kllr
 	dec
 	sta layout
+	rts
+@2:
+	; change delay
+	lda typematic
+	and #%01100000
+	beq @3
+	sec
+	lda typematic
+	sbc #$20
+	sta typematic
+	rts
+@3:
+	lda #$80
+	trb typematic
 kllr:	rts
 
 kl_cursor_right:
+	lda menu_select
+	beq @1
+	cmp #2
+	beq @2
+	; change rate
+	lda typematic
+	bmi @3
+	and #%00011111
+	cmp #%00011111
+	beq klrr
+	inc typematic
+	rts
+@1:
 	lda layout
 	cmp #layout_count-1
 	beq klrr
 	inc
 	sta layout
+	rts
+@2:
+	; change delay
+	lda typematic
+	bmi @3
+	and #%01100000
+	cmp #%01100000
+	beq klrr
+	clc
+	lda typematic
+	adc #$20
+	sta typematic
+	rts
+@3:
+	lda #$80
+	trb typematic
 klrr:	rts
 
 kl_apply_layout:
+	; apply typematic
+	ldx typematic
+	bpl :+
+	ldx #$2b
+:	lda #6
+	jsr extapi
+kal0:
 	lda layout
 	bne kal1
 	inc
@@ -1257,13 +1334,11 @@ kal3:
 	rts
 
 kl_print_current:
+	lda typematic
 	ldy #6
 	ldx #2
 	clc
 	jsr plot
-
-	lda #$12
-	jsr bsout
 
 	lda layout
 	asl
@@ -1280,18 +1355,159 @@ klpc1:
 	iny
 	bra klpc1
 klpc2:
-	lda #$92
+	ldy #7
+	ldx #3
+	clc
+	jsr plot
+
+	lda typematic
+	bmi klpc_typdef
+	and #%00011111
+	asl
+	tax
+	lda key_ratew,x
+	sta ptr
+	lda key_ratew+1,x
+	sta ptr+1
+	ldy #0
+klpc3:
+	lda (ptr),y
+	beq klpc4
 	jsr bsout
+	iny
+	bne klpc3
+klpc4:
+	ldy #8
+	ldx #4
+	clc
+	jsr plot
+	lda typematic
+	and #%01100000
+	lsr
+	lsr
+	lsr
+	lsr
+	tax
+	lda key_delyw,x
+	sta ptr
+	lda key_delyw+1,x
+	sta ptr+1
+	ldy #0
+klpc5:
+	lda (ptr),y
+	beq klpc6
+	jsr bsout
+	iny
+	bne klpc5
+klpc6:
 	rts
 
+klpc_typdef:
+	jsr @1
+	ldy #8
+	ldx #4
+	clc
+	jsr plot
+@1: ldx #0
+@2:	lda key_default,x
+	beq @3
+	jsr bsout
+	inx
+	bne @2
+@3:	rts
+
 key_menu_text:
-	.byte 19,29,"KEYBOARD LAYOUT",13
+	.byte 19,29,"KEYBOARD CONFIG",13
 	.byte 163,163,163,163,163,163,163,163,163
 	.byte 163,163,163,163,163,163,163,13
-	.byte " MAP:             ",13,13
-	.byte "LEFT/RIGHT TO",13
-	.byte " CHANGE LAYOUT",13,13
-	.byte "ENTER TO CONFIRM",13,0
+	.byte " MAP:             ",13
+	.byte " RATE:            ",13
+	.byte " DELAY:           ",13,13
+	.byte "LEFT/RIGHT TO CHANGE",13,13
+	.byte "RETURN TO CONFIRM",13,0
+key_default:
+	.byte "DEFAULT",0
+
+key_delyw:
+	.word delay_250, delay_500, delay_750, delay_1000
+delay_250:
+	.byte "250",0
+delay_500:
+	.byte "500",0
+delay_750:
+	.byte "750",0
+delay_1000:
+	.byte "1000",0
+
+key_ratew:
+	.word rate_0, rate_1, rate_2, rate_3, rate_4, rate_5, rate_6, rate_7
+	.word rate_8, rate_9, rate_10, rate_11, rate_12, rate_13, rate_14, rate_15
+	.word rate_16, rate_17, rate_18, rate_19, rate_20, rate_21, rate_22, rate_23
+	.word rate_24, rate_25, rate_26, rate_27, rate_28, rate_29, rate_30, rate_31
+rate_0:
+	.byte "30.0 HZ",0
+rate_1:
+	.byte "26.7 HZ",0
+rate_2:
+	.byte "24.0 HZ",0
+rate_3:
+	.byte "21.8 HZ",0
+rate_4:
+	.byte "20.7 HZ",0
+rate_5:
+	.byte "18.5 HZ",0
+rate_6:
+	.byte "17.1 HZ",0
+rate_7:
+	.byte "16.0 HZ",0
+rate_8:
+	.byte "15.0 HZ",0
+rate_9:
+	.byte "13.3 HZ",0
+rate_10:
+	.byte "12.0 HZ",0
+rate_11:
+	.byte "10.9 HZ",0
+rate_12:
+	.byte "10.0 HZ",0
+rate_13:
+	.byte "9.2 HZ",0
+rate_14:
+	.byte "8.6 HZ",0
+rate_15:
+	.byte "8.0 HZ",0
+rate_16:
+	.byte "7.5 HZ",0
+rate_17:
+	.byte "6.7 HZ",0
+rate_18:
+	.byte "6.0 HZ",0
+rate_19:
+	.byte "5.5 HZ",0
+rate_20:
+	.byte "5.0 HZ",0
+rate_21:
+	.byte "4.6 HZ",0
+rate_22:
+	.byte "4.3 HZ",0
+rate_23:
+	.byte "4.0 HZ",0
+rate_24:
+	.byte "3.7 HZ",0
+rate_25:
+	.byte "3.3 HZ",0
+rate_26:
+	.byte "3.0 HZ",0
+rate_27:
+	.byte "2.7 HZ",0
+rate_28:
+	.byte "2.5 HZ",0
+rate_29:
+	.byte "2.3 HZ",0
+rate_30:
+	.byte "2.1 HZ",0
+rate_31:
+	.byte "2.0 HZ",0
 
 
 .endproc
@@ -1337,7 +1553,7 @@ sme3:	cmp #2
 sme4:	lda #5
 	sta menu_select
 	jmp main_menu
-	
+
 save_to_nvram0:
 	sec
 	jsr screen_mode ;get current screen mode
@@ -1373,6 +1589,9 @@ save_to_nvram0:
 	beq :+
 	lda layout
 	sta nvram_buffer+11
+	lda typematic
+	eor #$ab
+	sta nvram_buffer+12
 :	jmp write_to_nvram
 
 save_to_nvram1:
@@ -1410,6 +1629,9 @@ save_to_nvram1:
 	beq :+
 	lda layout
 	sta nvram_buffer+24
+	lda typematic
+	eor #$ab
+	sta nvram_buffer+25
 :	; fall through
 
 write_to_nvram:
