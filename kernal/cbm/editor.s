@@ -80,6 +80,8 @@ MODIFIER_SHIFT = 1
 .import emulator_get_data
 
 .import fetch_keymap_from_nvram
+.import fetch_typematic_from_nvram
+.import extapi
 
 .import callkbvec
 
@@ -232,6 +234,14 @@ cint	jsr iokeys
 @l2
 	jsr kbd_config  ;set keyboard layout
 
+	jsr fetch_typematic_from_nvram
+	bmi @l3
+	tax
+	lda #6
+	jsr extapi
+
+@l3
+
 	lda #$c
 	sta blnct
 	sta blnsw
@@ -317,6 +327,13 @@ loop3
 	dec
 	jsr kbd_config
 :
+
+	jsr fetch_typematic_from_nvram ; after toggle, new profile
+	bmi loop3b
+	tax
+	lda #6
+	jsr extapi
+
 	bra loop3b
 scrpnc
 	; screen panic, cycle through VGA/composite/RGB modes
