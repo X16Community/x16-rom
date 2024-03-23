@@ -141,13 +141,16 @@ bld12:
 	ldx verck				; check mode for VRAM
 	bpl @skip				; don't do bank check if VRAM (RAM: verck=$FF)
 	cpy #$a0
-	bcc @skip       ;below banked RAM
+	bcc @lowram     ;below banked RAM
 	cpy #$c0
 	bcs @skip       ;above banked RAM
 @loop	cmp #$c0
 	bcc @skip
 	sbc #$20
 	bra @loop
+@lowram
+	cmp #$9d        ;if we're about to clobber I/O space, slow down
+	bcs ld39        ;read one byte at a time from here on out
 @skip
 	sta eah
 	bit status      ;eoi?
@@ -174,6 +177,7 @@ ld35
 	sta VERA_ADDR_M ;set address bits 15:8
 	bra bld10       ; attempt block read using macptr
 ;
+ld39	sta eah
 ld40	lda #$fd        ;mask off timeout
 	and status
 	sta status
@@ -216,6 +220,8 @@ ld60	inc eal         ;increment store addr
 ;if necessary, wrap to next bank
 ;
 	lda eah
+	cmp #$9f        ;I/O space?
+	beq ld81        ;return "out of memory" if loading to RAM
 	cmp #$c0        ;reached top of high ram?
 	bne ld64        ;no
 	lda verck       ;check mode
@@ -246,6 +252,15 @@ ld80	ldx eal
 	ldy eah
 	lda #0
 	rts
+ld81	lda verck
+	dec
+	beq ld64        ; loading to VRAM
+	bit status      ; eoi?
+	bvs ld70        ; yes...exit normally
+	jsr untlk       ; close channel
+	jsr clsei       ; close file
+	jsr prnto       ; print end of load (should always say $9F00)
+	jmp error16     ; "out of memory", tried to load or verify into I/O space
 
 ;subroutine to print to console:
 ;
