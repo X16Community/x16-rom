@@ -3,6 +3,7 @@
 .import mouse_sprite_offset
 .import joystick_ps2_keycodes
 .import iso_cursor_char
+.import ps2kbd_typematic
 
 .export extapi
 
@@ -39,3 +40,4 @@ apitbl:
     .word mouse_sprite_offset-1   ; API 3
     .word joystick_ps2_keycodes-1 ; API 4
     .word iso_cursor_char-1       ; API 5
+    .word ps2kbd_typematic-1      ; API 6

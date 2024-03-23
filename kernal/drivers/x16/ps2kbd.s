@@ -30,7 +30,7 @@
 
 .import memory_decompress_internal ; [lzsa]
 
-.export kbd_config, kbd_scan, receive_scancode_resume, keymap
+.export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
 .export MODIFIER_4080
 
 I2C_ADDRESS = $42
@@ -555,6 +555,23 @@ set_caps_led:
 	ora #LED_NUM_LOCK			; Num Lock always on
 	jsr i2c_write_next_byte
 	jmp i2c_write_stop
+
+;*****************************************
+; SET REPEAT RATE AND DELAY
+;*****************************************
+ps2kbd_typematic:
+	phx ; [4:0] repeat rate n, in the range 0-31, where rate in Hz = (-28n / 31) + 30
+	    ; [6:5] delay d, where delay in ms = (d + 1) * 250
+		; [7] must be zero
+	ldx #I2C_ADDRESS
+	ldy #I2C_KBD_CMD2
+	lda #$f3
+	jsr i2c_write_first_byte
+	pla
+	and #$7f
+	jsr i2c_write_next_byte
+	jmp i2c_write_stop
+
 
 modifier_key_codes:
 	.byt KEYCODE_LSHIFT
