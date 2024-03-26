@@ -110,7 +110,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 	* 65C816 CPU support: new indirect vectors, interrupt-handling code, and API. The bulk of the legwork for this support was done by [Fulgen301].
 		* The KERNAL's 65C816 support is only active when a 65C816 CPU is detected. On a 65C02, it will still continue to operate as before.
 		* The KERNAL still by and large operates as on a 65C02. The BASIC interpreter still runs as if it were on a 65C02 and is unaware of 65C816 code.
-		* When operating under a 65C816, the KERNAL sets up native and emulation mode IRQ/BRK handlers. When in native mode, the default native ISR handler chains to the emulation mode handler, so native 65C816 applications can still benefit from ISRs that are only aware of 65C02 instructions.
+		* The indirect vector table at `$03xx` has been extended to include native mode interrupts, as well as emulation mode COP and ABORT. The KERNAL populates these with native and emulation mode interrupt handlers. When in native mode, the default native ISR handler chains to the emulation mode handler, so native 65C816 applications can still benefit from ISRs that are only aware of 65C02 instructions.
 		* With very limited exceptions, the traditional KERNAL API must still be called with 8 bit memory/index registers, and with the stack pointer at $01xx.
 		* The `jsrfar` API call has been made fully 16-bit native capable.
 		* A new `extapi16` API call at `$FEA8` was created for additional 65C816-specific calls, which include informing the KERNAL of stack relocations.
@@ -130,6 +130,11 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 		5. `iso_cursor_char` sets the blinking cursor screen code to a character other than $9F while in ISO mode.
 		6. `ps2kbd_typematic` sets the keyboard repeat delay and repeat rate.
 		7. `pfkey`, similar to the C128 `PFKEY` API call. Within the KERNAL screen editor, the actions of the function keys F1-F8, as well as the SHIFT+RUN action can be changed.
+		8. `ps2data_fetch` is part of the default ISR, and necessary for populating the data for `ps2data_mouse_raw`, `mouse_scan`, and `kbd_scan`.
+		9. `ps2data_mouse_raw` returns 0-4 bytes of PS/2 mouse data in r0L-r1H, useful when overriding `mouse_scan` for handling raw PS/2 mouse events, such as implementing non-traditional mouse controls or relative mouse games.
+		10. `cursor_blink` is part of the default ISR, and handles blinking the cursor in the KERNAL screen editor if appropriate.
+		11. `led_update` is part of the default ISR, and illuminates the SMC activity light based on disk activity.
+		12. `mouse_set_position` sets the mouse cursor X/Y to an absolute position.
 	* Solved a race in kbd_scan if a KERNAL call was in progress was interrupted by the default ISR.
 	* Removed support for preserving state in the KERNAL ISR for VERA 0.1.1. VERA 0.3.1 is the new minimum version.
 * DOS

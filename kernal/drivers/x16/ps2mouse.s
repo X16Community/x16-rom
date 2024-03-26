@@ -18,7 +18,7 @@
 .import ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_mouse, ps2data_mouse_count
 
 .export mouse_config, mouse_scan, mouse_get, wheel
-.export mouse_sprite_offset
+.export mouse_sprite_offset, mouse_set_position
 
 .segment "KVARSB0"
 
@@ -275,6 +275,7 @@ _mouse_scan:
 	and #7
 	sta mousebt
 
+_mouse_scan_bounds:
 	; Check bounds
 
 	lda mousex+1		; x < 0?
@@ -422,6 +423,39 @@ mouse_sprite_offset:
 @end:
 	KVARS_END_TRASH_A_NZ
 	clc
+	rts
+
+mouse_set_position:
+	KVARS_START_TRASH_A_NZ
+	bit msepar
+	bpl @end
+
+	lda 0,x
+	sta mousex
+	lda 1,x
+	sta mousex+1
+	lda 2,x
+	sta mousey
+	lda 3,x
+	sta mousey+1
+
+	lda msepar
+	lsr
+	bcc @no_y_scale
+
+	asl mousey
+	rol mousey+1
+@no_y_scale:
+	lsr
+	bcc @no_x_scale
+
+	asl mousex
+	rol mousex+1
+@no_x_scale:
+	jsr _mouse_scan_bounds ; also updates the sprite position
+
+@end:
+	KVARS_END_TRASH_A_NZ
 	rts
 
 ; This is the Susan Kare mouse pointer
