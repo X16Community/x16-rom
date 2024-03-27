@@ -5,6 +5,11 @@
 .import iso_cursor_char
 .import ps2kbd_typematic
 .import pfkey
+.import ps2data_fetch
+.import ps2data_raw
+.import cursor_blink
+.import led_update
+.import mouse_set_position
 
 .export extapi
 
@@ -43,3 +48,8 @@ apitbl:
     .word iso_cursor_char-1       ; API 5
     .word ps2kbd_typematic-1      ; API 6
     .word pfkey-1                 ; API 7
+    .word ps2data_fetch-1         ; API 8
+    .word ps2data_raw-1           ; API 9
+    .word cursor_blink-1          ; API 10
+    .word led_update-1            ; API 11
+    .word mouse_set_position-1    ; API 12

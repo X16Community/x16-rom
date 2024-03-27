@@ -19,7 +19,7 @@ PS2DATA_NEW_STYLE = $02
 
 .import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop, i2c_write_byte
 .export ps2data_init, ps2data_fetch, ps2data_kbd, ps2data_kbd_count, ps2data_mouse, ps2data_mouse_count
-.export ps2data_keyboard_and_mouse, ps2data_keyboard_only
+.export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_raw
 
 ;---------------------------------------------------------------
 ; Inits ps2data functions.
@@ -30,7 +30,7 @@ PS2DATA_NEW_STYLE = $02
 ;
 ; (2) Second set default SMC read operation to
 ;     fetch keycodes only, if SMC firmare version >= 46.0.0
-; 
+;
 ; Input:
 ;         Nothing
 ;
@@ -54,19 +54,19 @@ ps2data_init:
 newstyle:
 	lda #PS2DATA_NEW_STYLE
 	bra :+
-	
+
 oldstyle:
 	lda #PS2DATA_OLD_STYLE
 
 :	sta ps2data_style
-	
+
 	KVARS_END
 
 	jmp ps2data_keyboard_only
 
 ;---------------------------------------------------------------
 ; Set SMC default read operation to fetch key codes only
-; 
+;
 ; Input:
 ;         Nothing
 ; Output:
@@ -93,7 +93,7 @@ ps2data_keyboard_only:
 ;---------------------------------------------------------------
 ; Set SMC default read operation to fetch both key codes
 ; and mouse packets
-; 
+;
 ; Input:
 ;         A: Mouse packet size (3 or 4 bytes)
 ; Output:
@@ -110,7 +110,7 @@ ps2data_keyboard_and_mouse:
 	cpy #PS2DATA_OLD_STYLE
 	bne :+
 	rts
-	
+
 	; Send command
 :	ldx #I2C_ADDR
 	ldy #CMD_SET_DFLT_READ_OP
@@ -119,7 +119,7 @@ ps2data_keyboard_and_mouse:
 
 ;---------------------------------------------------------------
 ; Fetch keyboard and mouse data from the SMC
-; 
+;
 ; Input:
 ;         Nothing
 ; Output:
@@ -134,7 +134,7 @@ ps2data_fetch:
 	; Clear
 	stz ps2data_kbd_count
 	stz ps2data_kbd
-	
+
 	stz ps2data_mouse_count
 	stz ps2data_mouse
 	stz ps2data_mouse+1
@@ -159,7 +159,7 @@ ps2data_fetch:
 @1:	ldx #I2C_ADDR
 	jsr i2c_direct_read
 	bcs exit
-	
+
 	; Store keycode
 @2:	sta ps2data_kbd
 	inc ps2data_kbd_count
@@ -189,11 +189,11 @@ ps2data_fetch:
 	sta ps2data_mouse
 	cmp #0
 	beq done ; Abort if first byte is zero
-	
+
 	; Mouse packet byte 1
 @5:	jsr i2c_read_next_byte
 	sta ps2data_mouse+1
-	
+
 	; Mouse packet byte 2
 	jsr i2c_read_next_byte
 	sta ps2data_mouse+2
@@ -211,7 +211,47 @@ ps2data_fetch:
 done:
 	jsr i2c_read_stop
 
-exit:	
+exit:
+	KVARS_END
+	rts
+
+;---------------------------------------------------------------
+; Fetch mouse data from memory and store it in r0-r1
+; Returns key code in .A, extended code in .Y (future)
+; Useful immediately after calling ps2data_fetch
+; These values will only be populated by ps2data_fetch
+; if mouse_config was called to enable polling the mouse
+;
+; Input:
+;         Nothing
+; Output:
+;         .A: keycode (0 if none)
+;         .Y: extended keycode if .A=$7F or .A=$FF (NYI)
+;         .X: number of mouse bytes returned
+;         r0L: mouse byte 1
+;         r0H: mouse byte 2
+;         r1L: mouse byte 3
+;         r1H: mouse byte 4 (for Intellimice)
+;         z is set if there is no mouse data
+;---------------------------------------------------------------
+ps2data_raw:
+	KVARS_START_TRASH_A_NZ
+	ldx ps2data_mouse_count
+	beq @2
+@1:	lda ps2data_mouse-1,x
+	sta r0-1,x
+	dex
+	bne @1
+	ldx ps2data_mouse_count
+@2:
+	lda ps2data_kbd_count
+	beq @3
+	;ldy extended keyboard code (NYI) none are defined so no need yet
+	lda ps2data_kbd
+	bne @4
+@3:
+	cpx #0
+@4:
 	KVARS_END
 	rts
 
