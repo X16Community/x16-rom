@@ -131,7 +131,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 		6. `ps2kbd_typematic` sets the keyboard repeat delay and repeat rate.
 		7. `pfkey`, similar to the C128 `PFKEY` API call. Within the KERNAL screen editor, the actions of the function keys F1-F8, as well as the SHIFT+RUN action can be changed.
 		8. `ps2data_fetch` is part of the default ISR, and necessary for populating the data for `ps2data_mouse_raw`, `mouse_scan`, and `kbd_scan`.
-		9. `ps2data_mouse_raw` returns 0-4 bytes of PS/2 mouse data in r0L-r1H, useful when overriding `mouse_scan` for handling raw PS/2 mouse events, such as implementing non-traditional mouse controls or relative mouse games.
+		9. `ps2data_raw` returns 0-4 bytes of PS/2 mouse data in r0L-r1H, useful when overriding `mouse_scan` for handling raw PS/2 mouse events, such as implementing non-traditional mouse controls or relative mouse games. Also returns the last scanned key code.
 		10. `cursor_blink` is part of the default ISR, and handles blinking the cursor in the KERNAL screen editor if appropriate.
 		11. `led_update` is part of the default ISR, and illuminates the SMC activity light based on disk activity.
 		12. `mouse_set_position` sets the mouse cursor X/Y to an absolute position.

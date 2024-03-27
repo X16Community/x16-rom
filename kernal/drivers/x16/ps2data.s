@@ -19,7 +19,7 @@ PS2DATA_NEW_STYLE = $02
 
 .import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop, i2c_write_byte
 .export ps2data_init, ps2data_fetch, ps2data_kbd, ps2data_kbd_count, ps2data_mouse, ps2data_mouse_count
-.export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_mouse_raw
+.export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_raw
 
 ;---------------------------------------------------------------
 ; Inits ps2data functions.
@@ -217,6 +217,7 @@ exit:
 
 ;---------------------------------------------------------------
 ; Fetch mouse data from memory and store it in r0-r1
+; Returns key code in .A, extended code in .Y (future)
 ; Useful immediately after calling ps2data_fetch
 ; These values will only be populated by ps2data_fetch
 ; if mouse_config was called to enable polling the mouse
@@ -224,23 +225,33 @@ exit:
 ; Input:
 ;         Nothing
 ; Output:
-;         .X: number of bytes returned
+;         .A: keycode (0 if none)
+;         .Y: extended keycode if .A=$7F or .A=$FF (NYI)
+;         .X: number of mouse bytes returned
 ;         r0L: mouse byte 1
 ;         r0H: mouse byte 2
 ;         r1L: mouse byte 3
 ;         r1H: mouse byte 4 (for Intellimice)
 ;         z is set if there is no mouse data
 ;---------------------------------------------------------------
-ps2data_mouse_raw:
+ps2data_raw:
 	KVARS_START_TRASH_A_NZ
 	ldx ps2data_mouse_count
-	beq @end
+	beq @2
 @1:	lda ps2data_mouse-1,x
 	sta r0-1,x
 	dex
 	bne @1
 	ldx ps2data_mouse_count
-@end:
+@2:
+	lda ps2data_kbd_count
+	beq @3
+	;ldy extended keyboard code (NYI) none are defined so no need yet
+	lda ps2data_kbd
+	bne @4
+@3:
+	cpx #0
+@4:
 	KVARS_END
 	rts
 
