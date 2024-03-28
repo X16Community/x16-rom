@@ -172,12 +172,7 @@ dsm3a:
 	sta VERA_CTRL
 	lda $9f2a
 	stz VERA_CTRL
-	pha
-	jsr convert_high_nybble
-	jsr bsout
-	pla
-	jsr convert_low_nybble
-	jsr bsout
+	jsr print_decimal
 
 	lda #'.'
 	jsr bsout
@@ -186,12 +181,7 @@ dsm3a:
 	sta VERA_CTRL
 	lda $9f2b
 	stz VERA_CTRL
-	pha
-	jsr convert_high_nybble
-	jsr bsout
-	pla
-	jsr convert_low_nybble
-	jsr bsout
+	jsr print_decimal
 
 	lda #'.'
 	jsr bsout
@@ -200,12 +190,7 @@ dsm3a:
 	sta VERA_CTRL
 	lda $9f2c
 	stz VERA_CTRL
-	pha
-	jsr convert_high_nybble
-	jsr bsout
-	pla
-	jsr convert_low_nybble
-	jsr bsout
+	jsr print_decimal
 	bra dsm4
 dsm3b:
 	stz VERA_CTRL
@@ -2833,6 +2818,53 @@ custom_palette:
 	.word $cc0,$0c0,$c0c,$00c,$024
 
 
+.endproc
+
+.proc print_decimal: near
+	ldy #0
+	ldx #0
+:	cmp #100
+	bcc c100
+	sec
+	sbc #100
+	iny
+	bra :-
+c100:
+	cpy #0
+	beq s10
+	inx
+	pha
+	tya
+	clc
+	adc #'0'
+	jsr bsout
+	pla
+s10:
+	ldy #0
+:	cmp #10
+	bcc c10
+	sec
+	sbc #10
+	iny
+	bra :-
+c10:
+	cpy #0
+	bne :+
+	cpx #0
+	beq s1
+:	inx
+	pha
+	tya
+	clc
+	adc #'0'
+	jsr bsout
+	pla
+s1:
+	clc
+	adc #'0'
+	jsr bsout
+
+	rts
 .endproc
 
 hex_table:

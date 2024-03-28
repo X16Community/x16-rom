@@ -137,6 +137,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 		12. `mouse_set_position` sets the mouse cursor X/Y to an absolute position.
 	* Solved a race in kbd_scan if a KERNAL call was in progress was interrupted by the default ISR.
 	* Removed support for preserving state in the KERNAL ISR for VERA 0.1.1. VERA 0.3.1 is the new minimum version.
+	* The `LOAD` API call halts loading at $9F00 with an out of memory error if the load started in low RAM. This prevents accidentally clobbering the I/O range and crashing the system through loading an excessively large file.
 * DOS
 	* Implemented turning on ___experimental___ fast reads (auto_tx) and writes for SD card accesses, implemented via the channel 15 command `"U0>Bn"` where `n` is a value from 0 to 3.
 		* 0 = Turn off fast reads/writes
@@ -174,6 +175,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 * UTILITIES
 	* Control Panel: When modifying the vertical scaling, clear the 240p flag if set.
 	* Control Panel: Fix date setting bug when the current year is a leap year.
+	* Control Panel: VERA version is now properly displayed in decimal.
 	* Stefan B. Jakobsson's X16-Edit has been updated to fix a few minor bugs.
 	* Stefan B. Jakobsson's BASLOAD has been included in the ROM and can be called via X16-Edit.
 
