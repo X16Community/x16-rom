@@ -135,8 +135,9 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
 
     l = f_in.readline()
     while l:
-        header = l[:9]
-        code = l[9:].strip()
+        header = l[:11]
+        disass = l[11:24]
+        code = l[24:].strip()
 
         # Get possible memory segment selected on the line
         s = matchSegment(code)
@@ -173,7 +174,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
             
             # Only output code if in the ROM area
             if addr >= 0xc000 and bank == cur_bank:
-                f_relist.write("%0.6X a   " % addr + code + "\n")
+                f_relist.write("%0.6X a   " % addr + disass + code + "\n")
 
                 # Store symbols
                 label = getLabel(code)
