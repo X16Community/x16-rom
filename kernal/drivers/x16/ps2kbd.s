@@ -180,6 +180,7 @@ _kbd_config:
 	PopW r1
 	PopW r0
 	jsr joystick_from_ps2_init
+	lda #$ff
 	clc             ;ok
 	rts
 
