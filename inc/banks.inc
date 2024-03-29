@@ -15,8 +15,6 @@ BANK_BANNEX  = $0C
 BANK_X16EDIT = $0D ; Occupies two banks!
 BANK_BASLOAD = $0F
 
-; XXX these constant RAM addresses are KERNAL
-; XXX implementation details and need to go away!
 cbdos_flags= $0268
 status     = $0287 ; channel: status byte
 jsrfar3n   = $0298 ; jsrfar: RAM part, 65C816 native
@@ -24,17 +22,16 @@ jsrfar3    = $02c4 ; jsrfar: RAM part
 jmpfr      = $02df ; jsrfar: core jmp instruction
 imparm     = $82   ; jsrfar: temporary byte
 stavec     = $03b2 ; stash: argument
-irq        = $038b ; irq handler: RAM part         this value MUST NEVER CHANGE starting from R42
-nmi        = $03b7 ; nmi handler: RAM trampoline   this value MUST NEVER CHANGE starting from R42
+irq        = $038b ; irq handler: RAM part
+nmi        = $03b7 ; nmi handler: RAM trampoline
 
 ; editor keystroke vectors (currently used by MONITOR)
 edkeyvec   = $ac03
 edkeybk    = $ac05
 
 ; RAM banks
-; 0:   KVARS
-; 1-9: GEOS BG SCREEN (320x200) [not currently enabled]
-; 255: CBDOS
+; 0:   KEYMAP, KVARS, CMDR-DOS, etc
+; 1-255: USER BANKS
 
 .macro KVARS_START
 .import kvswitch_tmp1, kvswitch_tmp2
@@ -90,20 +87,3 @@ edkeybk    = $ac05
 	stx ram_bank
 .endmacro
 
-; Warning: KVARS_START_TRASH_NZ and KVARS_END_TRASH_NZ can cause a race
-; condition if interrupts are enabled.
-.macro KVARS_START_TRASH_NZ
-.import kvswitch_tmp1, kvswitch_tmp2
-	sta kvswitch_tmp1
-	lda ram_bank
-	pha
-	stz ram_bank
-	lda kvswitch_tmp1
-.endmacro
-
-.macro KVARS_END_TRASH_NZ
-	sta kvswitch_tmp1
-	pla
-	sta ram_bank
-	lda kvswitch_tmp1
-.endmacro
