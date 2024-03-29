@@ -459,12 +459,15 @@ $(BUILD_DIR)/x16edit-rom.bin: $(X16EDIT_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd x16-edit && make clean rom)
 	cp x16-edit/build/x16edit-rom.bin $(BUILD_DIR)/x16edit-rom.bin
+	./scripts/trace_info.py 13 x16-edit/conf/x16edit-rom.cfg x16-edit/build/x16edit-rom.lst  $(BUILD_DIR)/x16edit-rom_D.rlst $(BUILD_DIR)/x16edit_D_labels.h
+	./scripts/trace_info.py 14 x16-edit/conf/x16edit-rom.cfg x16-edit/build/x16edit-rom.lst  $(BUILD_DIR)/x16edit-rom_E.rlst $(BUILD_DIR)/x16edit_E_labels.h
 
 # Bank F: BASLOAD
 $(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
 	@mkdir -p $$(dirname $@)
 	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
+	./scripts/trace_info.py 15 basload/conf/basload-rom.cfg basload/build/basload-rom.lst $(BUILD_DIR)/basload-rom.rlst $(BUILD_DIR)/basload_labels.h
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
@@ -480,6 +483,8 @@ $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh A build/x16/audio.sym   >> $@
 	./scripts/symbolize.sh B build/x16/util.sym    >> $@
 	./scripts/symbolize.sh C build/x16/bannex.sym  >> $@
+	cat $@ $(BUILD_DIR)/x16edit_D_labels.h $(BUILD_DIR)/x16edit_E_labels.h $(BUILD_DIR)/basload_labels.h > $(BUILD_DIR)/rom_labels.tmp
+	mv $(BUILD_DIR)/rom_labels.tmp $@
 
 $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py 0 `find build/x16/kernal/ -name \*.rlst`     > $@
@@ -493,4 +498,7 @@ $(BUILD_DIR)/rom_lst.h: $(BANK_BINS)
 	./scripts/trace_lst.py A `find build/x16/audio/ -name \*.rlst`     >> $@
 	./scripts/trace_lst.py B `find build/x16/util/ -name \*.rlst`      >> $@
 	./scripts/trace_lst.py C `find build/x16/bannex/ -name \*.rlst`    >> $@
+	./scripts/trace_lst.py D $(BUILD_DIR)/x16edit-rom_D.rlst           >> $@
+	./scripts/trace_lst.py E $(BUILD_DIR)/x16edit-rom_E.rlst           >> $@
+	./scripts/trace_lst.py F $(BUILD_DIR)/basload-rom.rlst             >> $@
 
