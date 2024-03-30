@@ -162,7 +162,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
 
             # Only output code if in the ROM area
             if addr >= 0xc000 and bank == cur_bank:
-                f_relist.write("%0.6X a   " % addr + code + "\n")
+                f_relist.write("%0.6X a   " % addr + disass + code + "\n")
         
         # No segment was selected, output normal code
         elif cursegment != None:
