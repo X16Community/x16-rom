@@ -247,7 +247,16 @@ vpeek	jsr chrget
 vpoke	jsr getbyt ; bank
 	phx
 	jsr chkcom
-	jsr getnum
+	jsr frmadr
+	lda poker+1
+	pha
+	lda poker
+	pha
+	jsr combyt
+	pla
+	sta poker
+	pla
+	sta poker+1
 	pla
 	cmp #4
 	bcs @io4
