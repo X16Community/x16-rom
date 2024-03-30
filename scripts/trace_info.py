@@ -16,7 +16,7 @@ import re
 memory_areas = {}   # Populated from ca65 config file
 segments = {} # Populated from ca65 config file
 bank = None # Holds the bank we're creating listings and symbols for
-cur_bank = 14 # Holds the bank of the line that is currently parsed
+cur_bank = 0 # Holds the bank of the line that is currently parsed
 
 # Regex
 segmentParser = re.compile("^[\s]*.segment[\s]+[\"\'][\w]+[\"\']", re.IGNORECASE)
@@ -30,7 +30,7 @@ labelParser = re.compile("^[\s]*[a-z]+[a-z0-9]*\:", re.IGNORECASE)
 procParser = re.compile("^[\s]*.proc[\s]+", re.IGNORECASE)
 
 # Converts string to number
-# Accepted formats: decimal numbers, hexadecimal numbers (0xnnnn or $nnnn)
+# Accepted formats: decimal numbers, hexadecimal numbers (0xn or $n)
 def parseNum(str):
     h = hexnumParser.search(str)
     if h != None:
@@ -72,7 +72,7 @@ def parseConfig(config_path):
             keyvalues[kv.split("=")[0].strip()] = kv.split("=")[1].strip()
         
         start = keyvalues["START"]
-        keyvalues["curpos"] = start
+        keyvalues["curpos"] = parseNum(start)
         memory_areas[name] = keyvalues
     
     # Get memory segments
@@ -137,7 +137,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
     while l:
         header = l[:11]
         disass = l[11:24]
-        code = l[24:].strip()
+        code = l[24:].rstrip()
 
         # Get possible memory segment selected on the line
         s = matchSegment(code)
@@ -158,7 +158,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
             # The listings file will often show the address of the previous
             # segment. Replace that with the current position in the selected
             # segment.
-            addr = parseNum(memory_areas[segments[s]["LOAD"]]["curpos"])      
+            addr = memory_areas[segments[s]["LOAD"]]["curpos"]
 
             # Only output code if in the ROM area
             if addr >= 0xc000 and bank == cur_bank:
@@ -170,7 +170,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
             addr = cur_offset + int(header[0:6], 16)
             
             # Remeber last address used in this segment
-            memory_areas[segments[cursegment]["LOAD"]]["curpos"] = str(addr)
+            memory_areas[segments[cursegment]["LOAD"]]["curpos"] = addr
             
             # Only output code if in the ROM area
             if addr >= 0xc000 and bank == cur_bank:
