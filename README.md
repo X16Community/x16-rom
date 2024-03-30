@@ -97,9 +97,23 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
-### **Unreleased Changes**
+### Release 47 ("Roswell")
 
 This is a major update with new features and bug fixes. This ROM requires a matching emulator version.
+
+For hardware compatibilty, the following firmware versions are supported by this ROM release:
+
+* VERA:
+	* Recommended: 47.0.2
+	* Also supported: 0.3.1, 0.3.2
+	* Functional but with known problems: 0.3.3
+	* Unsupported: 0.1.1 or older
+* SMC:
+	* Recommended: 47.0.0
+	* Also supported: 43.0.0
+	* Unsupported: 42.0.0 or older
+
+Changelog:
 
 * BUILD
 	* Removed all 6502/65C02 define switches in the source. [Fulgen301]
@@ -139,7 +153,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 	* Removed support for preserving state in the KERNAL ISR for VERA 0.1.1. VERA 0.3.1 is the new minimum version.
 	* The `LOAD` API call halts loading at $9F00 with an out of memory error if the load started in low RAM. This prevents accidentally clobbering the I/O range and crashing the system through loading an excessively large file.
 * DOS
-	* Implemented turning on ___experimental___ fast reads (auto_tx) and writes for SD card accesses, implemented via the channel 15 command `"U0>Bn"` where `n` is a value from 0 to 3.
+	* Implemented turning on ___experimental___ fast reads (auto_tx) and writes for SD card accesses. There are no known problems with this mode, but out of an abundance of caution, the feature is disabled by default. This is implemented via the channel 15 command `"U0>Bn"` where `n` is a value from 0 to 3:
 		* 0 = Turn off fast reads/writes
 		* 1 = Fast reads (auto_tx)
 		* 2 = Fast writes
@@ -149,11 +163,11 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 	* Prevent clobbering a directory upon file overwrite. [stefan-b-jakobsson]
 * KEYMAP
 	* The PS/2 "MENU" key is now recognized and returns a petscii $06. [stefan-b-jakobsson]
-	* The PS/2 "INTL 1" key is now recognized and can be used in layouts that support it, such as pt-BR. [stefan-b-jakobsson]
+	* The PS/2 "INT'L 1" key is now recognized and can be used in layouts that support it, such as pt-BR. [stefan-b-jakobsson]
 * BASIC
 	* Quoted numerics for changing the default device number, such as with DOS"9" should now work. [irmen]
 	* `LIST` output can be paused and unpaused with the space bar. While paused, PgDn and Down will advance the listing by a page and by a line respectively. [zpc0070]
-	* Prevent the `OLD` command from hanging if there is no program listing to restore. [JimmyDansbo]
+	* Prevent the `OLD` command from hanging if there is no valid program listing to restore. [JimmyDansbo]
 	* The butterfly on the splash screen is now symmetrical. [stefanoborini]
 	* New `TDATA()` and `TATTR()` functions to return the screen code at specific tile addresses on VERA layer 1. [JimmyDansbo]
 	* Calling POKE with pointer functions such as `POKE <address>,POINTER(<var>)` should now work properly inline. Prior to this change, the expression in the second argument could corrupt the POKE pointer.
@@ -174,7 +188,7 @@ This is a major update with new features and bug fixes. This ROM requires a matc
 	* Change initialization order to avoid reading uninitialized memory during init.
 * UTILITIES
 	* Control Panel: When modifying the vertical scaling, clear the 240p flag if set.
-	* Control Panel: Fix date setting bug when the current year is a leap year.
+	* Control Panel: Fix date setting bug when the current year is set to a leap year.
 	* Control Panel: VERA version is now properly displayed in decimal.
 	* Stefan B. Jakobsson's X16-Edit has been updated to fix a few minor bugs.
 	* Stefan B. Jakobsson's BASLOAD has been included in the ROM and can be called via X16-Edit.
