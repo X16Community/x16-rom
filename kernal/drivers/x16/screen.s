@@ -772,41 +772,41 @@ cpyansi7:	lda #$e0
 ; 8: Cyrillic character set
 cpycyr8:		lda #$c8
 	sta tmp2+1       ;character data at ROM 0800
-	ldx #4
+	ldx #5
 	jsr copyv
 	lda #$e8
 	sta tmp2+1       ;character data at ROM 2800
-	ldx #4
+	ldx #3
 	jmp copyv
 
 ; 9: Cyrillic character set #2
 cpycyr9:	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
-	ldx #4
+	ldx #5
 	jsr copyv
-	lda #$ec
-	sta tmp2+1       ;character data at ROM 2C00
-	ldx #4
+	lda #$eb
+	sta tmp2+1       ;character data at ROM 2B00
+	ldx #3
 	jmp copyv
 
 ; 10: Eastern latin character set
 cpylaeA:	lda #$c8
 	sta tmp2+1       ;character data at ROM 1800
-	ldx #4
+	ldx #5
 	jsr copyv
-	lda #$f0
-	sta tmp2+1       ;character data at ROM 3000
-	ldx #4
+	lda #$ee
+	sta tmp2+1       ;character data at ROM 2E00
+	ldx #3
 	jmp copyv
 
 ; 11: Eastern latin character set #2
 cpylaeB:	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
-	ldx #4
+	ldx #5
 	jsr copyv
-	lda #$f4
-	sta tmp2+1       ;character data at ROM 3400
-	ldx #4
+	lda #$f1
+	sta tmp2+1       ;character data at ROM 3100
+	ldx #3
 	jmp copyv
 
 
