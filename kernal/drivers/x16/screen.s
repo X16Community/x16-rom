@@ -274,8 +274,7 @@ screen_mode:
 	lda cscrmd
 	jsr calc_scaled_res
 	bcs @rts
-	jsr scnsiz
-	clc
+	jmp scnsiz
 @rts:	rts
 
 mode_lookup:
