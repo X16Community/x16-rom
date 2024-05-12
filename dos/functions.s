@@ -35,6 +35,10 @@
 .import buffer
 .importzp krn_ptr1, bank_save
 
+.import context_for_channel
+
+.import file_get_position_and_size
+
 ; other BSS
 .import fat32_readonly
 .import fat32_dirent
@@ -1233,7 +1237,6 @@ block_execute:
 ;              offset 4  offset[24:31]
 ;---------------------------------------------------------------
 set_position:
-	.import context_for_channel
 	stx fat32_ptr
 	sty fat32_ptr + 1
 	lda (fat32_ptr) ; channel
@@ -1247,6 +1250,23 @@ set_position:
 @1:	jsr file_set_position
 	bcs @error
 	lda #0
+	rts
+
+@error:	lda #$70 ; no channel
+	rts
+
+;---------------------------------------------------------------
+; get_position_and_size
+;
+; In:   .A channel
+;---------------------------------------------------------------
+
+get_position_and_size:
+	tax
+	lda context_for_channel,x
+	jsr file_get_position_and_size
+	bcs @error
+	lda #$ff ; status already filled
 	rts
 
 @error:	lda #$70 ; no channel

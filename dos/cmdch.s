@@ -6,7 +6,8 @@
 .include "banks.inc"
 
 .export set_status, cmdch_read
-.export cmdch_exec
+.export cmdch_exec, add_decimal
+.export status_r, status_w, statusbuffer
 
 ; parser.s
 .import parse_command

@@ -8,7 +8,7 @@
 .include "file.inc"
 
 ; cmdch.s
-.import set_status
+.import set_status, add_decimal
 
 ; parser.s
 .import find_wildcards
@@ -27,11 +27,12 @@
 
 ; functions.s
 .import alloc_context, free_context
-.export file_set_position
+.export file_set_position, file_get_position_and_size
 
 ; other BSS
 .import fat32_size
 .import fat32_errno
+.import statusbuffer, status_w, status_r
 
 .bss
 
@@ -462,6 +463,80 @@ file_set_position:
 	rts
 
 @error:	sec
+	rts
+
+;---------------------------------------------------------------
+; file_get_position_and_size
+;
+; In:   a    context
+;---------------------------------------------------------------
+file_get_position_and_size:
+	tax
+	bmi @error ; not a file context
+	fat32_call fat32_set_context
+
+	lda #'0'
+	sta statusbuffer + 0
+	lda #'7'
+	sta statusbuffer + 1
+	lda #','
+	sta statusbuffer + 2
+
+	fat32_call fat32_get_offset
+	bcc @error
+
+	ldx #3
+	jsr @hexdword
+
+	lda #' '
+	sta statusbuffer,x
+	inx
+
+	; .X should be preserved by this
+	fat32_call fat32_get_size
+	bcc @error
+
+	jsr @hexdword
+
+	lda #0
+	jsr add_decimal
+	lda #0
+	jsr add_decimal
+
+	stz status_r
+	stx status_w
+
+	clc
+	rts
+
+@error:	sec
+	rts
+
+@hexdword:
+	ldy #3
+@hdloop:
+	lda fat32_size,y
+	jsr @storehex8
+	dey
+	bpl @hdloop
+	rts
+
+@storehex8:
+	pha
+	lsr
+	lsr
+	lsr
+	lsr
+	jsr @storehex4
+	pla
+@storehex4:
+	and #$0f
+	cmp #$0a
+	bcc :+
+	adc #$66
+:	eor #$30
+	sta statusbuffer,x
+	inx
 	rts
 
 ;---------------------------------------------------------------

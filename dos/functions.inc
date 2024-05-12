@@ -43,3 +43,4 @@
 .global block_write_u2
 .global block_execute
 .global set_position
+.global get_position_and_size
