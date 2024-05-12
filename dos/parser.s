@@ -1056,6 +1056,7 @@ cmds:
 	          ; 'F-R' file restore
 	.byte 'W' ; 'W-n' write protect
 	.byte 'P' ; 'P'   position
+	.byte 'T' ; 'T'   tell
 	.byte 255 ; echo (internal)
 cmds_end:
 cmd_ptrs:
@@ -1074,6 +1075,7 @@ cmd_ptrs:
 	.word cmd_f
 	.word cmd_w
 	.word cmd_p
+	.word cmd_t
 	.word cmd_255 ; echo (internal)
 
 ;---------------------------------------------------------------
@@ -1790,6 +1792,15 @@ cmd_p:
 	ldx #<(buffer+1)
 	ldy #>(buffer+1)
 	jsr set_position
+	clc
+	rts
+
+;---------------------------------------------------------------
+; T - tell (X16)
+;---------------------------------------------------------------
+cmd_t:
+	lda buffer+1
+	jsr get_position_and_size
 	clc
 	rts
 

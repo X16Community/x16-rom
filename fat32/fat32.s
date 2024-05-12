@@ -183,6 +183,7 @@ _fat32_bss_end:
 .export fat32_write_byte
 .export sync_sector_buffer
 .export fat32_set_time
+.export fat32_get_size
 
 .code
 
@@ -3734,6 +3735,22 @@ fat32_get_ptable_entry:
 	jsr decode_volume_label
 
 @done:
+	sec
+	rts
+
+
+;-----------------------------------------------------------------------------
+; fat32_get_size
+;
+; Out:  fat32_size: file size of context
+;
+; * c=0: failure; sets errno
+;-----------------------------------------------------------------------------
+fat32_get_size:
+	stz fat32_errno
+
+	set32 fat32_size, cur_context + context::file_size
+
 	sec
 	rts
 

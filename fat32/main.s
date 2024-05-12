@@ -58,6 +58,7 @@
 
 .import fat32_set_time
 
+.import fat32_get_size
 
 .segment "API"
 	jmp fat32_init              ; $C000
@@ -106,3 +107,4 @@
 	jmp sdcard_check_alive      ; $C06C
 
 	jmp sdcard_set_fast_mode    ; $C06F
+	jmp fat32_get_size          ; $C072

@@ -17,7 +17,7 @@ shared_vars:
 ; API arguments and return data, shared from DOS into FAT32
 ; but used primarily by FAT32
 fat32_dirent:        .tag dirent   ; Buffer containing decoded directory entry
-fat32_size:          .res 4        ; Used for fat32_read, fat32_write, fat32_get_offset, fat32_get_free_space
+fat32_size:          .res 4        ; Used for fat32_read, fat32_write, fat32_get_offset, fat32_get_free_space, fat32_tell, fat32_get_size
 fat32_errno:         .byte 0       ; Last error
 fat32_readonly:      .byte 0       ; User-accessible read-only flag
 
