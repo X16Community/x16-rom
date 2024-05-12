@@ -203,14 +203,28 @@ plot10	ldx tblx
 ;
 ;set screen size
 ;
-scnsiz	stx llen
+scnsiz	cpx #81    ; If column count > 80, every line will be too long for
+	bcs sszrts ; the BASIN editor
+	cpx #20    ; If column count < 20, it would make multi-line rows exceed
+	bcc sszerr ; the expected max physical row count of 4
+	cpy #61    ; If row count > 60, it would break the memory map and
+	bcs sszrts ; the row-continuation structures
+	cpy #4     ; If columns = 20, 4 rows are needed to hold a max length "line"
+	bcc sszerr ; thus row counts < 4 would break scrolling for long lines
+	stx llen
 	sty nlines
 	iny
 	sty nlinesp1
 	dey
 	dey
 	sty nlinesm1
-	jmp clsr ; clear screen
+	jsr clsr ; clear screen
+	clc
+	rts
+sszerr
+	sec
+sszrts
+	rts
 
 ;initialize i/o
 ;
