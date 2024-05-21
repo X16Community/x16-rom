@@ -20,12 +20,6 @@ stop  = $ffe1
 .import kbdbuf_get_stop
 
 ; rs232
-.import bsi232
-.import bso232
-.import cki232
-.import cko232
-.import cls232
-.import opn232
 .export t1
 
 ; serial
