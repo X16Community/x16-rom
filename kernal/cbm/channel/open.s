@@ -57,11 +57,7 @@ op110	inc ldtnd       ;new file
 ;
 ;perform tape open stuff
 ;
-op150	cmp #2
-	bne op152
-;
-	jmp opn232
-op152	jmp error9
+op150	jmp error9
 op175	clc             ;flag good open
 	rts             ;exit in peace
 

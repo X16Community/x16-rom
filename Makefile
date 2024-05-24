@@ -60,7 +60,6 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/ps2mouse.s \
 	kernal/drivers/x16/joystick.s \
 	kernal/drivers/x16/clock.s \
-	kernal/drivers/x16/rs232.s \
 	kernal/drivers/x16/framebuffer.s \
 	kernal/drivers/x16/sprites.s \
 	kernal/drivers/x16/entropy.s \
