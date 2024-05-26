@@ -778,8 +778,7 @@ bk2	lda #' '
 	jsr screen_set_char
 	lda color
 	jsr screen_set_color
-	bmi ntcn1
-	jmp jpl3
+	jmp loop2
 ntcn1	ldx qtsw
 	beq nc3w
 	bit mode
