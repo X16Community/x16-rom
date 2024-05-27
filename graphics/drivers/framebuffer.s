@@ -288,14 +288,10 @@ FB_set_8_pixels:
 	sec
 	rol
 	bcs @2
-	inc VERA_ADDR_L
-	bne @1
-	inc VERA_ADDR_M
+	bit VERA_DATA0
 @1:	asl
 	bcs @2
-	inc VERA_ADDR_L
-	bne @1
-	inc VERA_ADDR_M
+	bit VERA_DATA0
 	bra @1
 @2:	beq @3
 	stx VERA_DATA0
@@ -331,9 +327,7 @@ FB_set_8_pixels_opaque:
 @2:	stx VERA_DATA0
 	bra @1
 @3:	asl r0L
-	inc VERA_ADDR_L
-	bne @1
-	inc VERA_ADDR_M
+	bit VERA_DATA0
 	bra @1
 @4:	rts
 
