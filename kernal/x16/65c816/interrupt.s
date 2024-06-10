@@ -95,6 +95,7 @@ rom_bank = 1
 	lda $07, S
 	pha
 
+	jmp (addr)
 .endmacro
 
 .segment "C816_COP_EMULATED"
@@ -160,11 +161,9 @@ __irq_65c816_first:
 
 nnirq:
 	irq_brk_common_impl cinv, key, irq_emulated_impl
-	jmp (cinv)
 
 nnbrk:
-	irq_brk_common_impl
-	jmp (cbinv)
+	irq_brk_common_impl cbinv
 
 __interrupt_65c816_native_ret:
 	clc
