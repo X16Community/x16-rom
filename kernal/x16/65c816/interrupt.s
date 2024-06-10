@@ -1,3 +1,5 @@
+.include "banks.inc"
+
 .import iclall, igetin
 .import cbinv, cinv, nminv
 .import __irq, __irq_65c816_saved, __irq_native_ret
@@ -17,7 +19,7 @@ rom_bank = 1
 .pushcpu
 .setcpu "65816"
 
-.macro c816_interrupt_impl vector
+.macro c816_interrupt_impl
 	rep #$30       ; 16-bit accumulator and index
 	.I16
 	.A16
@@ -49,7 +51,6 @@ rom_bank = 1
 	phx            ; save X and Y
 	phy
 
-	jmp (vector)
 	.A8
 	.I8
 .endmacro
@@ -90,7 +91,6 @@ rom_bank = 1
 	lda $07, S
 	pha
 
-	jmp (addr)
 .endmacro
 
 .segment "C816_COP_EMULATED"
@@ -107,7 +107,8 @@ c816_nmib:
 	jmp (innmi)
 
 c816_irqb:
-	c816_interrupt_impl inirq
+	c816_interrupt_impl
+	jmp (inirq)
 
 .segment "C816_BRK"
 c816_brk:
@@ -115,7 +116,8 @@ c816_brk:
 
 .segment "MEMDRV"
 c816_brk_impl:
-	c816_interrupt_impl inbrk
+	c816_interrupt_impl
+	jmp (inbrk)
 
 .segment "C816_COP_NATIVE"
 c816_cop_native:
@@ -154,9 +156,11 @@ __irq_65c816_first:
 
 nnirq:
 	irq_brk_common_impl cinv, key, irq_emulated_impl
+	jmp (cinv)
 
 nnbrk:
-	irq_brk_common_impl cbinv
+	irq_brk_common_impl
+	jmp (cbinv)
 
 __interrupt_65c816_native_ret:
 	clc
@@ -173,15 +177,9 @@ __interrupt_65c816_native_kernal_impl_ret:
 	rti
 
 nnnmi:
-	.A16
-	.I16
-	sec
-	xce
-	.A8
-	.I8
-	clc
-	stz rom_bank
-	jmp (nminv)
+	c816_interrupt_impl
+	irq_brk_common_impl
+	jmp nmi
 
 nncop:
 nnabort:
