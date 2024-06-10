@@ -55,7 +55,7 @@ rom_bank = 1
 	.I8
 .endmacro
 
-.macro irq_brk_common_impl addr, emulated_kernal_vector, emulated_kernal_impl
+.macro intr_common_impl addr, emulated_kernal_vector, emulated_kernal_impl
 	.A16
 	.I16
 	tsx
@@ -83,6 +83,10 @@ rom_bank = 1
 	clc
 
 	php
+.endmacro
+
+.macro irq_brk_common_impl addr, emulated_kernal_vector, emulated_kernal_impl
+	intr_common_impl addr, emulated_kernal_vector, emulated_kernal_impl
 
 	lda $0B, S
 	pha
@@ -178,7 +182,7 @@ __interrupt_65c816_native_kernal_impl_ret:
 
 nnnmi:
 	c816_interrupt_impl
-	irq_brk_common_impl
+	intr_common_impl
 	jmp nmi
 
 nncop:
