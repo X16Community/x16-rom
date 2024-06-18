@@ -35,6 +35,7 @@
 ;---------------------------------------------------------------
 ioinit:
 	jsr vera_wait_ready
+	jsr clear_interrupt_sources
 	jsr serial_init
 	jsr entropy_init
 	jsr clklo       ;release the clock line
@@ -83,6 +84,40 @@ vera_wait_ready:
 	bne vera_wait_ready
 	rts
 
+;---------------------------------------------------------------
+; Reset device state such that there are no interrupt sources
+; (assuming stock hardware)
+;
+; Includes VERA interrupt sources, VIA 1, VIA 2, and YM2151.
+;---------------------------------------------------------------
+
+clear_interrupt_sources:
+	php
+	sei
+	; wait for YM2151 busy flag to clear
+	ldx #0
+@1:
+	bit YM_DATA
+	bpl @2
+	dex
+	bne @1
+	; give up, YM2151 likely not present, but try to
+	; write to it anyway
+@2:
+	lda #$14
+	sta YM_REG
+	; handle all of the other non-YM2151 resets to fill
+	; the 18 clock cycles needed in between the YM_REG
+	; and YM_DATA writes
+	stz VERA_IEN
+	lda #$7F
+	sta d1ier
+	sta d2ier
+	nop
+	lda #%00110000
+	sta YM_DATA
+	plp
+	rts
 
 ;---------------------------------------------------------------
 ; Call the Audio API's init routine
