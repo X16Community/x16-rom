@@ -733,7 +733,7 @@ for iso_mode in [False, True]:
 
 	if iso_mode:
 		# Unicode characters reachable with this layout on Windows but not covered by ISO-8859-15
-		print("; Keys outside of ISO-8859-15:", file=asm)
+		print("; Keys outside of ISO-8859-15 (and -16):", file=asm)
 	else:
 		# Unicode characters reachable with this layout on Windows but not covered by PETSCII
 		print("; Keys outside of PETSCII:", file=asm)

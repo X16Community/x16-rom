@@ -24,7 +24,7 @@ kbtab_414:
 
 ; ISO
 ; ~~~
-; Keys outside of ISO-8859-15:
+; Keys outside of ISO-8859-15 (and -16):
 ;   '¤¨´'
 ; Non-reachable ISO-8859-15:
 ;   ' ¡¢¥Šš©ª«¬­®¯°±²³Ž¶·ž¹º»ŒœŸ¿ÇÐ×Þßçð÷þ'
