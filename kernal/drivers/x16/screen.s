@@ -656,13 +656,14 @@ screen_restore_state:
 ;                9: Thin Cyrillic (ISO-8859-5)
 ;               10: Eastern Latin (ISO-8859-16)
 ;               11: Thin Eastern Latin (ISO-8859-16)
+;               12: Katakana (JIS X 0201)
 ;         .x/.y  pointer to charset
 ;---------------------------------------------------------------
 screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #12
+	cmp #13
 	bcs @nope
 	sta tmp2+1
 	lda mode
@@ -679,7 +680,7 @@ screen_set_charset:
 charcpytbl:
 	.word cpyiso1, cpypet2, cpypet3, cpypet4
 	.word cpypet5, cpyiso6, cpyansi7, cpycyr8
-	.word cpycyr9, cpylaeA, cpylaeB
+	.word cpycyr9, cpylaeA, cpylaeB, cpykatC
 
 ; 0: custom character set
 cpycustom:
@@ -703,7 +704,8 @@ copyv:	ldy #0
 	rts
 
 ; 1: ISO character set
-cpyiso1:	lda #$c8
+cpyiso1:
+	lda #$c8
 	sta tmp2+1       ;character data at ROM 0800
 	ldx #8
 	jmp copyv
@@ -757,19 +759,22 @@ cpypet5:
 	jmp copyv
 
 ; 6: ISO character set #2
-cpyiso6:	lda #$d8
+cpyiso6:
+	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
 	ldx #8
 	jmp copyv
 
 ; 7: ANSI character set
-cpyansi7:	lda #$e0
+cpyansi7:
+	lda #$e0
 	sta tmp2+1       ;character data at ROM 2000
 	ldx #8
 	jmp copyv
 
 ; 8: Cyrillic character set
-cpycyr8:		lda #$c8
+cpycyr8:
+	lda #$c8
 	sta tmp2+1       ;character data at ROM 0800
 	ldx #5
 	jsr copyv
@@ -779,7 +784,8 @@ cpycyr8:		lda #$c8
 	jmp copyv
 
 ; 9: Cyrillic character set #2
-cpycyr9:	lda #$d8
+cpycyr9:
+	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
 	ldx #5
 	jsr copyv
@@ -789,8 +795,9 @@ cpycyr9:	lda #$d8
 	jmp copyv
 
 ; 10: Eastern latin character set
-cpylaeA:	lda #$c8
-	sta tmp2+1       ;character data at ROM 1800
+cpylaeA:
+	lda #$c8
+	sta tmp2+1       ;character data at ROM 0800
 	ldx #5
 	jsr copyv
 	lda #$ee
@@ -799,7 +806,8 @@ cpylaeA:	lda #$c8
 	jmp copyv
 
 ; 11: Eastern latin character set #2
-cpylaeB:	lda #$d8
+cpylaeB:
+	lda #$d8
 	sta tmp2+1       ;character data at ROM 1800
 	ldx #5
 	jsr copyv
@@ -808,6 +816,58 @@ cpylaeB:	lda #$d8
 	ldx #3
 	jmp copyv
 
+cpykatC:
+	lda #$d8
+	sta tmp2+1       ;character data at ROM 1800
+	ldx #5
+	jsr copyv
+	lda #$f4
+	sta tmp2+1       ;character data at ROM 3400
+	ldx #3
+	jsr copyv
+
+	; copying individual characters
+
+@vram_backslash	=$f000+($5c*8)
+@chariso2_yen	=$d800+($a5*8)
+@vram_tilde 	=$f000+($7e*8)
+@charkat_tilde	=$f400+($00*8)
+@vram_nbsp  	=$f000+($a0*8)
+
+	lda #>@charkat_tilde
+	sta tmp2+1
+	lda #<@vram_tilde
+	sta VERA_ADDR_L
+	lda #>@vram_tilde
+	sta VERA_ADDR_M
+	jsr copychr
+
+	lda #<@vram_nbsp
+	sta VERA_ADDR_L
+	lda #>@vram_nbsp
+	sta VERA_ADDR_M
+@l:	stz VERA_DATA0
+	dey
+	bne @l
+
+	lda #<@vram_backslash
+	sta VERA_ADDR_L
+	lda #>@vram_backslash
+	sta VERA_ADDR_M
+	lda #<@chariso2_yen
+	sta tmp2
+	lda #>@chariso2_yen
+	sta tmp2+1
+
+copychr:
+	ldy #0
+@l:	ldx #6
+	jsr fetch
+	sta VERA_DATA0
+	iny
+	cpy #8
+	bne @l
+	rts
 
 inicpy:
 	phx
