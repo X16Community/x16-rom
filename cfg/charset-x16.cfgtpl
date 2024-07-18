@@ -5,14 +5,14 @@ MEMORY {
 }
 
 SEGMENTS {
-	CHARPET:    load = BANK6,    type = ro;
-	CHARISO:    load = BANK6,    type = ro;
-	CHARPET2:   load = BANK6,    type = ro;
-	CHARISO2:   load = BANK6,    type = ro;
-	CHARANSI:   load = BANK6,    type = ro;
-	CHARCYR:    load = BANK6,    type = ro;
-	CHARCYR2:   load = BANK6,    type = ro;
-	CHARLAE:    load = BANK6,    type = ro;
-	CHARLAE2:   load = BANK6,    type = ro;
-	CHARKAT:    load = BANK6,    type = ro;
+	CHARPET:    load = BANK6,    type = ro, define = yes;
+	CHARISO:    load = BANK6,    type = ro, define = yes;
+	CHARPET2:   load = BANK6,    type = ro, define = yes;
+	CHARISO2:   load = BANK6,    type = ro, define = yes;
+	CHARANSI:   load = BANK6,    type = ro, define = yes;
+	CHARCYR:    load = BANK6,    type = ro, define = yes;
+	CHARCYR2:   load = BANK6,    type = ro, define = yes;
+	CHARLAE:    load = BANK6,    type = ro, define = yes;
+	CHARLAE2:   load = BANK6,    type = ro, define = yes;
+	CHARKAT:    load = BANK6,    type = ro, define = yes;
 }
