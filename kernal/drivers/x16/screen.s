@@ -48,6 +48,18 @@
 .import rtc_get_nvram
 .import rtc_check_nvram_checksum
 
+; Charset segments
+.import __CHARPET_LOAD__
+.import __CHARISO_LOAD__
+.import __CHARPET2_LOAD__
+.import __CHARISO2_LOAD__
+.import __CHARANSI_LOAD__
+.import __CHARCYR_LOAD__
+.import __CHARCYR2_LOAD__
+.import __CHARLAE_LOAD__
+.import __CHARLAE2_LOAD__
+.import __CHARKAT_LOAD__
+
 .segment "KVAR"
 
 cscrmd:	.res 1           ;    X16: current screen mode (argument to screen_mode)
@@ -656,13 +668,14 @@ screen_restore_state:
 ;                9: Thin Cyrillic (ISO-8859-5)
 ;               10: Eastern Latin (ISO-8859-16)
 ;               11: Thin Eastern Latin (ISO-8859-16)
+;               12: Katakana (JIS X 0201)
 ;         .x/.y  pointer to charset
 ;---------------------------------------------------------------
 screen_set_charset:
 	jsr inicpy
 	cmp #0
 	beq cpycustom
-	cmp #12
+	cmp #13
 	bcs @nope
 	sta tmp2+1
 	lda mode
@@ -679,7 +692,7 @@ screen_set_charset:
 charcpytbl:
 	.word cpyiso1, cpypet2, cpypet3, cpypet4
 	.word cpypet5, cpyiso6, cpyansi7, cpycyr8
-	.word cpycyr9, cpylaeA, cpylaeB
+	.word cpycyr9, cpylaeA, cpylaeB, cpykatC
 
 ; 0: custom character set
 cpycustom:
@@ -703,111 +716,170 @@ copyv:	ldy #0
 	rts
 
 ; 1: ISO character set
-cpyiso1:	lda #$c8
-	sta tmp2+1       ;character data at ROM 0800
+cpyiso1:
+	lda #>__CHARISO_LOAD__
+	sta tmp2+1
 	ldx #8
 	jmp copyv
 
 ; 2: PETSCII upper/graph character set
 cpypet2:
-	lda #$c0
-	sta tmp2+1       ;character data at ROM 0000
+	lda #>__CHARPET_LOAD__
+	sta tmp2+1
 	ldx #4
 	jsr copyv
 	dec data
-	lda #$c0
-	sta tmp2+1       ;character data at ROM 0000
+	lda #>__CHARPET_LOAD__
+	sta tmp2+1
 	ldx #4
 	jmp copyv
 
 ; 3: PETSCII upper/lower character set
 cpypet3:
-	lda #$c4
-	sta tmp2+1       ;character data at ROM 0400
+	lda #>__CHARPET_LOAD__+4
+	sta tmp2+1
 	ldx #4
 	jsr copyv
 	dec data
-	lda #$c4
-	sta tmp2+1       ;character data at ROM 0400
+	lda #>__CHARPET_LOAD__+4
+	sta tmp2+1
 	ldx #4
 	jmp copyv
 
 ; 4: Alternate PETSCII upper/graph character set
 cpypet4:
-	lda #$d0
-	sta tmp2+1       ;character data at ROM 1000
+	lda #>__CHARPET2_LOAD__
+	sta tmp2+1
 	ldx #4
 	jsr copyv
 	dec data
-	lda #$d0
-	sta tmp2+1       ;character data at ROM 1000
+	lda #>__CHARPET2_LOAD__
+	sta tmp2+1
 	ldx #4
 	jmp copyv
 
 ; 5: Alternate PETSCII upper/lower character set
 cpypet5:
-	lda #$d4
-	sta tmp2+1       ;character data at ROM 1400
+	lda #>__CHARPET2_LOAD__+4
+	sta tmp2+1
 	ldx #4
 	jsr copyv
 	dec data
-	lda #$d4
-	sta tmp2+1       ;character data at ROM 1400
+	lda #>__CHARPET2_LOAD__+4
+	sta tmp2+1
 	ldx #4
 	jmp copyv
 
 ; 6: ISO character set #2
-cpyiso6:	lda #$d8
-	sta tmp2+1       ;character data at ROM 1800
+cpyiso6:
+	lda #>__CHARISO2_LOAD__
+	sta tmp2+1
 	ldx #8
 	jmp copyv
 
 ; 7: ANSI character set
-cpyansi7:	lda #$e0
-	sta tmp2+1       ;character data at ROM 2000
+cpyansi7:
+	lda #>__CHARANSI_LOAD__
+	sta tmp2+1
 	ldx #8
 	jmp copyv
 
 ; 8: Cyrillic character set
-cpycyr8:		lda #$c8
-	sta tmp2+1       ;character data at ROM 0800
+cpycyr8:
+	lda #>__CHARISO_LOAD__
+	sta tmp2+1
 	ldx #5
 	jsr copyv
-	lda #$e8
-	sta tmp2+1       ;character data at ROM 2800
+	lda #>__CHARCYR_LOAD__
+	sta tmp2+1
 	ldx #3
 	jmp copyv
 
 ; 9: Cyrillic character set #2
-cpycyr9:	lda #$d8
-	sta tmp2+1       ;character data at ROM 1800
+cpycyr9:
+	lda #>__CHARISO2_LOAD__
+	sta tmp2+1
 	ldx #5
 	jsr copyv
-	lda #$eb
-	sta tmp2+1       ;character data at ROM 2B00
+	lda #>__CHARCYR2_LOAD__
+	sta tmp2+1
 	ldx #3
 	jmp copyv
 
 ; 10: Eastern latin character set
-cpylaeA:	lda #$c8
-	sta tmp2+1       ;character data at ROM 1800
+cpylaeA:
+	lda #>__CHARISO_LOAD__
+	sta tmp2+1
 	ldx #5
 	jsr copyv
-	lda #$ee
-	sta tmp2+1       ;character data at ROM 2E00
+	lda #>__CHARLAE_LOAD__
+	sta tmp2+1
 	ldx #3
 	jmp copyv
 
 ; 11: Eastern latin character set #2
-cpylaeB:	lda #$d8
-	sta tmp2+1       ;character data at ROM 1800
+cpylaeB:
+	lda #>__CHARISO2_LOAD__
+	sta tmp2+1
 	ldx #5
 	jsr copyv
-	lda #$f1
-	sta tmp2+1       ;character data at ROM 3100
+	lda #>__CHARLAE2_LOAD__
+	sta tmp2+1
 	ldx #3
 	jmp copyv
 
+cpykatC:
+	lda #>__CHARISO2_LOAD__
+	sta tmp2+1
+	ldx #5
+	jsr copyv
+	lda #>__CHARKAT_LOAD__
+	sta tmp2+1
+	ldx #3
+	jsr copyv
+
+	; copying individual characters
+
+@vram_backslash	=  charset_addr		+($5c*8)
+@chariso2_yen	=__CHARISO2_LOAD__	+($a5*8)
+@vram_tilde 	=  charset_addr		+($7e*8)
+@charkat_tilde	=__CHARKAT_LOAD__	+($00*8)
+@vram_nbsp  	=  charset_addr		+($a0*8)
+
+	lda #>@charkat_tilde
+	sta tmp2+1
+	lda #<@vram_tilde
+	sta VERA_ADDR_L
+	lda #>@vram_tilde
+	sta VERA_ADDR_M
+	jsr copychr
+
+	lda #<@vram_nbsp
+	sta VERA_ADDR_L
+	lda #>@vram_nbsp
+	sta VERA_ADDR_M
+@l:	stz VERA_DATA0
+	dey
+	bne @l
+
+	lda #<@vram_backslash
+	sta VERA_ADDR_L
+	lda #>@vram_backslash
+	sta VERA_ADDR_M
+	lda #<@chariso2_yen
+	sta tmp2
+	lda #>@chariso2_yen
+	sta tmp2+1
+
+copychr:
+	ldy #0
+@l:	ldx #BANK_CHARSET
+	jsr fetch
+	sta VERA_DATA0
+	iny
+	cpy #8
+	bne @l
+	rts
 
 inicpy:
 	phx
