@@ -18,6 +18,7 @@ PS2DATA_OLD_STYLE = $01
 PS2DATA_NEW_STYLE = $02
 
 .import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop, i2c_write_byte
+.import tpmflg
 .export ps2data_init, ps2data_fetch, ps2data_kbd, ps2data_kbd_count, ps2data_mouse, ps2data_mouse_count
 .export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_raw
 
@@ -38,9 +39,12 @@ PS2DATA_NEW_STYLE = $02
 ;         Data fecth method stored in ps2data_style
 ;         - SMC version < 46.0.0 => PS2DATA_OLD_STYLE
 ;         - SMC version >= 46.0.0 => PS2DATA_NEW_STYLE
-;---------------------------------------------------------------
+;----------------------	-----------------------------------------
 ps2data_init:
 	KVARS_START
+
+	; Clear keyboard set typematic rate/delay flag
+	stz tpmflg
 
 	; Compare SMC firmare version major
 	ldx #I2C_ADDR
