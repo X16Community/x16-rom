@@ -37,11 +37,8 @@ ngetin	lda dfltn       ;check device
 ;
 gn10	cmp #2          ;is it rs-232
 	bne bn10        ;no...use basin
-;
-gn232	sty xsav        ;save .y, used in rs232
-	jsr bsi232
-	ldy xsav        ;restore .y
-	clc             ;good return
+
+gn232	sec         ;no rs232
 	rts
 
 ;***************************************
@@ -79,13 +76,11 @@ bn10	cmp #3          ;is input from screen?
 	jmp loop5       ;pick up characters
 ;
 bn20	bcs bn30        ;devices >3
-	cmp #2          ;rs232?
-	beq bn50
 ;
 ;input from cassette buffers
 ;
-	sec             ;no tape
-	rts 
+	sec             ;no tape or rs232
+	rts
 
 ;input from serial bus
 ;
@@ -96,20 +91,6 @@ bn32	clc             ;valid data
 bn33	rts
 ;
 bn35	jmp acptr       ;good...handshake
-;
-;input from rs232
-;
-bn50	jsr gn232       ;get info
-	brk
-.if 0 ; original RS232 code; needs to be adapted
-	bcs bn33        ;error return
-	cmp #00
-	bne bn32        ;good data...exit
-	lda rsstat      ;check for dsr or dcd error
-	and #$60
-	bne bn31        ;an error...exit with c/r
-	beq bn50        ;no error...stay in loop
-.endif
 
 ;***************************************
 ;* bsout -- out character to channel   *
@@ -132,44 +113,16 @@ nbsout	pha             ;preserve .a
 	jmp prt         ;print on crt
 ;
 bo10
+	pla
 	bcc bo20        ;device 1 or 2
 ;
 ;print to serial bus
 ;
-	pla
 	jmp ciout
 ;
 ;print to cassette devices
 ;
-bo20	lsr a           ;rs232?
-	pla             ;get data off stack...
-;
-casout	sta t1          ;pass data in t1
-; casout must be entered with carry set!!!
-;preserve registers
-;
-	txa
-	pha
-	tya
-	pha
-	bcc bo50        ;c-clr means dflto=2 (rs232)
-	bcs rstor       ;no tape
-;
-;restore .x and .y
-;
-rstoa	clc             ;good return
-rstor	pla
-	tay
-	pla
-	tax
-	lda t1          ;get .a for return
-	bcc rstor1      ;no error
-	lda #00         ;stop error if c-set
-rstor1	rts
-;
-;output to rs232
-;
-bo50	jsr bso232      ;pass data through variable t1
-	jmp rstoa       ;go restore all..always good
+bo20	sec ; no tape or rs232
+	rts
 
 ; rsr 5/12/82 fix bsout for no reg affect but errors

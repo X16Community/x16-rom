@@ -1,4 +1,4 @@
-PRERELEASE_VERSION ?= "47"
+PRERELEASE_VERSION ?= "48"
 
 ifdef RELEASE_VERSION
 	VERSION_DEFINE="-DRELEASE_VERSION=$(RELEASE_VERSION)"
@@ -60,7 +60,6 @@ KERNAL_DRIVER_SOURCES = \
 	kernal/drivers/x16/ps2mouse.s \
 	kernal/drivers/x16/joystick.s \
 	kernal/drivers/x16/clock.s \
-	kernal/drivers/x16/rs232.s \
 	kernal/drivers/x16/framebuffer.s \
 	kernal/drivers/x16/sprites.s \
 	kernal/drivers/x16/entropy.s \
@@ -121,7 +120,8 @@ CHARSET_SOURCES= \
 	charset/iso-8859-5.s \
 	charset/iso-8859-5_2.s \
 	charset/iso-8859-16.s \
-	charset/iso-8859-16_2.s 
+	charset/iso-8859-16_2.s \
+	charset/katakana.s
 
 GRAPH_SOURCES= \
 	graphics/jmptbl.s \
@@ -197,6 +197,7 @@ KERNAL_DEPS = \
 	kernal/cbm/channel/openchannel.s \
 	kernal/cbm/channel/save.s \
 	kernal/cbm/channel/x16additions.s \
+	$(BUILD_DIR)/charset.bin \
 	$(GIT_SIGNATURE)
 
 KEYMAP_DEPS = \
@@ -371,7 +372,10 @@ $(BUILD_DIR)/%.o: %.s
 # Bank 0 : KERNAL
 $(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/kernal-x16.cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym
+	$(LD) -C $(CFG_DIR)/kernal-x16.cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARPET_LOAD__ __CHARPET2_LOAD__ __CHARLAE_LOAD__ __CHARLAE2_LOAD__` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARKAT_LOAD__ __CHARISO_LOAD__ __CHARISO2_LOAD__ __CHARCYR_LOAD__` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARCYR2_LOAD__ __CHARANSI_LOAD__`
 	./scripts/relist.py $(BUILD_DIR)/kernal.map $(BUILD_DIR)/kernal
 
 # Bank 1 : KEYMAP
@@ -425,7 +429,6 @@ $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym curIndexTable baselineOffset curSetWidth curHeight cardDataPntr currentMode windowTop windowBottom leftMargin rightMargin fontTemp1 fontTemp2 PrvCharWidth FontTVar1 FontTVar2 FontTVar3 FontTVar4`
-
 
 # Bank 9 : DEMO
 $(BUILD_DIR)/demo.bin: $(DEMO_OBJS) $(DEMO_DEPS) $(CFG_DIR)/demo-x16.cfg

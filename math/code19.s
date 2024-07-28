@@ -143,7 +143,8 @@ bfdivt
 	jsr muldiv	;fix up exponents.
 	inc facexp	;scale it right.
 	beq goover	;overflow.
-	ldx #253-addprc	;set up procedure.
+	ldx #256-addprc	;set up procedure. (modified to avoid ZP wrap
+	               	;to allow for 65C816 native mode use)
 	lda #1
 divide			;this is the best code in the whole pile.
 	ldy argho	;see what relation holds.
@@ -162,9 +163,10 @@ savquo
 	rol a		;save result.
 	bcc qshft	;if not done, continue.
 	inx
-	sta reslo,x
+	sta resho,x	;modified as above to keep X positive
+	cpx #3		;to allow for 65C816 native mode compat
 	beq ld100
-	bpl divnrm	;note this req 1 no ram then access.
+	bcs divnrm	;note this req 1 no ram then access.
 	lda #1
 qshft
 	plp		;return condition codes.

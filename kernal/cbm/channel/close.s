@@ -34,33 +34,17 @@ jx050	jsr jz100       ;extract table data
 ;
 	lda fa          ;check device number
 	beq jx150       ;is keyboard...done
-	cmp #3
-	beq jx150       ;is screen...done
-	bcs jx120       ;is serial...process
-	cmp #2          ;rs232?
-	bne jx150       ;no...
-;
-; rs-232 close
-;
-; remove file from tables
-	pla
-	jsr jxrmv
-	jmp cls232
+	cmp #4
+	bcc jx150       ;is tape, rs232 or screen...done
+	jsr clsei       ;is serial..process
 
-;
-;close an serial file
-;
-jx120	jsr clsei
 ;
 ;entry to remove a give logical file
 ;from table of logical, primary,
 ;and secondary addresses
 ;
 jx150	pla             ;get table index off stack
-;
-; jxrmv - entry to use as an rs-232 subroutine
-;
-jxrmv	tax
+	tax
 	dec ldtnd
 	cpx ldtnd       ;is deleted file at end?
 	beq jx170       ;yes...done
