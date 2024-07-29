@@ -249,14 +249,6 @@ cint	jsr iokeys
 @l2
 	jsr kbd_config  ;set keyboard layout
 
-	jsr fetch_typematic_from_nvram
-	bmi @l3
-	tax
-	lda #6
-	jsr extapi
-
-@l3
-
 	lda #$c
 	sta blnct
 	sta blnsw

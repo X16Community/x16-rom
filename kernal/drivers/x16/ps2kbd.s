@@ -32,6 +32,9 @@
 
 .export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
 .export MODIFIER_4080
+.export tpmflg
+
+.import extapi, fetch_typematic_from_nvram
 
 I2C_ADDRESS = $42
 I2C_KBD_ADDRESS = $43
@@ -65,7 +68,7 @@ kbtmp:  .res 1           ;    meant for exclusive use in kbd_scan
 
 .segment "KVARSB0"
 
-prefix:	.res 1           ;    PS/2: prefix code (e0/e1)
+tpmflg:	.res 1           ;    Set typematic rate/delay flag
 brkflg:	.res 1           ;    PS/2: was key-up event
 curkbd:	.res 1           ;    current keyboard layout index
 dk_shift:
@@ -268,31 +271,46 @@ _keymap:
 _kbd_scan:
 	jsr fetch_key_code
 	ora #0
-	bne :+
+	bne @1
 	rts			; No key
 
-:	jsr joystick_from_ps2
+	; Set typematic rate/delay on first keycode
+@1:	ldy tpmflg
+	bne @3
+	inc tpmflg
+	
+	pha
+	phx
+	jsr fetch_typematic_from_nvram
+	bmi @2
+	tax
+	lda #6
+	jsr extapi
+@2:	plx
+	pla
+
+@3:	jsr joystick_from_ps2
 
 	; Is it a modifier key?
  	pha			; Save key code on stack
 	and #%01111111		; Clear up/down bit
 	ldx #0
-:	cmp modifier_key_codes,x
+@4:	cmp modifier_key_codes,x
 	beq is_mod_key
 	inx
 	cpx #9			; Modifier key count = 9
-	bne :-
+	bne @4
 
 	; Is it Caps Lock down?
 	cmp #KEYCODE_CAPSLOCK
 	bne is_reg_key
 	pla			; Restore key code from stack
-	bmi :+			; Ignore key up
+	bmi @5			; Ignore key up
 	lda shflag
 	eor #MODIFIER_CAPS
 	sta shflag
 	jmp set_caps_led
-:	rts
+@5:	rts
 
 is_mod_key:
 	; Restore key code from stack
