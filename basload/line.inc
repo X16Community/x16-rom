@@ -574,7 +574,7 @@ string:
     stx state
     jmp copy
 
-    ; Check if backslash "\" => change state and discard char
+    ; Check if backslash => change state and discard char
 :   cmp #$5c ; Backslash
     bne :+
     lda #LINE_BACKSLASH
