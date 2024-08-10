@@ -22,15 +22,15 @@ val_str	bne @1
 	inx
 val2	stx index2+1
 	ldy #0
-	lda (index2),y
+	lda (index2)
 	pha
 	tya             ;a=0
-	sta (index2),y
+	sta (index2)
 	jsr chrgot
 	jsr finh
 	pla
 	ldy #0
-	sta (index2),y
+	sta (index2)
 st2txt	ldx strng2
 	ldy strng2+1
 	stx txtptr
