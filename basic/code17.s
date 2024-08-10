@@ -254,8 +254,7 @@ mlex10
 	adc tenexp	;like multiplying by five.
 	asl a		;and now by ten.
 	clc
-	ldy #0
-	adc (txtptr),y
+	adc (txtptr)
 	sec
 	sbc #'0'
 mlexmi
