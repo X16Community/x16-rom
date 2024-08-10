@@ -101,7 +101,7 @@ fnwait	jsr getnum
 	jsr combyt
 stordo	stx eormsk
 	ldy #0
-waiter	lda (poker),y
+waiter	lda (poker)
 	eor eormsk
 	and andmsk
 	beq waiter
