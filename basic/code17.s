@@ -49,7 +49,7 @@ peek	jsr getadr0
 	lda poker+1
 	cmp #$a0
 	bcs peek1
-	lda (poker),y   ;Low RAM
+	lda (poker)   ;Low RAM
 	jmp peek2
 peek3	stz ram_bank
 	ldx crombank
