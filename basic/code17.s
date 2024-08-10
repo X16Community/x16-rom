@@ -77,7 +77,7 @@ poke	jsr frmadr
 	bcs pokefr
 	txa
 	ldy #0
-	sta (poker),y
+	sta (poker)
 	rts
 pokefr2	stz ram_bank
 	txa
