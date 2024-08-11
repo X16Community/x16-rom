@@ -21,16 +21,14 @@ val_str	bne @1
 	bcc val2
 	inx
 val2	stx index2+1
-	ldy #0
-	lda (index2),y
+	lda (index2)
 	pha
-	tya             ;a=0
-	sta (index2),y
+	lda #0
+	sta (index2)
 	jsr chrgot
 	jsr finh
 	pla
-	ldy #0
-	sta (index2),y
+	sta (index2)
 st2txt	ldx strng2
 	ldy strng2+1
 	stx txtptr
@@ -45,11 +43,10 @@ getadr0	jsr getadr
 	sta poker+1
 	rts
 peek	jsr getadr0
-	ldy #0
 	lda poker+1
 	cmp #$a0
 	bcs peek1
-	lda (poker),y   ;Low RAM
+	lda (poker)   ;Low RAM
 	jmp peek2
 peek3	stz ram_bank
 	ldx crombank
@@ -59,7 +56,8 @@ peek3	stz ram_bank
 peek1	cmp #$c0
 	bcs peek3
 	ldx crambank
-peek4	lda #poker	;High RAM or ROM
+peek4	ldy #0
+	lda #poker	;High RAM or ROM
 	jsr fetch
 peek2	tay
 dosgfl	jmp sngflt
@@ -76,8 +74,7 @@ poke	jsr frmadr
 	cmp #$a0
 	bcs pokefr
 	txa
-	ldy #0
-	sta (poker),y
+	sta (poker)
 	rts
 pokefr2	stz ram_bank
 	txa
@@ -100,8 +97,7 @@ fnwait	jsr getnum
 	beq stordo
 	jsr combyt
 stordo	stx eormsk
-	ldy #0
-waiter	lda (poker),y
+waiter	lda (poker)
 	eor eormsk
 	and andmsk
 	beq waiter
@@ -258,8 +254,7 @@ mlex10
 	adc tenexp	;like multiplying by five.
 	asl a		;and now by ten.
 	clc
-	ldy #0
-	adc (txtptr),y
+	adc (txtptr)
 	sec
 	sbc #'0'
 mlexmi
