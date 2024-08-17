@@ -6,6 +6,7 @@
 
 .feature labels_without_colons
 
+.include "65c816.inc"
 .include "banks.inc"
 
 bsout = $ffd2
@@ -22,29 +23,53 @@ bsout = $ffd2
 
 primm
 	pha             ;save registers
-	txa
-	pha
-	tya
-	pha
-	ldy #0
+	phx
+
+	set_carry_if_65c816
+	bcs @is_65c816
 
 @1	tsx             ;increment return address on stack
-	inc $104,x      ;and make imparm = return address
+	inc $103,x      ;and make imparm = return address
 	bne @2
-	inc $105,x
-@2	lda $104,x
+	inc $104,x
+@2	lda $103,x
 	sta imparm
-	lda $105,x
+	lda $104,x
 	sta imparm+1
 
-	lda (imparm),y  ;fetch character to print (*** always system bank ***)
+	lda (imparm)    ;fetch character to print (*** always system bank ***)
 	beq @3          ;null= eol
 	jsr bsout       ;print the character
 	bcc @1
 
-@3	pla             ;restore registers
-	tay
-	pla
-	tax
+@3	plx             ;restore registers
 	pla
 	rts             ;return
+
+@is_65c816
+.pushcpu
+.setcpu "65816"
+	phy
+	ldy #$0
+@4	iny
+	lda ($04,S),y  ;fetch character to print (*** always system bank ***)
+	beq @5         ;null= eol
+	jsr bsout      ;print the character
+	bcc @4
+
+@5
+	phy            ;increment return address on stack
+	lda $05,S
+	clc
+	adc $01,S
+	sta $05,S
+	bcc @6
+	lda $06,S
+	adc #$00
+	sta $06,S
+@6	ply            ;pop counter
+	ply            ;restore registers
+	plx
+	pla
+	rts
+.popcpu
