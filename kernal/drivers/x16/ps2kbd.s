@@ -31,8 +31,8 @@
 .import memory_decompress_internal ; [lzsa]
 
 .export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
-.export MODIFIER_4080
-.export tpmflg
+.export kbd_leds
+.export tpmflg, ledstate
 
 .import extapi, fetch_typematic_from_nvram
 
@@ -69,12 +69,14 @@ kbtmp:  .res 1           ;    meant for exclusive use in kbd_scan
 .segment "KVARSB0"
 
 tpmflg:	.res 1           ;    Set typematic rate/delay flag
-brkflg:	.res 1           ;    PS/2: was key-up event
+ledstate:
+	.res 1
 curkbd:	.res 1           ;    current keyboard layout index
 dk_shift:
 	.res 1
 dk_scan:
 	.res 1
+
 
 .segment "KEYMAP"
 keymap_data:
@@ -278,7 +280,7 @@ _kbd_scan:
 @1:	ldy tpmflg
 	bne @3
 	inc tpmflg
-	
+
 	pha
 	phx
 	jsr fetch_typematic_from_nvram
@@ -303,13 +305,21 @@ _kbd_scan:
 
 	; Is it Caps Lock down?
 	cmp #KEYCODE_CAPSLOCK
-	bne is_reg_key
+	bne check_numlock
 	pla			; Restore key code from stack
 	bmi @5			; Ignore key up
 	lda shflag
 	eor #MODIFIER_CAPS
 	sta shflag
-	jmp set_caps_led
+	and #MODIFIER_CAPS
+	beq @caps_off
+	lda #LED_CAPS_LOCK
+	tsb ledstate
+	jmp _set_kbd_leds
+@caps_off:
+	lda #LED_CAPS_LOCK
+	trb ledstate
+	jmp _set_kbd_leds
 @5:	rts
 
 is_mod_key:
@@ -331,15 +341,23 @@ mod_key_down:
 	and #((~MODIFIER_TOGGLE_MASK) & $ff)
 	jmp check_charset_switch
 
-is_reg_key:
-	pla 
-
+check_numlock:
+	pla
 	; Ignore key up events
 	bpl :+
 	rts
 
+:	cmp #KEYCODE_NUMLOCK
+	bne is_reg_key
+
+	lda #LED_NUM_LOCK
+	eor ledstate
+	sta ledstate
+	jmp _set_kbd_leds
+
+is_reg_key:
 	; Transfer key code to Y
-:	tay
+	tay
 
 	; Pause/break key?
 	cmp #KEYCODE_PAUSEBRK
@@ -560,18 +578,26 @@ receive_scancode_resume:
 	rts
 
 ;*****************************************
-; SET CAPS LOCK LED
+; GET/SET CAPS/NUM/SCROLL LOCK LED
 ;*****************************************
-set_caps_led:
+kbd_leds:
+	KVARS_START
+	bcc @1
+	ldx ledstate
+	bra @2
+@1:	txa
+	and #(LED_NUM_LOCK + LED_CAPS_LOCK + LED_SCROLL_LOCK)
+	sta ledstate
+	jsr _set_kbd_leds
+@2:	KVARS_END
+	rts
+
+_set_kbd_leds:
 	ldx #I2C_ADDRESS
 	ldy #I2C_KBD_CMD2
 	lda #$ed
 	jsr i2c_write_first_byte
-	lda shflag
-	and #MODIFIER_CAPS			; Caps Lock is bit 2
-	lsr
-	lsr
-	ora #LED_NUM_LOCK			; Num Lock always on
+	lda ledstate
 	jsr i2c_write_next_byte
 	jmp i2c_write_stop
 

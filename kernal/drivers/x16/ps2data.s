@@ -17,8 +17,11 @@ CMD_GET_PS2DATA_FAST = $43
 PS2DATA_OLD_STYLE = $01
 PS2DATA_NEW_STYLE = $02
 
+LED_NUM_LOCK	= 2
+
 .import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop, i2c_write_byte
-.import tpmflg
+.import tpmflg, ledstate
+
 .export ps2data_init, ps2data_fetch, ps2data_kbd, ps2data_kbd_count, ps2data_mouse, ps2data_mouse_count
 .export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_raw
 
@@ -45,6 +48,10 @@ ps2data_init:
 
 	; Clear keyboard set typematic rate/delay flag
 	stz tpmflg
+
+	; Set internal numlock state to defaults
+	lda #LED_NUM_LOCK
+	sta ledstate
 
 	; Compare SMC firmare version major
 	ldx #I2C_ADDR

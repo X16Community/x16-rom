@@ -11,6 +11,7 @@
 .import led_update
 .import mouse_set_position
 .import scnsiz
+.import kbd_leds
 
 .export extapi
 
@@ -55,3 +56,4 @@ apitbl:
 	.word led_update-1            ; API 11
 	.word mouse_set_position-1    ; API 12
 	.word scnsiz-1                ; API 13
+	.word kbd_leds-1              ; API 14
