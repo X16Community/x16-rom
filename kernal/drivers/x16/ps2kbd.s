@@ -595,7 +595,6 @@ kbd_leds:
 	rts
 
 _set_kbd_leds:
-	; Wait for possible pending command to finish
 	ldx #I2C_ADDRESS
 	ldy #I2C_GET_KBD_CMD_STATUS
 :	jsr i2c_read_byte
