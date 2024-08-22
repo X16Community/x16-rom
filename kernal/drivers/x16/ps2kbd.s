@@ -583,9 +583,10 @@ receive_scancode_resume:
 kbd_leds:
 	KVARS_START
 	bcc @1
-	lda ledstate
+	ldx ledstate
 	bra @2
-@1:	and #(LED_NUM_LOCK + LED_CAPS_LOCK + LED_SCROLL_LOCK)
+@1:	txa
+	and #(LED_NUM_LOCK + LED_CAPS_LOCK + LED_SCROLL_LOCK)
 	sta ledstate
 	jsr _set_kbd_leds
 @2:	KVARS_END
