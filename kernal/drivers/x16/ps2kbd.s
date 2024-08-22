@@ -39,7 +39,9 @@
 I2C_ADDRESS = $42
 I2C_KBD_ADDRESS = $43
 I2C_GET_SCANCODE_OFFSET = $07
+I2C_GET_KBD_CMD_STATUS = $18
 I2C_KBD_CMD2 = $1a
+I2C_CMD_PENDING = $01
 
 MODIFIER_SHIFT = 1 ; C64:  Shift
 MODIFIER_ALT   = 2 ; C64:  Commodore
@@ -594,6 +596,12 @@ kbd_leds:
 
 _set_kbd_leds:
 	ldx #I2C_ADDRESS
+	ldy #I2C_GET_KBD_CMD_STATUS
+:	jsr i2c_read_byte
+	cmp #I2C_CMD_PENDING
+	beq :-
+
+	; Set LED state command
 	ldy #I2C_KBD_CMD2
 	lda #$ed
 	jsr i2c_write_first_byte
