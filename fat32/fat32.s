@@ -3199,7 +3199,7 @@ x16_banked_copy:
 	jmp fat32_read_cont1
 @wrapped:
 	inx ; wrap bank
-	; ended on wrap boundary
+	; ended on wrap boundary?
 	cpy tmp_done
 	beq @end_banked_read
 	; in order to avoid an indexed write into I/O space
@@ -3527,7 +3527,7 @@ fat32_write:
 	; in order to avoid an indexed read from I/O space
 	; on the 65C816, which could have side effects, we
 	; resort to an alternate method here which avoids
-	; this condition, and is at least a cycle shorter
+	; this condition, and is at least two cycles shorter
 	; in the loop construct, not counting the setup
 
 	; save old ptr low byte
