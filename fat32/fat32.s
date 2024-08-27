@@ -3523,7 +3523,7 @@ fat32_write:
 @nowrap:
 	cpy tmp_done
 	bne @loop
-@end_banked_read:
+@end_banked_write:
 	; restore temporary zero page
 	stx bank_save
 	pla
@@ -3534,7 +3534,7 @@ fat32_write:
 @816_9f_page:
 	; early exit
 	cpy tmp_done
-	beq @end_banked_read
+	beq @end_banked_write
 	; in order to avoid an indexed read from I/O space
 	; on the 65C816, which could have side effects, we
 	; resort to an alternate method here which avoids
@@ -3566,7 +3566,7 @@ fat32_write:
 	sta fat32_ptr
 	pla
 	sta fat32_ptr+1
-	bra @end_banked_read
+	bra @end_banked_write
 
 
 ;-----------------------------------------------------------------------------
