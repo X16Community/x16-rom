@@ -3201,7 +3201,7 @@ x16_banked_copy:
 	inx ; wrap bank
 	; ended on wrap boundary?
 	cpy tmp_done
-	beq @end_banked_read
+	beq @end_wrapped
 	; in order to avoid an indexed write into I/O space
 	; on the 65C816, which could have side effects, we
 	; resort to an alternate method here which avoids
@@ -3229,6 +3229,7 @@ x16_banked_copy:
 	bne @wrapped_loop
 	pla
 	sta fat32_ptr
+@end_wrapped:
 	lda #$9f
 	sta fat32_ptr+1
 	bra @end_banked_read
@@ -3523,7 +3524,7 @@ fat32_write:
 	inx ; wrap bank
 	; ended on wrap boundary?
 	cpy tmp_done
-	beq @end_banked_write
+	beq @end_wrapped
 	; in order to avoid an indexed read from I/O space
 	; on the 65C816, which could have side effects, we
 	; resort to an alternate method here which avoids
@@ -3551,6 +3552,7 @@ fat32_write:
 	bne @wrapped_loop
 	pla
 	sta fat32_ptr
+@end_wrapped:
 	lda #$9f
 	sta fat32_ptr+1
 	bra @end_banked_write
