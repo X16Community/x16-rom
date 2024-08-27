@@ -8,7 +8,6 @@
 .include "lib.inc"
 .include "sdcard.inc"
 .include "text_input.inc"
-.include "65c816.inc"
 
 .import sector_buffer, sector_buffer_end, sector_lba, sdcard_set_fast_mode
 
@@ -3186,12 +3185,7 @@ x16_banked_copy:
 	bne @nowrap
 	lda fat32_ptr+1
 	cmp #$bf            ; only wrap when leaving page $BF
-	bne @nowrap
-	inx
-	lda #$9f
-	sta fat32_ptr+1
-	set_carry_if_65c816
-	bcs @816_9f_page
+	beq @wrapped
 @nowrap:
 	cpy tmp_done
 	bne @loop
@@ -3203,8 +3197,9 @@ x16_banked_copy:
 	pla
 	sta krn_ptr1
 	jmp fat32_read_cont1
-@816_9f_page:
-	; early exit
+@wrapped:
+	inx ; wrap bank
+	; ended on wrap boundary
 	cpy tmp_done
 	beq @end_banked_read
 	; in order to avoid an indexed write into I/O space
@@ -3213,9 +3208,7 @@ x16_banked_copy:
 	; this condition, and is at least two cycles shorter
 	; in the loop construct, not counting the setup
 
-	; save old ptr
-	lda fat32_ptr+1
-	pha
+	; save old ptr low byte
 	lda fat32_ptr
 	pha
 
@@ -3236,7 +3229,7 @@ x16_banked_copy:
 	bne @wrapped_loop
 	pla
 	sta fat32_ptr
-	pla
+	lda #$9f
 	sta fat32_ptr+1
 	bra @end_banked_read
 
@@ -3514,12 +3507,7 @@ fat32_write:
 	bne @nowrap
 	lda fat32_ptr+1
 	cmp #$bf            ; only wrap when leaving page $BF
-	bne @nowrap
-	inx
-	lda #$9f
-	sta fat32_ptr+1
-	set_carry_if_65c816
-	bcs @816_9f_page
+	beq @wrapped
 @nowrap:
 	cpy tmp_done
 	bne @loop
@@ -3531,8 +3519,9 @@ fat32_write:
 	pla
 	sta krn_ptr1
 	jmp @4c
-@816_9f_page:
-	; early exit
+@wrapped:
+	inx ; wrap bank
+	; ended on wrap boundary?
 	cpy tmp_done
 	beq @end_banked_write
 	; in order to avoid an indexed read from I/O space
@@ -3541,9 +3530,7 @@ fat32_write:
 	; this condition, and is at least a cycle shorter
 	; in the loop construct, not counting the setup
 
-	; save old ptr
-	lda fat32_ptr+1
-	pha
+	; save old ptr low byte
 	lda fat32_ptr
 	pha
 
@@ -3564,7 +3551,7 @@ fat32_write:
 	bne @wrapped_loop
 	pla
 	sta fat32_ptr
-	pla
+	lda #$9f
 	sta fat32_ptr+1
 	bra @end_banked_write
 
