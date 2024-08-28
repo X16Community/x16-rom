@@ -3185,13 +3185,11 @@ x16_banked_copy:
 	bne @nowrap
 	lda fat32_ptr+1
 	cmp #$bf            ; only wrap when leaving page $BF
-	bne @nowrap
-	inx
-	lda #$9f
-	sta fat32_ptr+1
+	beq @wrapped
 @nowrap:
 	cpy tmp_done
 	bne @loop
+@end_banked_read:
 	; restore temporary zero page
 	stx bank_save
 	pla
@@ -3199,6 +3197,42 @@ x16_banked_copy:
 	pla
 	sta krn_ptr1
 	jmp fat32_read_cont1
+@wrapped:
+	inx ; wrap bank
+	; ended on wrap boundary?
+	cpy tmp_done
+	beq @end_wrapped
+	; in order to avoid an indexed write into I/O space
+	; on the 65C816, which could have side effects, we
+	; resort to an alternate method here which avoids
+	; this condition, and is at least two cycles shorter
+	; in the loop construct, not counting the setup
+
+	; save old ptr low byte
+	lda fat32_ptr
+	pha
+
+	stz fat32_ptr
+	lda #$a0
+	sta fat32_ptr+1
+@wrapped_loop:
+	lda (fat32_bufptr),y
+	stx ram_bank
+	sta (fat32_ptr)
+	stz ram_bank
+	iny
+	; we will always have less than 256 bytes to copy
+	; before loop end here, so we only ever need to increment
+	; the low byte of the destination ptr
+	inc fat32_ptr
+	cpy tmp_done
+	bne @wrapped_loop
+	pla
+	sta fat32_ptr
+@end_wrapped:
+	lda #$9f
+	sta fat32_ptr+1
+	bra @end_banked_read
 
 x16_stream_copy:
 	; move Y (bytecnt) into X for countdown
@@ -3474,13 +3508,11 @@ fat32_write:
 	bne @nowrap
 	lda fat32_ptr+1
 	cmp #$bf            ; only wrap when leaving page $BF
-	bne @nowrap
-	inx
-	lda #$9f
-	sta fat32_ptr+1
+	beq @wrapped
 @nowrap:
 	cpy tmp_done
 	bne @loop
+@end_banked_write:
 	; restore temporary zero page
 	stx bank_save
 	pla
@@ -3488,6 +3520,42 @@ fat32_write:
 	pla
 	sta krn_ptr1
 	jmp @4c
+@wrapped:
+	inx ; wrap bank
+	; ended on wrap boundary?
+	cpy tmp_done
+	beq @end_wrapped
+	; in order to avoid an indexed read from I/O space
+	; on the 65C816, which could have side effects, we
+	; resort to an alternate method here which avoids
+	; this condition, and is at least two cycles shorter
+	; in the loop construct, not counting the setup
+
+	; save old ptr low byte
+	lda fat32_ptr
+	pha
+
+	stz fat32_ptr
+	lda #$a0
+	sta fat32_ptr+1
+@wrapped_loop:
+	stx ram_bank
+	lda (fat32_ptr)
+	stz ram_bank
+	sta (fat32_bufptr),y
+	iny
+	; we will always have less than 256 bytes to copy
+	; before loop end here, so we only ever need to increment
+	; the low byte of the source ptr
+	inc fat32_ptr
+	cpy tmp_done
+	bne @wrapped_loop
+	pla
+	sta fat32_ptr
+@end_wrapped:
+	lda #$9f
+	sta fat32_ptr+1
+	bra @end_banked_write
 
 
 ;-----------------------------------------------------------------------------
