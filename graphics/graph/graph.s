@@ -630,6 +630,10 @@ GRAPH_move_rect:
 
 GRAPH_draw_oval:
 	; push callee-saved r-regs
+	PushW r0
+	PushW r1
+	PushW r2
+	PushW r3
 	PushW r4
 	PushW r5
 	PushW r6
@@ -641,6 +645,28 @@ GRAPH_draw_oval:
 	php ; store fill flag in Y
 	ply
 
+	; are we asking for a line?
+
+	lda r2H
+	bne @chkh
+	lda r2L
+	cmp #1
+	beq @isline
+@chkh:
+	lda r3H
+	bne @cont
+	lda r3L
+	cmp #1
+	bne @cont
+@isline:
+	DecW r2
+	DecW r3
+	AddW r0, r2
+	AddW r1, r3
+
+	jsr GRAPH_draw_line
+	jmp @end
+@cont:
 	DecW r2
 	DecW r3
 
@@ -880,6 +906,7 @@ GRAPH_draw_oval:
 	PopW r0
 	PopW r1
 
+@after_plot:
 	; copy e2 to scratch
 	MoveW r10, r14
 	MoveW r11, r15
@@ -1090,5 +1117,9 @@ GRAPH_draw_oval:
 	PopW r6
 	PopW r5
 	PopW r4
+	PopW r3
+	PopW r2
+	PopW r1
+	PopW r0
 	clc
 	rts
