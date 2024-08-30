@@ -13,149 +13,149 @@
 ; input: r15L = multiplicand, r15H = multiplier (preserved)
 ; output: xy
 mult_8x8_fast:
-    clc
-    lda r15L
-    adc r15H
-    php
+	clc
+	lda r15L
+	adc r15H
+	php
 
-    tax
+	tax
 
-    sec
-    lda r15L
-    sbc r15H
-    bcs @noflip
+	sec
+	lda r15L
+	sbc r15H
+	bcs @noflip
 
-    sec
-    lda r15H
-    sbc r15L
+	sec
+	lda r15H
+	sbc r15L
 
 @noflip:
-    tay
+	tay
 
-    plp
-    bcs @upper
+	plp
+	bcs @upper
 
-    sec
-    lda square4_low,x
-    sbc square4_low,y
-    pha
+	sec
+	lda square4_low,x
+	sbc square4_low,y
+	pha
 
-    lda square4_high,x
-    sbc square4_high,y
-    tay
-    plx
+	lda square4_high,x
+	sbc square4_high,y
+	tay
+	plx
 
-    rts
+	rts
 @upper:
-    lda square4_low+256,x
-    sbc square4_low,y
-    pha
+	lda square4_low+256,x
+	sbc square4_low,y
+	pha
 
-    lda square4_high+256,x
-    sbc square4_high,y
-    tay
-    plx
+	lda square4_high+256,x
+	sbc square4_high,y
+	tay
+	plx
 
-    rts
+	rts
 
 ; input: r15 (clobbered)
 ; output: r12-r13
 ; scratch: r11
 square_16:
-    ; square high byte, while preserving full input
-    lda r15L
-    sta r11L
-    lda r15H
-    sta r11H
-    sta r15L
-    jsr mult_8x8_fast
+	; square high byte, while preserving full input
+	lda r15L
+	sta r11L
+	lda r15H
+	sta r11H
+	sta r15L
+	jsr mult_8x8_fast
 
-    ; accumulate square of high byte of input * 65536
-    stx r13L
-    sty r13H
+	; accumulate square of high byte of input * 65536
+	stx r13L
+	sty r13H
 
-    ; multiply low and high byte of input together
-    lda r11L
-    sta r15L
-    lda r11H
-    sta r15H
-    jsr mult_8x8_fast
+	; multiply low and high byte of input together
+	lda r11L
+	sta r15L
+	lda r11H
+	sta r15H
+	jsr mult_8x8_fast
 
-    ; multiply by 2
-    sty r15H
-    txa
-    asl
-    rol r15H
+	; multiply by 2
+	sty r15H
+	txa
+	asl
+	rol r15H
 
-    ; multiply by 256 by shifting over a byte, while accumulating
-    sta r12H
-    lda r15H
-    adc r13L
-    sta r13L
-    lda r13H
-    adc #0
-    sta r13H
+	; multiply by 256 by shifting over a byte, while accumulating
+	sta r12H
+	lda r15H
+	adc r13L
+	sta r13L
+	lda r13H
+	adc #0
+	sta r13H
 
-    ; square low byte
-    lda r11L
-    sta r15L
-    sta r15H
-    jsr mult_8x8_fast
+	; square low byte
+	lda r11L
+	sta r15L
+	sta r15H
+	jsr mult_8x8_fast
 
-    ; accumulate and output
-    stx r12L
-    clc
-    tya
-    adc r12H
-    sta r12H
-    lda r13L
-    adc #0
-    sta r13L
-    lda r13H
-    adc #0
-    sta r13H
+	; accumulate and output
+	stx r12L
+	clc
+	tya
+	adc r12H
+	sta r12H
+	lda r13L
+	adc #0
+	sta r13L
+	lda r13H
+	adc #0
+	sta r13H
 
-    rts
+	rts
 
 ; Input: r11 = multiplier, r12-r13 = multiplicand (clobbered)
 ; Output: r14-r15 = product
 mult_16x32:
-    ldy #0
-    ldx #0
-    stz r15L
-    stz r15H
+	ldy #0
+	ldx #0
+	stz r15L
+	stz r15H
 
 @loop:
-    lsr r11H
-    ror r11L
-    bcc @skip
+	lsr r11H
+	ror r11L
+	bcc @skip
 
-    clc
-    tya
-    adc r12L
-    tay
-    txa
-    adc r12H
-    tax
-    lda r15L
-    adc r13L
-    sta r15L
-    lda r15H
-    adc r13H
-    sta r15H
+	clc
+	tya
+	adc r12L
+	tay
+	txa
+	adc r12H
+	tax
+	lda r15L
+	adc r13L
+	sta r15L
+	lda r15H
+	adc r13H
+	sta r15H
 
 @skip:
-    asl r12L
-    rol r12H
-    rol r13L
-    rol r13H
+	asl r12L
+	rol r12H
+	rol r13L
+	rol r13H
 
-    lda r11L
-    ora r11H
-    bne @loop
-    sty r14L
-    stx r14H
-    rts
+	lda r11L
+	ora r11H
+	bne @loop
+	sty r14L
+	stx r14H
+	rts
 
 .segment "MATHTABLES"
 
