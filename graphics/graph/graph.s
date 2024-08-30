@@ -44,6 +44,8 @@ ram_bank = 0
 .import FB_filter_pixels
 .import FB_move_pixels
 
+.import square_16, mult_16x32, mult_8x8_fast
+
 .export col1, col2, col_bg
 
 .segment "GRAPHVAR"
@@ -609,6 +611,484 @@ GRAPH_move_rect:
 ;---------------------------------------------------------------
 ; GRAPH_draw_oval
 ;
+; Pass:      r0   x
+;            r1   y
+;            r2   width
+;            r3   height
+;            c    1: fill
 ;---------------------------------------------------------------
+; Internal mappings
+
+; r4 = x2
+; r5 = y2
+; r6-r7 = dx
+; r8-r9 = dy
+; r10-r11 = e2
+; r12L high byte of squared width
+; r12H high byte of squared height
+; r13-r15 = scratch
+
 GRAPH_draw_oval:
-	brk; NYI
+	; push callee-saved r-regs
+	PushW r4
+	PushW r5
+	PushW r6
+	PushW r7
+	PushW r8
+	PushW r9
+	PushW r10
+
+	php ; store fill flag in Y
+	ply
+
+	DecW r2
+	DecW r3
+
+	PushW r3 ; preserve original (decremented) height
+	phy ; store fill flag on stack
+	AddW3 r0, r2, r4 ; calculate X2
+
+	; --- dx ---
+	; find height squared
+	MoveW r3, r15
+	jsr square_16 ; in: r15, out: r12-r13
+	; multiply by 2
+
+	asl r12L
+	rol r12H
+	rol r13L
+	rol r13H
+
+	; take one less than the width
+	lda r2L
+	sec
+	sbc #1
+	sta r11L
+	lda r2H
+	sbc #0
+	sta r11H
+
+	; and multiply it by the previous result
+	jsr mult_16x32 ; in: r11 and r12-13, out: r14-15
+
+	; Make negative and store as dx
+	lda #0
+	sec
+	sbc r14L
+	sta r6L
+	lda #0
+	sbc r14H
+	sta r6H
+	lda #0
+	sbc r15L
+	sta r7L
+	lda #0
+	sbc r15H
+	sta r7H
+
+	; --- dy ---
+	; find width squared
+
+	MoveW r2, r15
+	jsr square_16 ; in: r15, out: r12-r13
+
+	; multiply by (2*(height parity+1))
+
+	lda r3L
+	and #1
+	inc
+	tay
+@dyshift:
+	asl r12L
+	rol r12H
+	rol r13L
+	rol r13H
+	dey
+	bne @dyshift
+
+	; store as dy
+	MoveW r12, r8
+	MoveW r13, r9
+
+	; --- e2 ---
+	; initialize e2
+	stz r10L
+	stz r10H
+	stz r11L
+	stz r11H
+
+	; if parity is odd, start with the square of the width
+	lda r3L
+	and #1
+	beq @noparity
+
+	MoveW r2, r15
+	; we'd normally need to preserve r11 here, but we haven't
+	; set it up yet, so skip that
+	jsr square_16 ; in: r15, out: r12-r13
+
+	MoveW r12, r10
+	MoveW r13, r11
+@noparity:
+	; add dx
+	lda r10L
+	clc
+	adc r6L
+	sta r10L
+	lda r10H
+	adc r6H
+	sta r10H
+	lda r11L
+	adc r7L
+	sta r11L
+	lda r11H
+	adc r7H
+	sta r11H
+
+	; add dy
+	lda r10L
+	clc
+	adc r8L
+	sta r10L
+	lda r10H
+	adc r8H
+	sta r10H
+	lda r11L
+	adc r9L
+	sta r11L
+	lda r11H
+	adc r9H
+	sta r11H
+
+	; finished setting e2
+
+	; set y/y2 to starting pixels
+	; y += (height+1)/2
+	lda r3L
+	clc
+	adc #1
+	sta r15L
+	lda r3H
+	adc #0
+	lsr
+	sta r15H
+	ror r15L
+
+	lda r1L
+	clc
+	adc r15L
+	sta r1L
+	lda r1H
+	adc r15H
+	sta r1H
+
+	; y2 = y - (height parity)
+	lda r3L
+	dec
+	and #1
+	lsr
+	lda r1L
+	sbc #0
+	sta r5L
+	lda r1H
+	sbc #0
+	sta r5H
+
+	; width = 4*width^2
+	MoveW r2, r15
+	PushW r11
+	jsr square_16 ; in: r15, out: r12-r13, clobbered: r11
+	PopW r11
+
+.repeat 2
+	asl r12L
+	rol r12H
+	rol r13L
+.endrepeat
+	MoveW r12, r2
+	MoveB r13L, r12L
+
+	; height = 4*height^2
+
+	MoveW r3, r15
+	PushB r12L
+	PushW r11
+	jsr square_16
+	PopW r11
+
+.repeat 2
+	asl r12L
+	rol r12H
+	rol r13L
+.endrepeat
+
+	MoveW r12, r3
+	PopB r12L
+	MoveB r13L, r12H
+
+@mainloop:
+	plp
+	php
+	bcc @nofill
+
+	jsr FB_cursor_position
+	PushW r1
+	PushW r0
+	lda r4L
+	sec
+	sbc r0L
+	sta r0L
+	sta r15L
+	lda r4H
+	sbc r0H
+	sta r0H
+	sta r15H
+	LoadW r1, 1
+	lda col2
+	jsr FB_fill_pixels
+	PopW r0
+	MoveW r5, r1
+	jsr FB_cursor_position
+	PushW r0
+	MoveW r15, r0
+	LoadW r1, 1
+	lda col2
+	jsr FB_fill_pixels
+	PopW r0
+	PopW r1
+
+@nofill:
+	PushW r0
+	MoveW r4, r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PopW r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PushW r1
+	MoveW r5, r1
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PushW r0
+	MoveW r4, r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PopW r0
+	PopW r1
+
+	; copy e2 to scratch
+	MoveW r10, r14
+	MoveW r11, r15
+
+	; if e2 <= dy (signed)
+
+	lda r9H
+	sec
+	sbc r11H
+	bvc :+
+	eor #$80
+:	bmi @c1_no
+	bne @c1_yes
+	lda r9L
+	cmp r11L
+	bcc @c1_no
+	bne @c1_yes
+	lda r8H
+	cmp r10H
+	bcc @c1_no
+	bne @c1_yes
+	lda r8L
+	cmp r10L
+	bcc @c1_no
+@c1_yes:
+	; y++
+	inc r1L
+	bne :+
+	inc r1H
+:	; y2--
+	lda r5L
+	bne :+
+	dec r5H
+:	dec r5L
+	; dy += 4*width^2
+	lda r8L
+	clc
+	adc r2L
+	sta r8L
+	lda r8H
+	adc r2H
+	sta r8H
+	lda r9L
+	adc r12L
+	sta r9L
+	lda r9H
+	adc #0
+	sta r9H
+	; e2 += dy
+	lda r10L
+	adc r8L
+	sta r10L
+	lda r10H
+	adc r8H
+	sta r10H
+	lda r11L
+	adc r9L
+	sta r11L
+	lda r11H
+	adc r9H
+	sta r11H
+@c1_no:
+	; if (old) e2 >= dx
+	lda r15H
+	sec
+	sbc r7H
+	bvc :+
+	eor #$80
+:	bmi @c2_maybe
+	bne @c2_yes
+	lda r15L
+	cmp r7L
+	bcc @c2_maybe
+	bne @c2_yes
+	lda r14H
+	cmp r6H
+	bcc @c2_maybe
+	bne @c2_yes
+	lda r14L
+	cmp r6L
+	bcs @c2_yes
+@c2_maybe:
+	; if e2 > dy
+	lda r9H
+	sec
+	sbc r11H
+	bvc :+
+	eor #$80
+:	bmi @c2_yes
+	bne @c2_no
+	lda r9L
+	cmp r11L
+	bcc @c2_yes
+	bne @c2_no
+	lda r8H
+	cmp r10H
+	bcc @c2_yes
+	bne @c2_no
+	lda r8L
+	cmp r10L
+	bcs @c2_no
+@c2_yes:
+	; x++
+	inc r0L
+	bne :+
+	inc r0H
+:	; x2--
+	lda r4L
+	bne :+
+	dec r4H
+:	dec r4L
+	; dx += 4*height^2
+	lda r6L
+	clc
+	adc r3L
+	sta r6L
+	lda r6H
+	adc r3H
+	sta r6H
+	lda r7L
+	adc r12H
+	sta r7L
+	lda r7H
+	adc #0
+	sta r7H
+	; e2 += dx
+	lda r10L
+	adc r6L
+	sta r10L
+	lda r10H
+	adc r6H
+	sta r10H
+	lda r11L
+	adc r7L
+	sta r11L
+	lda r11H
+	adc r7H
+	sta r11H
+@c2_no:
+	; do while x <= x2
+	lda r4H
+	cmp r0H
+	bcc @no_mainloop
+	bne @yes_mainloop
+	lda r4L
+	cmp r0L
+	bcc @no_mainloop
+@yes_mainloop:
+	jmp @mainloop
+@no_mainloop:
+
+	plp
+	PopW r3
+
+@secondloop:
+	lda r1L
+	sec
+	sbc r5L
+	sta r15L
+	lda r1H
+	sbc r5H
+	cmp r3H
+	beq @maybe_secondloop
+	bcc @yes_secondloop
+	jmp @end
+@maybe_secondloop:
+	lda r15L
+	cmp r3L
+	bcc @yes_secondloop
+	jmp @end
+@yes_secondloop:
+	PushW r0
+	DecW r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	MoveW r4, r0
+	IncW r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PopW r0
+	IncW r1
+
+	PushW r0
+	DecW r0
+	PushW r1
+	MoveW r5, r1
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	MoveW r4, r0
+	IncW r0
+	jsr FB_cursor_position
+	lda col1
+	jsr FB_set_pixel
+	PopW r1
+	PopW r0
+	DecW r5
+
+	jmp @secondloop
+@end:
+	; restore callee-saved r-regs
+	PopW r10
+	PopW r9
+	PopW r8
+	PopW r7
+	PopW r6
+	PopW r5
+	PopW r4
+	clc
+	rts

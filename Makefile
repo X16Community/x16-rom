@@ -130,7 +130,8 @@ GRAPH_SOURCES= \
 	graphics/fonts/fonts.s \
 	graphics/graph/console.s \
 	graphics/drivers/framebuffer.s \
-	graphics/drivers/fb_vectors.s
+	graphics/drivers/fb_vectors.s \
+	graphics/math.s
 
 DEMO_SOURCES= \
 	demo/test.s

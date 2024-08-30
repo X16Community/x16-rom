@@ -147,6 +147,8 @@ stmdsp2	; statements
 	.word sprmem-1
 	.word movspr-1
 	.word basload-1
+	.word oval-1
+	.word ring-1
 	; functions
 ptrfunc	.word vpeek
 	.word mx
