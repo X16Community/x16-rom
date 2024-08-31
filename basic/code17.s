@@ -4,36 +4,45 @@ conint	jsr posint
 	bne gofuc
 	ldx faclo
 	jmp chrgot
-val	jsr len1
-val_str	bne @1
+
+; the "val" function takes a string and turns it into a number by interpreting
+; the ascii digits etc. Except for the problem that a terminator must be
+; supplied by replacing the character beyond the string, VAL is merely a call
+; to floating point input ("finh").
+val	jsr len1		;get length
+val_str	bne val1	;return 0 if len=0
 	jmp zerofc
-@1:	ldx txtptr
+val1	ldx txtptr
 	ldy txtptr+1
 	stx strng2
 	sty strng2+1
 	ldx index1
 	stx txtptr
+	lda index1		;load the low byte of index1
 	clc
-	adc index1
-	sta index2
+	adc len1		;add len to index1 and put in strng2
+	sta strng2
+	lda index1+1	;load the high byte of index1
+	adc #0
+	sta strng2+1	;store result in high byte of strng2
 	ldx index1+1
 	stx txtptr+1
 	bcc val2
 	inx
-val2	stx index2+1
-	lda (index2)
+val2	stx strng2+1
+	lda (strng2),y	;replace character after string with $00 (fake eol)
 	pha
 	lda #0
-	sta (index2)
+	sta (strng2),y
 	jsr chrgot
-	jsr finh
-	pla
-	sta (index2)
-st2txt	ldx strng2
+	jsr finh		;go do evaluation
+	pla				;get pres'd character.
+	sta (strng2),y	;restore zeroed-out character
+st2txt	ldx strng2	;restore text pointer
 	ldy strng2+1
 	stx txtptr
 	sty txtptr+1
-valrts	rts
+valrts	rts			;done!
 getnum	jsr frmadr
 combyt	jsr chkcom
 	jmp getbyt
