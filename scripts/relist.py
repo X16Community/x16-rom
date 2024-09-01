@@ -38,8 +38,8 @@ class Module:
 # TODO: It's probably more efficient for scan map to return a map of all modules, not just the one we're interested during
 #       this iteration.
 def scan_map(map_filename: str, lst_filename:str, segment_map:Dict[str,Segment], module_map:Dict[str,Module]):
-    segment_matcher = re.compile("^([A-Z][A-Z0-9_]*) *([0-9A-F]{6})  ([0-9A-F]{6})  ([0-9A-F]{6})  ([0-9A-F]{5})$", re.IGNORECASE)
-    lst_matcher = re.compile("^    ([A-Z][A-Z0-9_]*) *Offs=([0-9A-F]{6})  Size=([0-9A-F]{6})  Align=([0-9A-F]{5})  Fill=([0-9A-F]{4})$", re.IGNORECASE)
+    segment_matcher = re.compile(r"^([A-Z][A-Z0-9_]*) *([0-9A-F]{6})  ([0-9A-F]{6})  ([0-9A-F]{6})  ([0-9A-F]{5})$", re.IGNORECASE)
+    lst_matcher = re.compile(r"^    ([A-Z][A-Z0-9_]*) *Offs=([0-9A-F]{6})  Size=([0-9A-F]{6})  Align=([0-9A-F]{5})  Fill=([0-9A-F]{4})$", re.IGNORECASE)
     obj_filename = f"{os.path.basename(os.path.splitext(lst_filename)[0])}.o:"
 
     # print(f"Looking for {os.path.basename(os.path.splitext(lst_filename)[0])}.o")
@@ -86,7 +86,7 @@ def scan_map(map_filename: str, lst_filename:str, segment_map:Dict[str,Segment],
         # print(f"Done reading {line_num} lines")
         return segment_map, module_map
 
-lst_matcher = re.compile("^([0-9A-F]{6})r \\d  (\w\w |   )(\w\w |   )(\w\w |   )(\w\w |   )\s*$")
+lst_matcher = re.compile(r"^([0-9A-F]{6})r \\d  (\w\w |   )(\w\w |   )(\w\w |   )(\w\w |   )\s*$")
 seg_matcher = re.compile(r'^\s*\.segment "([A-Z_][A-Z0-9_]*)"', re.IGNORECASE)
 spc_matcher = re.compile(r'^\s*\.(bss|code|data|rodata|zeropage)(\s|$)', re.IGNORECASE)
 

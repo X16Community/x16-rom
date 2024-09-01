@@ -32,9 +32,9 @@
 
 .export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
 .export kbd_leds
-.export tpmflg, ledstate
+.export tpmflg, tpmcache, ledstate
 
-.import extapi, fetch_typematic_from_nvram
+.import extapi
 
 I2C_ADDRESS = $42
 I2C_KBD_ADDRESS = $43
@@ -77,6 +77,8 @@ curkbd:	.res 1           ;    current keyboard layout index
 dk_shift:
 	.res 1
 dk_scan:
+	.res 1
+tpmcache:
 	.res 1
 
 
@@ -285,9 +287,8 @@ _kbd_scan:
 
 	pha
 	phx
-	jsr fetch_typematic_from_nvram
+	ldx tpmcache
 	bmi @2
-	tax
 	lda #6
 	jsr extapi
 @2:	plx
