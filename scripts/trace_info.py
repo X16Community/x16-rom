@@ -19,15 +19,15 @@ bank = None # Holds the bank we're creating listings and symbols for
 cur_bank = 0 # Holds the bank of the line that is currently parsed
 
 # Regex
-segmentParser = re.compile("^[\s]*.segment[\s]+[\"\'][\w]+[\"\']", re.IGNORECASE)
-memoryDefintionParser = re.compile("memory[\s]*\{[^\}]*\}", re.IGNORECASE)
-segmentDefinitionParser = re.compile("segments[\s]*\{[^\}]*\}", re.IGNORECASE)
-configLineParser = re.compile("[\w]+[\s]*:[^;]*;", re.IGNORECASE)
-hexnumParser = re.compile("^\$[0-9a-f]+$", re.IGNORECASE)
-hexnumParser2 = re.compile("^0x[0-9a-f]+$", re.IGNORECASE)
-decnumParser = re.compile("^[0-9]+$", re.IGNORECASE)
-labelParser = re.compile("^[\s]*[a-z]+[a-z0-9]*\:", re.IGNORECASE)
-procParser = re.compile("^[\s]*.proc[\s]+", re.IGNORECASE)
+segmentParser = re.compile(r"^[\s]*.segment[\s]+[\"\'][\w]+[\"\']", re.IGNORECASE)
+memoryDefintionParser = re.compile(r"memory[\s]*\{[^\}]*\}", re.IGNORECASE)
+segmentDefinitionParser = re.compile(r"segments[\s]*\{[^\}]*\}", re.IGNORECASE)
+configLineParser = re.compile(r"[\w]+[\s]*:[^;]*;", re.IGNORECASE)
+hexnumParser = re.compile(r"^\$[0-9a-f]+$", re.IGNORECASE)
+hexnumParser2 = re.compile(r"^0x[0-9a-f]+$", re.IGNORECASE)
+decnumParser = re.compile(r"^[0-9]+$", re.IGNORECASE)
+labelParser = re.compile(r"^[\s]*[a-z]+[a-z0-9]*\:", re.IGNORECASE)
+procParser = re.compile(r"^[\s]*.proc[\s]+", re.IGNORECASE)
 
 # Converts string to number
 # Accepted formats: decimal numbers, hexadecimal numbers (0xn or $n)

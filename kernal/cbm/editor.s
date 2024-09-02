@@ -51,6 +51,8 @@ MODIFIER_SHIFT = 1
 
 .export defcb
 
+.import tpmcache, tpmflg
+
 ; screen driver
 .import screen_mode
 .import screen_set_charset
@@ -249,6 +251,12 @@ cint	jsr iokeys
 @l2
 	jsr kbd_config  ;set keyboard layout
 
+	jsr fetch_typematic_from_nvram
+	KVARS_START_TRASH_X_NZ
+	sta tpmcache
+	stz tpmflg
+	KVARS_END_TRASH_X_NZ
+
 	lda #$c
 	sta blnct
 	sta blnsw
@@ -336,10 +344,10 @@ loop3
 :
 
 	jsr fetch_typematic_from_nvram ; after toggle, new profile
-	bmi loop3b
-	tax
-	lda #6
-	jsr extapi
+	KVARS_START_TRASH_X_NZ
+	sta tpmcache
+	stz tpmflg
+	KVARS_END_TRASH_X_NZ
 
 	bra loop3b
 scrpnc
