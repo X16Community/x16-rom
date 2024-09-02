@@ -30,14 +30,14 @@ val1	ldx txtptr
 	bcc val2
 	inx
 val2	stx strng2+1
-	lda (strng2),y	;replace character after string with $00 (fake eol)
+	lda (strng2)	;replace character after string with $00 (fake eol)
 	pha
 	lda #0
-	sta (strng2),y
+	sta (strng2)
 	jsr chrgot
 	jsr finh		;go do evaluation
 	pla				;get pres'd character.
-	sta (strng2),y	;restore zeroed-out character
+	sta (strng2)	;restore zeroed-out character
 st2txt	ldx strng2	;restore text pointer
 	ldy strng2+1
 	stx txtptr
