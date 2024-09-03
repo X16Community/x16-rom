@@ -5,6 +5,9 @@ conint	jsr posint
 	ldx faclo
 	jmp chrgot
 
+len2    .res 1
+val_strptr  .res 2
+
 ; the "val" function takes a string and turns it into a number by interpreting
 ; the ascii digits etc. Except for the problem that a terminator must be
 ; supplied by replacing the character beyond the string, VAL is merely a call
@@ -12,37 +15,35 @@ conint	jsr posint
 val	jsr len1		;get length
 val_str	bne val1	;return 0 if len=0
 	jmp zerofc
-val1	ldx txtptr
-	ldy txtptr+1
-	stx strng2
-	sty strng2+1
-	ldx index1
-	stx txtptr
-	lda index1		;load the low byte of index1
+val1	lda len1
 	clc
-	adc len1		;add len to index1 and put in strng2
-	sta strng2
-	lda index1+1	;load the high byte of index1
-	adc #0
-	sta strng2+1	;store result in high byte of strng2
-	ldx index1+1
-	stx txtptr+1
-	bcc val2
-	inx
-val2	stx strng2+1
-	lda (strng2)	;replace character after string with $00 (fake eol)
-	pha
+	adc #1
+	sta len2
+	jsr val_alloc
+	ldx txtptr
+	ldy txtptr+1
+	ldx #0
+val2	lda (txtptr),y
+	sta val_strptr
+	iny
+	dex
+	bne val2
 	lda #0
-	sta (strng2)
+	sta val_strptr
+	ldx val_strptr
+	stx txtptr
+	ldx val_strptr+1
+	stx txtptr+1
 	jsr chrgot
-	jsr finh		;go do evaluation
-	pla				;get pres'd character.
-	sta (strng2)	;restore zeroed-out character
+	jsr finh
 st2txt	ldx strng2	;restore text pointer
 	ldy strng2+1
 	stx txtptr
 	sty txtptr+1
 valrts	rts			;done!
+val_alloc	lda len2
+	jsr strspa
+	rts
 getnum	jsr frmadr
 combyt	jsr chkcom
 	jmp getbyt
