@@ -18,7 +18,10 @@
 .include "asm/40B.s"    ; Finnish
 .include "asm/416.s"    ; Portuguese (Brazil ABNT)
 .include "asm/405.s"    ; Czech
-.include "asm/411.s"    ; Japanese
+; temporarily disable the slot
+.segment "KBDMETA"
+	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+;.include "asm/ja-jp.s"  ; Japanese
 .include "asm/40C.s"    ; French
 .include "asm/807.s"    ; Swiss German
 .include "asm/10409.s"  ; Dvorak
