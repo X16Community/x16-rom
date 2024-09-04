@@ -13,7 +13,7 @@ val	jsr len1        ;get length
 val_str	bne @1      ;return 0 if len=0
 	jmp zerofc
 @1:	cmp #254        ;check if string is =>255 chars (including null)
-	bne zerofc      ;yes, return 0
+	bne val_strlong ;yes, return 0
 	ldx txtptr      ;save current txtptr
 	ldy txtptr+1
 	phy
@@ -53,12 +53,13 @@ val_str	bne @1      ;return 0 if len=0
 	ply
 	stx index1
 	sty index1+1
-	rts           ;done!
-st2txt	ldx strng2	;restore text pointer
+	rts            ;done!
+st2txt	ldx strng2 ;restore text pointer
 	ldy strng2+1
 	stx txtptr
 	sty txtptr+1
-valrts	rts			;done!
+valrts	rts        ;done!
+val_strlong	jmp zerofc
 getnum	jsr frmadr
 combyt	jsr chkcom
 	jmp getbyt
