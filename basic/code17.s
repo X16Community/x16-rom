@@ -5,45 +5,60 @@ conint	jsr posint
 	ldx faclo
 	jmp chrgot
 
-len2    .res 1
-val_strptr  .res 2
-
 ; the "val" function takes a string and turns it into a number by interpreting
 ; the ascii digits etc. Except for the problem that a terminator must be
 ; supplied by replacing the character beyond the string, VAL is merely a call
 ; to floating point input ("finh").
-val	jsr len1		;get length
-val_str	bne val1	;return 0 if len=0
+val	jsr len1        ;get length
+val_str	bne @1      ;return 0 if len=0
 	jmp zerofc
-val1	lda len1
-	clc
-	adc #1
-	sta len2
-	jsr val_alloc
-	ldx txtptr
+@1:	cmp #254        ;check if string is =>255 chars (including null)
+	bne zerofc      ;yes, return 0
+	ldx txtptr      ;save current txtptr
 	ldy txtptr+1
-	ldx #0
-val2	lda (txtptr),y
-	sta val_strptr
+	phy
+	phx
+	stx index2+1
+	ldx index1      ;save current index1
+	ldy index1+1
+	phy
+	phx
+	pha
+	inc
+	jsr strspa     ;allocate memory for string (this destroys index1, but we saved it to stack)
+	plx            ;restore saved string length
+	pla
+	sta index1     ;restore saved index1
+	pla
+	sta index1+1
+	lda dsctmp+1   ;fetch string space pointer
+	sta txtptr     ;update txtptr with dsctmp
+	lda dsctmp+2
+	sta txtptr+1
+	ldy #0         ;initalize Y to begin copying the string
+@2:	lda (index1),y ;load current byte
+	sta (txtptr),y ;store it in allocated memory
 	iny
 	dex
-	bne val2
-	lda #0
-	sta val_strptr
-	ldx val_strptr
-	stx txtptr
-	ldx val_strptr+1
-	stx txtptr+1
+	bne @2         ;loop until string is copied
+	lda #0         ;load null terminator byte
+	sta (txtptr),y ;write it to the end of the string
 	jsr chrgot
 	jsr finh
+	plx            ;restore saved txtptr
+	ply
+	stx txtptr
+	sty txtptr+1
+	plx            ;restore saved index1
+	ply
+	stx index1
+	sty index1+1
+	rts           ;done!
 st2txt	ldx strng2	;restore text pointer
 	ldy strng2+1
 	stx txtptr
 	sty txtptr+1
 valrts	rts			;done!
-val_alloc	lda len2
-	jsr strspa
-	rts
 getnum	jsr frmadr
 combyt	jsr chkcom
 	jmp getbyt
