@@ -56,6 +56,16 @@ rect	jsr get_points_col
 	sec
 	jmp GRAPH_draw_rect
 
+ring:	jsr get_points_col
+	jsr convert_point_size
+	clc
+	jmp GRAPH_draw_oval
+
+oval:	jsr get_points_col
+	jsr convert_point_size
+	sec
+	jmp GRAPH_draw_oval
+
 ;***************
 char	jsr get_point
 

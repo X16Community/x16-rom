@@ -9,6 +9,8 @@ MEMORY {
 SEGMENTS {
     GRAPHVAR:	load = GRAPHVAR, type = bss;
     GRAPH:		load = GRAPH, type = ro;
+    MATH:       load = GRAPH, type = ro;
+    MATHTABLES: load = GRAPH, type = ro, align = $100;
     KVARSB0:	load = GRVARSB0,  type = bss, define=yes;
     CONSOLE:	load = GRAPH,   type = ro;
     VECTORS:	load = VECTORS,  type = ro;
