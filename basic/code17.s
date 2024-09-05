@@ -12,9 +12,7 @@ conint	jsr posint
 val	jsr len1        ;get length
 val_str	bne @1      ;return 0 if len=0
 	jmp zerofc
-@1:	cmp #254        ;check if string is =>255 chars (including null)
-	bne val_strlong ;yes, return 0
-	ldx txtptr      ;save current txtptr
+@1:	ldx txtptr      ;save current txtptr
 	ldy txtptr+1
 	phy
 	phx
@@ -25,6 +23,7 @@ val_str	bne @1      ;return 0 if len=0
 	phx
 	pha
 	inc
+	beq val_strlong
 	jsr strspa     ;allocate memory for string (this destroys index1, but we saved it to stack)
 	plx            ;restore saved string length
 	pla
@@ -49,17 +48,14 @@ val_str	bne @1      ;return 0 if len=0
 	ply
 	stx txtptr
 	sty txtptr+1
-	plx            ;restore saved index1
-	ply
-	stx index1
-	sty index1+1
 	rts            ;done!
 st2txt	ldx strng2 ;restore text pointer
 	ldy strng2+1
 	stx txtptr
 	sty txtptr+1
 valrts	rts        ;done!
-val_strlong	jmp zerofc
+val_strlong	ldx #errls
+	jmp error
 getnum	jsr frmadr
 combyt	jsr chkcom
 	jmp getbyt
