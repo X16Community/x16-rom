@@ -56,6 +56,8 @@
 .define KERNAL_MCIOUT $feb1
 .define KERNAL_SCREEN_MODE $ff5f
 .define KERNAL_FETCH $ff74
+.define KERNAL_SET_CHARSET $ff62
+.define KERNAL_EXTAPI $feab
 
 ;Keyboard & mouse
 .define KERNAL_GETIN $ffe4

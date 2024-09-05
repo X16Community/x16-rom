@@ -202,6 +202,7 @@ decompress:
 
     rts
 
+.ifndef alt_shortcuts
 help_bin:
     .incbin "build/help.bin"
 help_bin_end:
@@ -209,6 +210,15 @@ help_bin_end:
 help_short_bin:
     .incbin "build/help_short.bin"
 help_short_bin_end:
+.else
+help_bin:
+    .incbin "build/help_alt.bin"
+help_bin_end:
+
+help_short_bin:
+    .incbin "build/help_alt_short.bin"
+help_short_bin_end:
+.endif
 
 endL = tempvars
 endH = tempvars+1

@@ -41,6 +41,7 @@ RESPONSE_INVALID_PARAM          = 11
 RESPONSE_INVALID_CONTROLCODE    = 12
 RESPONSE_INVALID_SYMFILE        = 13
 RESPONSE_SYMFILE_IO_ERR         = 14
+RESPONSE_NO_FILENAME            = 15
 
 ; Response messages
 msg_ok: .byt "success", 0
@@ -58,6 +59,7 @@ msg_invalid_param: .byt "invalid parameter in ", 0
 msg_invalid_controlcode: .byt "invalid control code in ",0
 msg_invalid_symfile: .byt "symfile not allowed in ", 0
 msg_symfile_io_err: .byt "couldn not open symfile in ", 0
+msg_no_filename: .byt "filename not specified ", 0
 
 ; Response message pointers
 msg_pointers:

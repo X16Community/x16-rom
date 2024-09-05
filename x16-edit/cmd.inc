@@ -2229,95 +2229,140 @@ msg_off:
 
 ;******************************************************************************
 ;Function name.......: cmd_change_encoding
-;Purpose.............: Changes the current encoding (charset) used by the
-;                      program, i.e. ISO, PETSCII upper case or PETSCII
-;                      lower case
+;Purpose.............: Inits character encoding change
 ;Preparatory routines: None
 ;Input...............: Nothing
 ;Returns.............: Nothing
 ;Error returns.......: None
 .proc cmd_change_encoding
-    jsr cursor_disable
-
-    inc screen_mode
-
-    lda screen_mode
-    cmp #1
-    beq petscii_uc
-    cmp #2
-    beq petscii_lc
-    stz screen_mode
-
-iso:
-    bridge_setaddr KERNAL_CHROUT
-    lda #$0f
-    bridge_call KERNAL_CHROUT
-    bra exit
-
-petscii_uc:
-    bridge_setaddr KERNAL_CHROUT
-    lda #$8f
-    bridge_call KERNAL_CHROUT
-    lda #$8e
-    bridge_call KERNAL_CHROUT
-    bra exit
-
-petscii_lc:
-    bridge_setaddr KERNAL_CHROUT
-    lda #$0e
-    bridge_call KERNAL_CHROUT
-
-exit:
     lda #16
     sta APP_MOD
-    rts
+    jsr cursor_disable
+    jsr screen_print_encoding_ctx_footer
+    lda KERNAL_MODE
+    and #$0f
+    sta cmd_encoding_mode
+    jmp cmd_encoding_show
 .endproc
 
 ;******************************************************************************
-;Function name.......: cmd_refresh_after_encoding_changed
-;Purpose.............: Refresh screen after encoding was changed
+;Function name.......: cmd_encoding_show
+;Purpose.............: Display name of the specified character encoding in
+;                      the status bar
 ;Preparatory routines: None
-;Input...............: Nothing
+;Input...............: A = character encoding (1..11)
+;                      Input out of the valid range is ignored
 ;Returns.............: Nothing
 ;Error returns.......: None
-.proc cmd_refresh_after_encoding_changed
+.proc cmd_encoding_show
+    ; Validate input
+    cmp #0
+    beq err
+    cmp #12
+    bcs err
+
+    ; Get encoding name start index
+    dea
+    asl
+    tay
+    lda encs,y
+    tax
+    lda encs+1,y
+    tay
+
+    ; Display name
+    jmp screen_print_status
+
+err:
+    ; Invalid input, ignore
+    rts
+
+encs:
+    .word enc1, enc2, enc3, enc4, enc5, enc6, enc7, enc8, enc9, enc10, enc11
+enc1:
+    .byt "iso", 0
+enc2:
+    .byt "pet upper", 0
+enc3:
+    .byt "pet lower", 0
+enc4:
+    .byt "pet upper thin", 0
+enc5:
+    .byt "pet lower thin", 0
+enc6:
+    .byt "iso thin", 0
+enc7:
+    .byt "cp437", 0
+enc8:
+    .byt "cyrillic", 0
+enc9:
+    .byt "cyrillic thin", 0
+enc10:
+    .byt "eastern latin", 0
+enc11:
+    .byt "eastern latin thin", 0
+.endproc
+
+;******************************************************************************
+;Function name.......: cmd_encoding_set
+;Purpose.............: Set a new character encoding and update the screen
+;Preparatory routines: None
+;Input...............: A = character encoding (1..11)
+;                      Input out of the valid range is ignored
+;Returns.............: Nothing
+;Error returns.......: None
+.proc cmd_encoding_set
+    ; Validate input
+    cmp #0
+    beq err
+    cmp #12
+    bcs err
+
+    ; Store mode and update charset
+    sta KERNAL_MODE
+    bridge_setaddr KERNAL_SET_CHARSET
+    lda KERNAL_MODE
+    bridge_call KERNAL_SET_CHARSET
+    
+    ; ISO?
+    lda KERNAL_MODE
+    cmp #1
+    beq iso
+    cmp #6
+    bcs iso
+
+    ; PETSCII uppercase/graphics?
+    and #1
+    beq petuc
+
+petlc:
+    lda #2
+    bra exit
+
+petuc:
+    lda #1
+    bra exit
+
+iso:
+    ora #$40
+    sta KERNAL_MODE
+    bridge_setaddr KERNAL_EXTAPI
+    clc
+    ldx #$9f
+    lda #$05
+    bridge_call KERNAL_EXTAPI
+    lda #0
+
+exit:
+    sta screen_mode
     jsr screen_clearall
     jsr screen_print_header
     jsr screen_print_default_footer
     jsr screen_refresh
+    jmp cursor_activate
 
-    jsr cursor_activate
-    
-    lda #2
-    sta APP_MOD
-
-    lda screen_mode
-    cmp #1
-    beq pet_uc
-    cmp #2
-    beq pet_lc
-
-iso:
-    ldx #<msg_iso
-    ldy #>msg_iso
-    jmp screen_print_status
-
-pet_uc:
-    ldx #<msg_puc
-    ldy #>msg_puc
-    jmp screen_print_status
-
-pet_lc:
-    ldx #<msg_plc
-    ldy #>msg_plc
-    jmp screen_print_status
-
-msg_iso:
-    .byt "iso charset",0
-msg_puc:
-    .byt "petscii upper case/graphics",0
-msg_plc:
-    .byt "petscii upper/lower case", 0
+err:
+    rts
 .endproc
 
 ;******************************************************************************
@@ -2654,4 +2699,5 @@ msg:
     cmd_wordwrap_mode:      .res 1       
     cmd_wordwrap_pos:       .res 1
     cmd_display_msg:        .res 59
+    cmd_encoding_mode:      .res 1
 .CODE

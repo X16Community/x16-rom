@@ -79,6 +79,11 @@ jmp main_entry
     ; Copy RAM code
     jsr bridge_copy
 
+    ; Clear saveas filename
+    lda #BASLOAD_RAM1
+    sta RAM_SEL
+    stz saveas_len
+
     ; Select RAM bank 0
     stz RAM_SEL
 

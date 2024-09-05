@@ -456,6 +456,7 @@ nextrow:
     ldy #>row1_narrow
     jmp screen_print_footer
 
+.ifndef alt_shortcuts
 row1:
     .byt ":^g get help :^o write out :^y prev page :^k cut   :^c copy", 0 
 row2:
@@ -465,6 +466,17 @@ row1_narrow:
     .byt ":^g get help :^o write out", 0 
 row2_narrow:
     .byt ":^x exit     :^r open file", 0
+.else
+row1:
+    .byt ":^p get help :^s save      :^u prev page :^x cut   :^c copy", 0 
+row2:
+    .byt ":^w exit     :^o open file :^y next page :^v paste :^f find", 0
+
+row1_narrow:
+    .byt ":^p get help :^s save", 0 
+row2_narrow:
+    .byt ":^w exit     :^o open file", 0
+.endif
 .endproc
 
 ;******************************************************************************
@@ -515,6 +527,23 @@ row1:
     .byt ": b basload", 0
 row2:
     .byt 0
+.endproc
+
+;******************************************************************************
+;Function name.......: screen_print_encoding_ctx_footer
+;Purpose.............: Prints context footer for changing charset
+;Input...............: None
+;Returns.............: Nothing
+;Error returns.......: None
+.proc screen_print_encoding_ctx_footer
+    ldx #<row1
+    ldy #>row1
+    jmp screen_print_footer
+
+row1:
+    .byt "select charset", 0
+row2:
+    .byt ":rt next charset  :lt prev charset", 0
 .endproc
 
 ;******************************************************************************

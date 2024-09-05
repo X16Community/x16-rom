@@ -204,6 +204,11 @@ symbol:
     bne :+
     jmp next
 
+    ; Underscore chars are allowed in a symbol name, continue if found
+:   cmp #95
+    bne :+
+    jmp next
+
     ; A symbol ended by a colon is a possible label declaration - needs further checking
 :   cmp #':'
     beq symbol_chk
@@ -672,6 +677,10 @@ symbol:
 
     ; Points are allowed in a symbol name, continue if found
 :   cmp #'.'
+    beq symbol_cont
+
+    ; Underscores are allowed in a symbol name, continue if found
+    cmp #95
     beq symbol_cont
 
     ; Decimal numbers are allowed in symbol names, continue if found

@@ -44,30 +44,25 @@ The Commander X16 was devised by David Murray a.k.a. the
 \section{Basic usage}
  
     \subsection{Getting started}
-        The default version of X16 Edit consists of just one file, 
-        X16EDIT-x.x.x.PRG, where x.x.x is the version number.
- 
-        There are several more executable files in the X16 Edit project, but you may
-        ignore them for the time being.
- 
-        The editor is loaded and run in the same way as a BASIC program.
+        As of Kernal version R45, the editor is stored in ROM and can be
+        started with the BASIC command EDIT.
+
+        There is also a RAM based version of the editor. It consists of just one file, 
+        X16EDIT-x.x.x.PRG, where x.x.x is the version number. The RAM based editor 
+        is loaded and run in the same way as a BASIC program.
         
-        To run the editor on hardware, just store the program file
+        To run the RAM based editor on hardware, just store the program file
         on an SD card. Insert the SD card into your X16 computer. Type
         \texttt{LOAD"X16EDIT-x.x.x.PRG"} to load the program. And then \texttt{RUN} to start it.
  
-        If you want to run the editor in the x16emu emulator, you first need to 
+        If you want to run the RAM based editor in the x16emu emulator, you first need to 
         store the X16 Edit executable in the host computer's file system.
         Then type the following command in the terminal:
  
 \begin{verbatim}
-    x16emu -sdcard sdcard.img -prg X16EDIT-x.x.x.PRG -run
+    x16emu -prg X16EDIT-x.x.x.PRG -run
 \end{verbatim}
-        It is recommended that an SD card image is attached to the
-        emulator with the "-sdcard" option, as this will more closely emulate the hardware.
-        When you download the emulator you get an empty SD card
-        image (sdcard.img) that can be used for this purpose.
- 
+
         A valid path to the editor executable must be specified after
         the "-prg" option. Otherwise the emulator will not know where
         to find the program.
@@ -75,9 +70,6 @@ The Commander X16 was devised by David Murray a.k.a. the
         The "-run" option automatically starts the editor after the emulator
         is booted. You may remove this option and start the editor manually
         by typing \texttt{RUN} in the emulator.
-
-        As of Kernal version R45, the editor is built-in and can be
-        started with the BASIC command EDIT.
  
     \subsection{Entering text}
         X16 Edit is a modeless text editor. As soon as it is started, everything
@@ -171,18 +163,26 @@ The Commander X16 was devised by David Murray a.k.a. the
         The editor supports the following built-in character sets:
 
         \begin{itemize}
-            \item PETSCII upper case/graphics. This is the default mode of both the Commander X16 and the C64.
+            \item PETSCII upper case/graphics (standard and thin). This is the default mode of both the Commander X16 and the C64.
 
-            \item PETSCII upper/lower case. This is the same mode as is available on the C64.
+            \item PETSCII upper/lower case (standard and thin). This is the same mode as is available on the C64.
 
-            \item ISO character set. This mode is new for the X16, and there is no corresponding mode 
+            \item ISO character set (standard and thin). This mode is new for the X16, and there is no corresponding mode 
             supported by Commodore 8 bit computers. Text is encoded according to ISO-8859-15, making it
             easier to transfer files to and from modern computers.
+
+            \item CP437.
+
+            \item Cyrillic (standard and thin).
+
+            \item Eastern latin (standard and thin).
+            
         \end{itemize}
 
         On startup, the editor detects the current character set and continues using that.
 
-        You may change the character set by pressing Ctrl+E, which cycles through the options.
+        You may change the character set by pressing Ctrl+E. Press left or right cursor keys to
+        browse the supported character sets, and press Enter to select the new character set you want to use.
     
     \subsection{Quote mode}
         The PETSCII character set contains control codes that are commonly used in BASIC programs. The
@@ -263,6 +263,24 @@ The Commander X16 was devised by David Murray a.k.a. the
         When replacing a string, you are given the option to only replace the
         next occurrence or all subsequent occurrences.
 
+    \subsection{Line break encoding}
+        The currently used line break encoding is displayed at the left edge of the status bar.
+
+        The editor's default behavior is to use CR (ASCII 13) as line break when started in
+        one of the PETSCII modes, and LF (ASCII 10) when started in ISO mode.
+
+        On opening a file, the editor detects the use of any of the following line break encodings:
+
+        \begin{itemize}
+            \item CR -- Commodore or old Mac style
+            \item LF -- Unix style
+            \item CRLF -- Windows style
+        \end{itemize}
+
+        The line break encoding found in the file is thereafter used by the editor.
+
+        You can manually change the active line break encoding by pressing Ctrl+Enter.
+
 \section{More on file handling}
     \subsection{Commodore DOS file paths}
     The editor accepts a full Commodore DOS file path when prompting you for a file name.
@@ -318,6 +336,29 @@ The Commander X16 was devised by David Murray a.k.a. the
 
 \section{Miscellaneous functions}
 
+    \subsection{Color settings}
+        Both the background and the text color may be changed while using the editor. 
+        The program runs in 16 color text mode, so there are 16 background and 16 text colors to choose from.
+
+        Ctrl+T cycles through text color options.
+        And Ctrl+B cycles through background colors.
+
+    \subsection{Text buffer size}
+        The text buffer is stored in banked RAM, which is 512 kB expandable to 2 MB.
+
+        The text buffer may not exceed the available banked RAM.
+
+        Press Ctrl+M to get information on the remaining memory reserved for the
+        text buffer. It will be reported as blocks free. A block may at most hold 251 characters.
+    
+    \subsection{Programming toolbox}
+        Ctrl+F opens the Programming toolbox.
+
+        Currently only one tool, BASLOAD, is supported. By pressing Ctrl+B or only B when
+        the toolbox is active, the open text text file is run through BASLOAD. 
+        BASLOAD loads and tokenizes a BASIC program stored in a plain text file so that it can run on the X16. 
+        The text file needs to saved to disk before the function is used.
+
     \subsection{User-configurable key bindings}
         The shortcut key bindings in X16 Edit are user-configurable.
 
@@ -338,38 +379,6 @@ The Commander X16 was devised by David Murray a.k.a. the
         To make it a bit easier to setup X16EDITRC, you may use the provided tool
         (X16EDIT-KEYBINDINGS.PRG).
 
-    \subsection{Line break encoding}
-        The editor's default behavior is to use CR (ASCII 13) as line break marker when started in
-        one of the PETSCII modes, and LF (ASCII 10) when started in ISO mode.
-
-        On opening a file, the editor detects the use of any of the following line break encodings:
-
-        \begin{itemize}
-            \item CR -- Commodore or old Mac style
-            \item LF -- Unix style
-            \item CRLF -- Windows style
-        \end{itemize}
-
-        The line break encoding found in the file is thereafter used by the editor.
-
-        You can manually change the active line break encoding, which is displayed at the left edge of the status bar,
-        by pressing Ctrl+Enter.
-
-    \subsection{Color settings}
-        Both the background and the text color may be changed while using the editor. 
-        The program runs in 16 color text mode, so there are 16 background and 16 text colors to choose from.
-
-        Ctrl+T cycles through text color options.
-        And Ctrl+B cycles through background colors.
-
-    \subsection{Text buffer size}
-        The text buffer is stored in banked RAM, which is 512 kB expandable to 2 MB.
-
-        The text buffer may not exceed the available banked RAM.
-
-        Press Ctrl+M to get information on the remaining memory reserved for the
-        text buffer. It will be reported as blocks free. A block may at most hold 251 characters.
-
 \section{Advanced topics}
 
     \subsection{Building X16 Edit from source}
@@ -389,7 +398,8 @@ The Commander X16 was devised by David Murray a.k.a. the
     \subsection{X16 Edit ROM version}
         The ROM version of the editor consists of two consequtive 16 kB ROM banks.
 
-        To use the ROM version you first need to prepare a custom ROM image. When you
+        As of Kernal version R45, the editor is stored in ROM. If you want to store
+        your own version of the editor in ROM as well you first need to prepare a custom ROM image. When you
         download the emulator you get the standard rom.bin image. Append
         X16 Edit to the end of it with the following command (Linux and MacOS):
 
@@ -742,7 +752,7 @@ fname_end:
 \end{verbatim}
 
 \section{License}
-	Copyright 2020--2023, Stefan Jakobsson.
+	Copyright 2020--2024, Stefan Jakobsson.
 
 	The X16 Edit program, including this manual, is released under the 2-Clause BSD
     License.
