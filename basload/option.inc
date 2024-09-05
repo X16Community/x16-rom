@@ -74,8 +74,11 @@ get_option:
     bne :+ 
     jmp controlcodes
 :   cmp #6
-    bne unknown
+    bne :+
     jmp symfile
+:   cmp #7
+    bne unknown
+    jmp saveas
 
 unknown:
     lda #0
@@ -172,8 +175,9 @@ autonum:
 controlcodes:
     ldx index1
     jsr option_get_int
-    bcs invalid
-    stx tmp
+    bcc :+
+    jmp invalid
+:   stx tmp
     ora tmp
     tya
     ora tmp
@@ -225,6 +229,41 @@ symfile_err2:
     clc
     jsr response_set
     lda #$fd
+    rts
+
+saveas:
+    ldx index1
+    jsr option_get_string
+    sta saveas_len
+    
+    cmp #0
+    bne :+
+
+    lda #RESPONSE_NO_FILENAME
+    clc
+    jsr response_set
+    lda #$fe
+    rts
+
+:   stx TEMP1
+    sty TEMP1+1
+    
+    tay
+    dey
+
+    ldx RAM_SEL
+    phx
+    ldx #BASLOAD_RAM1
+    stx RAM_SEL
+
+:   lda (TEMP1),y
+    sta saveas_name,y
+    dey
+    cpy #$ff
+    bne :-
+
+    pla
+    sta RAM_SEL
     rts
 
 invalid:
@@ -314,6 +353,7 @@ options_tbl:
     .byt "autonum", 0
     .byt "controlcodes", 0
     .byt "symfile", 0
+    .byt "saveas", 0
     .byt 0
 
 .segment "VARS"
@@ -456,5 +496,11 @@ eos:
     index1: .res 1
     quotes: .res 1
     len: .res 1
-.CODE
 .endproc
+
+.segment "VARS"
+    saveas_len: .res 1
+
+.segment "RAM1"
+    saveas_name: .res 256
+.CODE

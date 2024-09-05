@@ -139,7 +139,57 @@ exit:
     jsr symfile_close
     jsr file_init
     bridge_setaddr KERNAL_CLRCHN
-    bridge_call  
-    rts
+    bridge_call
+
+saveas:
+    lda #BASLOAD_RAM1
+    sta RAM_SEL
+    lda saveas_len
+    beq :+
+
+    bridge_setaddr KERNAL_SETNAM
+    ldx #<saveas_name
+    ldy #>saveas_name
+    lda saveas_len
+    bridge_call
+
+    bridge_setaddr KERNAL_SETLFS
+    lda #1
+    ldx #8
+    ldy #1
+    bridge_call
+
+    bridge_setaddr KERNAL_SAVE
+    lda #$01
+    sta TEMP1
+    lda #$08
+    sta TEMP1+1
+    lda #TEMP1
+    ldx line_code
+    ldy line_code+1
+    bridge_call
+
+    jsr file_status
+    cmp #0
+    beq :+
+
+    bridge_setaddr KERNAL_CHROUT
+    lda #13
+    bridge_call
+    
+    lda #<file_buf
+    sta TEMP1
+    lda #>file_buf
+    sta TEMP1+1
+    ldy #0
+loop:
+    lda (TEMP1),y
+    cmp #0
+    beq :+
+    bridge_call
+    iny
+    bne loop
+
+:   rts
 
 .endproc

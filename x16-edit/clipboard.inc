@@ -186,8 +186,9 @@ full:
     jsr clipboard_copy
     bcs mem_full
 
-    lda clipboard_count
-    lda clipboard_count+1
+    stz selection_active
+    stx clipboard_count
+    sty clipboard_count+1
 
 :   lda clipboard_count
     ora clipboard_count+1
