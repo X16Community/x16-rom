@@ -97,6 +97,54 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 48 ("Cadmium")
+
+For hardware compatibilty, the following firmware versions are supported by this ROM release:
+
+* VERA:
+	* Recommended: 47.0.2
+	* Also supported: 0.3.1, 0.3.2
+	* Functional but with known problems: 0.3.3
+	* Unsupported: 0.1.1 or older
+* SMC:
+	* Recommended: 47.2.3
+	* Also supported: 43.0.0 and higher
+	* Unsupported: 42.0.0 or older
+
+Changelog:
+
+* BUILD
+	* Building BASLOAD and X16EDIT now outputs trace headers to facilitate instruction traces in the emulator for those banks. [stefan-b-jakobsson]
+* KERNAL
+	* Fix a few issues applying the PS/2 typematic (speed/delay) preference after a boot. [stefan-b-jakobsson]
+	* Num Lock can now be turned off.
+	* Added `extapi` command `kbd_leds` to fetch or set the keyboard LED state
+	* Added `extapi` command `scnsiz` to override the KERNAL's text resolution
+	* `ioinit` now disables all stock interrupt sources (VERA, VIAs, and YM2151)
+	* 65C816 default native NMI handler now chains to the 65C02 one
+	* Fixed a bug which caused backspace and quote mode glitches in the BASIC editor when the background color was set to 8 or above.
+	* Removed some unused code for softclock and C64 RS-232 [Fulgen301]
+* DOS
+	* Added a channel 15 "T" command to return the current position within an open file and the total file size. See the [example](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%2013%20-%20Working%20with%20CMDR-DOS.md#examples).
+* FAT32
+	* Reworked code to remove indexed reads and writes on the I/O page which reach into banked RAM, which might have side effects on the 65C816.
+* KEYMAP
+	* Characters that exist in the layout for ISO-8859-16 that are not in -15 can now be typed [adiee5]
+* BASIC
+	* New commands `OVAL` (filled) and `RING` (unfilled) which can draw ellipses and circles quickly.
+	* Fix `POKE` to I/O space by using a non-indexed addressing mode. This avoids the extra phantom reads which can have side effects. [Fulgen301]
+	* Fixed regression in `VPOKE` where if `PEEK()` or `POINTER()` was inside its arguments. a write could happen to the wrong VRAM address
+* MATH
+	* Changed code in `fdiv` that depended on zeropage wraparound behavior so that it would also work in 65C816 native mode
+* GRAPH
+	* `GRAPH_draw_oval` implementation added
+	* Fixed `FB_set_8_pixels` and `FB_set_8_pixels_opaque` which did not properly handle VRAM addresses > $0FFFF
+* CHARSET
+	* Added katakana character set [adiee5]
+* UTILITIES
+	* Stefan B. Jakobsson's X16-Edit has been updated.
+	* Stefan B. Jakobsson's BASLOAD has been updated.
+
 ### Release 47 ("Roswell")
 
 This is a major update with new features and bug fixes. This ROM requires a matching emulator version.
