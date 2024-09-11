@@ -20,7 +20,7 @@ PS2DATA_NEW_STYLE = $02
 LED_NUM_LOCK	= 2
 
 .import i2c_read_byte, i2c_read_first_byte, i2c_direct_read, i2c_read_next_byte, i2c_read_stop, i2c_write_byte
-.import tpmflg, tpmcache, ledstate
+.import tpmflg, tpmcache, ledstate, leds_pending
 
 .export ps2data_init, ps2data_fetch, ps2data_kbd, ps2data_kbd_count, ps2data_mouse, ps2data_mouse_count
 .export ps2data_keyboard_and_mouse, ps2data_keyboard_only, ps2data_raw
@@ -54,6 +54,9 @@ ps2data_init:
 	; Set internal numlock state to defaults
 	lda #LED_NUM_LOCK
 	sta ledstate
+
+	; Clear flag for pending LED state change
+	stz leds_pending
 
 	; Compare SMC firmare version major
 	ldx #I2C_ADDR

@@ -32,7 +32,7 @@
 
 .export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
 .export kbd_leds
-.export tpmflg, tpmcache, ledstate
+.export tpmflg, tpmcache, ledstate, leds_pending
 
 .import extapi
 
@@ -42,6 +42,8 @@ I2C_GET_SCANCODE_OFFSET = $07
 I2C_GET_KBD_CMD_STATUS = $18
 I2C_KBD_CMD2 = $1a
 I2C_CMD_PENDING = $01
+
+PS2_CMD_SET_LEDS = $ed
 
 MODIFIER_SHIFT = 1 ; C64:  Shift
 MODIFIER_ALT   = 2 ; C64:  Commodore
@@ -79,6 +81,8 @@ dk_shift:
 dk_scan:
 	.res 1
 tpmcache:
+	.res 1
+leds_pending:
 	.res 1
 
 
@@ -278,6 +282,10 @@ _kbd_scan:
 	jsr fetch_key_code
 	ora #0
 	bne @1
+	lda leds_pending
+	beq @0
+	jmp _set_kbd_leds
+@0:
 	rts			; No key
 
 	; Set typematic rate/delay on first keycode
@@ -598,17 +606,21 @@ kbd_leds:
 _set_kbd_leds:
 	ldx #I2C_ADDRESS
 	ldy #I2C_GET_KBD_CMD_STATUS
-:	jsr i2c_read_byte
+	jsr i2c_read_byte
 	cmp #I2C_CMD_PENDING
-	beq :-
+	beq @2
 
+	stz leds_pending
 	; Set LED state command
 	ldy #I2C_KBD_CMD2
-	lda #$ed
+	lda #PS2_CMD_SET_LEDS
 	jsr i2c_write_first_byte
 	lda ledstate
 	jsr i2c_write_next_byte
 	jmp i2c_write_stop
+@2:
+	sta leds_pending
+	rts
 
 ;*****************************************
 ; SET REPEAT RATE AND DELAY
