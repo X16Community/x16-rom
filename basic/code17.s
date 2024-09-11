@@ -16,7 +16,6 @@ val_str	bne @1      ;return 0 if len=0
 	ldy txtptr+1
 	phy
 	phx
-	stx index2+1
 	ldx index1      ;save current index1
 	ldy index1+1
 	phy
