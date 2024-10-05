@@ -2436,6 +2436,9 @@ fat32_open:
 	lda #ERRNO_FILE_NOT_FOUND
 	jmp set_errno
 
+@error:	clc
+	rts
+
 @1:
 	; Open file
 	stz cur_context + context::eof
@@ -2443,18 +2446,29 @@ fat32_open:
 	set32 cur_context + context::file_size, fat32_dirent + dirent::size
 	set32 cur_context + context::start_cluster, fat32_dirent + dirent::start
 	set32 cur_context + context::cluster, fat32_dirent + dirent::start
+
+	; If the file is of size 0, then any write must allocate the first cluster
+	lda cur_context + context::file_size + 0
+	ora cur_context + context::file_size + 1
+	ora cur_context + context::file_size + 2
+	ora cur_context + context::file_size + 3
+	bne @2
+
+	; Set up fat32_bufptr to trigger cluster allocation at first write
+	set16_val fat32_bufptr, sector_buffer_end
+	bra @3
+
+@2:
 	jsr open_cluster
 	bcc @error
 
+@3:
 	; Set context as in-use
 	lda #FLAG_IN_USE
 	sta cur_context + context::flags
 
 	; Success
 	sec
-	rts
-
-@error:	clc
 	rts
 
 ;-----------------------------------------------------------------------------
