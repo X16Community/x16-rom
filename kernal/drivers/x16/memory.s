@@ -28,6 +28,8 @@
 .import ieeeswitch_init
 .import __irq_65c816_first
 
+.importzp tmp2
+
 .export ramtas
 .export enter_basic
 .export monitor
@@ -427,21 +429,38 @@ fetvec	=*+1
 ; https://github.com/commanderx16/x16-rom/issues/305
 ; XXX
 
-stash:	sta stash1
+stash:	sta tmp2
+	lda stavec
+	inc
+	sta imparm
+	stz imparm+1
+	lda (imparm)
+	cmp #$c0
+	bcs @rom
 	lda ram_bank    ;save current config (RAM)
 	pha
 	stx ram_bank    ;set RAM bank
-	jmp stash0
+	stz stash0      ;we want to restore the RAM bank
+	lda tmp2
+	jmp stash_ram
+@rom:
+	lda rom_bank    ;save current config (ROM)
+	pha
+	lda #1
+	sta stash0      ;we want to restore the ROM bank
+	lda tmp2
+	jmp stash_rom
 .segment "KERNRAM2" ; *** RAM code ***
-stash0:
-stash1	=*+1
-	lda #$ff
+stash_rom:
+	stx rom_bank
+stash_ram:
 .export __stavec
 __stavec	=*+1
 .assert stavec = __stavec, error, "stavec must be at specific address"
 	sta ($ff),y     ;put the byte ($ff here is a dummy address, 'STAVEC')
 	plx
-	stx ram_bank
+stash0  =*+1
+	stx $ff
 	rts
 
 .assert * = nmi, error, "nmi must be at specific address"
