@@ -92,7 +92,7 @@ d2ora	=via2+15
 ;
 ; VERA Video RAM Layout
 ;
-; $0:0000 - $1:2BFF  320x240@256c Bitmap [320x200: - $0:F9FF]
+; $0:0000 - $1:2BFF  320x240@256c Bitmap 
 ; $1:2C00 - $1:2FFF  -- unused --
 ; $1:3000 - $1:AFFF  Sprites ($1000 per sprite)
 ; $1:B000 - $1:EBFF  Text Mode
