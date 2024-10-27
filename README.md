@@ -708,7 +708,7 @@ This is the first release of x16-rom by the X16Community team
 ### Release 35
 
 * API Fetures
-	* new KERNAL API: low-level and high-level 320x240@256c bitmap graphics
+	* new KERNAL API: low-level and high-level 320x200@256c bitmap graphics
 	* new KERNAL API: get mouse state
 	* new KERNAL API: get joystick state
 	* new KERNAL API: get/set date and time (old RDTIM call is now a 24 bit timer)
@@ -773,7 +773,7 @@ This is the first release of x16-rom by the X16Community team
 	* complete jump table bridge
 * KERNAL: memory size detection
 * KERNAL: faster IRQ entry
-* GEOS: converted graphics library to VERA 320x240@256c
+* GEOS: converted graphics library to VERA 320x200@256c
 
 ### Release 32
 
