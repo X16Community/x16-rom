@@ -66,7 +66,7 @@ dosret:
 dossta: ; DOS
 	jsr ptstat
 	bra dosret
-doscar: ; LOAD "FILE",8 : RUN
+doscar: ; LOAD "FILE",8 : RUN:
 	ldx #0
 @kbd_stuff:
 	lda @runc,x
@@ -77,7 +77,7 @@ doscar: ; LOAD "FILE",8 : RUN
 @load:
 	jmp doswld
 @runc:
-	.byte "RUN",13,0
+	.byte "RUN:",13,0
 @runl = *-@runc
 
 dossla: ; LOAD "FILE",8
