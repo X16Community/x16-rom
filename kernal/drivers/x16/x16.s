@@ -23,7 +23,11 @@
 .import jsrfar
 .import fetvec
 .import fetch
+.import softclock_timer_get
+.import kbdbuf_get_modifiers
 .importzp tmp2
+
+MODIFIER_SHIFT = 1
 
 .segment "MACHINE"
 
@@ -157,7 +161,26 @@ boot_cartridge:
 	bne @no
 	dey
 	bpl @chkloop
-	
+
+	; introduce a delay so we can reliably check for the Shift key
+	; which is a signal to us to skip booting the cartridge
+	jsr softclock_timer_get
+	clc
+	adc #60 ; 60 jiffy delay
+	sta tmp2
+	; enable interrupts for this section so that we can receive keystrokes from the SMC
+	cli
+@delayloop:
+	jsr softclock_timer_get
+	cmp tmp2
+	bne @delayloop
+	; re-mask interrupts since we don't need them anymore for now
+	; the cart expects to be entered while interrupts are masked
+	sei
+	jsr kbdbuf_get_modifiers
+	and #MODIFIER_SHIFT
+	bne @no
+
 	jsr jsrfar
 	.word $C004
 	.byte 32 ; cartridge ROM
