@@ -36,6 +36,7 @@ SEGMENTS {
 	SERIAL:   load = KERNAL,   type = ro;
 	LZSA:     load = KERNAL,   type = ro;
 	CHANNEL:  load = KERNAL,   type = ro;
+	UTIL:     load = KERNAL,   type = ro;
 	C816_UTIL: load = KERNAL,  type = ro;
 	C816_ABORT_NATIVE: load = KERNAL, type = ro, start = $E44C; # low byte: JMP abs, high byte equals low byte of C816_CLALL_THUNK
 	JOYSTICK: load = KERNAL,   type = ro;
@@ -61,7 +62,6 @@ SEGMENTS {
 	MEMDRV:   load = KERNAL,   type = ro;
 	NMI:      load = KERNAL,   type = ro;
 	IRQ:      load = KERNAL,   type = ro;
-	UTIL:     load = KERNAL,   type = ro;
 	GRAPH:    load = KERNAL,   type = ro;
 	CONSOLE:  load = KERNAL,   type = ro;
 	SPRITES:  load = KERNAL,   type = ro;
