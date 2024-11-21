@@ -53,9 +53,6 @@ mintab1:
 ;
 ; Function:  Scan all joysticks
 ;
-; Duration before changes: 1,787 clock cycles => 223 us
-; Duration after changes: 1,627 clock cycles => 203 us
-; No loop: 1306 => 163,25 us
 ;---------------------------------------------------------------
 joystick_scan:
 	KVARS_START_TRASH_A_NZ
@@ -73,24 +70,15 @@ joystick_scan:
 	; pulse latch while clk=high
 	lda #bit_latch+bit_jclk
 	sta nes_data
-	pha
-	pla
-	pha
-	pla
-	pha
-	pla
-	pha
-	pla
-	pha
-	pla
+	jsr wait_6us
+	jsr wait_6us
 	stz nes_data
 
 	; read 3x 8 bits
 	ldx #bit_jclk
 	ldy #8
 l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-	pha          ; Delay for slow SNES controllers
-	pla
+	jsr wait_6us
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -109,8 +97,7 @@ l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 
 	ldy #8
 l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-	pha          ; Delay for slow SNES controllers
-	pla
+	jsr wait_6us
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -127,10 +114,8 @@ l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	dey
 	bne l2
 
-	ldy #8
 l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-	pha          ; Delay for slow SNES controllers
-	pla
+	jsr wait_6us
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive NES clock high
 
@@ -144,12 +129,23 @@ l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	rol        ; Roll bit 4 into C
 	rol joy4+2 ; Roll C into joy4
 
-	dey
-	bne l3
+	ldy #$ff
+	lda joy1+2
+	beq :+
+	sty joy1+2
+:	lda joy2+2
+	beq :+
+	sty joy2+2
+:	lda joy3+2
+	beq :+
+	sty joy3+2
+:	lda joy4+2
+	beq :+
+	sty joy4+2
 
 	; force presence if controller ID (bits 8-11) is not 15
 
-	lda joy1+1
+:	lda joy1+1
 	and #%00001111
 	cmp #15
 	beq :+
@@ -172,6 +168,20 @@ l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 :
 
 	KVARS_END_TRASH_A_NZ
+	rts
+
+wait_6us:
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
+	pha
+	pla
+	nop
+	nop
+	nop
 	rts
 
 ;---------------------------------------------------------------
