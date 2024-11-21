@@ -64,25 +64,26 @@ joystick_scan:
 	sta nes_ddr
 
 	; Set latch=low and clock=high
-	lda #bit_jclk
-	sta nes_data
+	ldx #bit_jclk
+	stx nes_data
 
-	; pulse latch while clk=high
+	; Pulse latch for approx 12 us while clk=high
 	lda #bit_latch+bit_jclk
 	sta nes_data
 	jsr wait_6us
 	jsr wait_6us
 	stz nes_data
-
-	; read 3x 8 bits
-	ldx #bit_jclk
+	
+	; Read SNES controller bits 0..7
 	ldy #8
-l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
+
+l1:	; Drive NES clock low for approx 6 us and read data (SNES controller doesn't change when low)
+	stz nes_data
 	jsr wait_6us
 	lda nes_data ; Read all controller bits
-	stx nes_data ; Drive NES clock high
+	stx nes_data ; Drive SNES clock high
 
-				; process while NES clock is high (bits change)
+	; Process while SNES clock is high for approx 6 us (bits change)
 	rol        ; Move bit 7 into C
 	rol joy1   ; Roll C into joy1
 	rol        ; Move bit 6 into C
@@ -95,13 +96,16 @@ l1:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	dey
 	bne l1
 
+	; Read SNES controller bits 8..15
 	ldy #8
-l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
+
+l2:	; Drive SNES clock low for approx 6 us and read data (SNES controller doesn't change when low)
+	stz nes_data
 	jsr wait_6us
 	lda nes_data ; Read all controller bits
-	stx nes_data ; Drive NES clock high
+	stx nes_data ; Drive SNES clock high
 
-				; process while NES clock is high (bits change)
+    ; Process while SNES clock is high for approx 6 us (bits change)
 	rol        ; Move bit 7 into C
 	rol joy1+1 ; Roll C into joy1
 	rol        ; Move bit 6 into C
@@ -114,59 +118,42 @@ l2:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
 	dey
 	bne l2
 
-l3:	stz nes_data ; Drive NES clock low (NES controller doesn't change when low)
-	jsr wait_6us
+joy_detect:
+	; Read one extra bit from SNES controller to detect if connected (0 = connected, 1 = not connected)
+	stz nes_data ; Drive SNES clock low for approx 6 us (SNES controller doesn't change when low)
+	
+	; Set default values while waiting...
+	stz joy1+2 ; Set joy 1 connected as default
+	stz joy2+2 ; Set joy 2 connected as default
+	stz joy3+2 ; Set joy 3 connected as default
+	stz joy4+2 ; Set joy 4 connected as default
+	
+	; And wait some more...
+	jsr wait_3us
+
 	lda nes_data ; Read all controller bits
-	stx nes_data ; Drive NES clock high
+	stx nes_data ; Drive SNES clock high
 
-				; process while NES clock is high (bits change)
-	rol        ; Move bit 7 into C
-	rol joy1+2 ; Roll C into joy1
-	rol        ; Move bit 6 into C
-	rol joy2+2 ; Roll C into joy2
-	rol        ; Roll bit 5 into C
-	rol joy3+2 ; Roll C into joy3
-	rol        ; Roll bit 4 into C
-	rol joy4+2 ; Roll C into joy4
-
+	; Process while SNES clock is high (bits change)
 	ldy #$ff
-	lda joy1+2
-	beq :+
-	sty joy1+2
-:	lda joy2+2
-	beq :+
-	sty joy2+2
-:	lda joy3+2
-	beq :+
-	sty joy3+2
-:	lda joy4+2
-	beq :+
-	sty joy4+2
 
-	; force presence if controller ID (bits 8-11) is not 15
+	rol        ; Move bit 7 (joy 1) into C
+	bcc :+
+	sty joy1+2 ; Set joy 1 not connected
 
-:	lda joy1+1
-	and #%00001111
-	cmp #15
-	beq :+
-	stz joy1+2
-:	lda joy2+1
-	and #%00001111
-	cmp #15
-	beq :+
-	stz joy2+2
-:	lda joy3+1
-	and #%00001111
-	cmp #15
-	beq :+
-	stz joy3+2
-:	lda joy4+1
-	and #%00001111
-	cmp #15
-	beq :+
-	stz joy4+2
+:	rol        ; Move bit 6 (joy 2) into C
+	bcc :+
+	sty joy2+2 ; Set joy 2 not connected
+
+:	rol        ; Move bit 5 (joy 3) into C
+	bcc :+
+	sty joy3+2 ; Set joy 3 not connected
+
+:	rol        ; Move bit 4 (joy 4) into C
+	bcc :+
+	sty joy4+2 ; Set joy 4 not connected
+
 :
-
 	KVARS_END_TRASH_A_NZ
 	rts
 
@@ -177,6 +164,7 @@ wait_6us:
 	pla
 	pha
 	pla
+wait_3us:
 	pha
 	pla
 	nop
