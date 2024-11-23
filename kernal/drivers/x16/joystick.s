@@ -142,7 +142,7 @@ joy_detect:
 
 	; Store joytstick connection flags
 	sta joycon
-:
+	
 	KVARS_END_TRASH_A_NZ
 	rts
 
