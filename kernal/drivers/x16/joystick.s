@@ -72,7 +72,15 @@ joystick_scan:
 	sta nes_data
 	jsr wait_6us
 	jsr wait_6us
-	stz nes_data
+	pha
+	pla
+	pha
+	pla
+	stx nes_data
+
+	; Wait 6 us after latch falling edge
+	jsr wait_6us
+	nop
 	
 	; Read SNES controller bits 0..7
 	ldy #8
@@ -92,6 +100,9 @@ l1:	; Drive NES clock low for approx 6 us and read data (SNES controller doesn't
 	rol joy3   ; Roll C into joy3
 	rol        ; Roll bit 4 into C
 	rol joy4   ; Roll C into joy4
+	nop
+	nop
+	nop
 
 	dey
 	bne l1
@@ -114,6 +125,9 @@ l2:	; Drive SNES clock low for approx 6 us and read data (SNES controller doesn'
 	rol joy3+1 ; Roll C into joy3
 	rol        ; Roll bit 4 into C
 	rol joy4+1 ; Roll C into joy4
+	nop
+	nop
+	nop
 
 	dey
 	bne l2
@@ -162,12 +176,10 @@ wait_6us:
 	pla
 	pha
 	pla
-	pha
-	pla
+	nop
 wait_3us:
 	pha
 	pla
-	nop
 	nop
 	nop
 	rts
