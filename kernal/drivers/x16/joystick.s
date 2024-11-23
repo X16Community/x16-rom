@@ -142,7 +142,7 @@ joy_detect:
 
 	; Store joytstick connection flags
 	sta joycon
-	
+
 	KVARS_END_TRASH_A_NZ
 	rts
 
@@ -233,7 +233,6 @@ joystick_get:
 	ldy #0
 :	lda joy4
 	ldx joy4+1
-	ldy joy4+2
 
 @5:	KVARS_END
 	rts
