@@ -33,10 +33,11 @@ mintabs_len = mintab0_len+mintab1_len
 
 j0tmp:	.res 1           ;    keyboard joystick temp
 joy0:	.res 3           ;    keyboard joystick status
-joy1:	.res 3           ;    joystick 1 status
-joy2:	.res 3           ;    joystick 2 status
-joy3:	.res 3           ;    joystick 3 status
-joy4:	.res 3           ;    joystick 4 status
+joy1:	.res 2           ;    joystick 1 status
+joy2:	.res 2           ;    joystick 2 status
+joy3:	.res 2           ;    joystick 3 status
+joy4:	.res 2           ;    joystick 4 status
+joycon: .res 1			 ;    joystick connected flags
 
 ; Keep these allocations adjacent for code in joystick_ps2_keycodes
 
@@ -135,38 +136,12 @@ l2:	; Drive SNES clock low for approx 6 us and read data (SNES controller doesn'
 joy_detect:
 	; Read one extra bit from SNES controller to detect if connected (0 = connected, 1 = not connected)
 	stz nes_data ; Drive SNES clock low for approx 6 us (SNES controller doesn't change when low)
-	
-	; Set default values while waiting...
-	stz joy1+2 ; Set joy 1 connected as default
-	stz joy2+2 ; Set joy 2 connected as default
-	stz joy3+2 ; Set joy 3 connected as default
-	stz joy4+2 ; Set joy 4 connected as default
-	
-	; And wait some more...
-	jsr wait_3us
-
+	jsr wait_6us
 	lda nes_data ; Read all controller bits
 	stx nes_data ; Drive SNES clock high
 
-	; Process while SNES clock is high (bits change)
-	ldy #$ff
-
-	rol        ; Move bit 7 (joy 1) into C
-	bcc :+
-	sty joy1+2 ; Set joy 1 not connected
-
-:	rol        ; Move bit 6 (joy 2) into C
-	bcc :+
-	sty joy2+2 ; Set joy 2 not connected
-
-:	rol        ; Move bit 5 (joy 3) into C
-	bcc :+
-	sty joy3+2 ; Set joy 3 not connected
-
-:	rol        ; Move bit 4 (joy 4) into C
-	bcc :+
-	sty joy4+2 ; Set joy 4 not connected
-
+	; Store joytstick connection flags
+	sta joycon
 :
 	KVARS_END_TRASH_A_NZ
 	rts
@@ -204,6 +179,7 @@ wait_3us:
 joystick_get:
 	KVARS_START_TRASH_X_NZ
 	tax
+	ldy #$ff
 	beq @0       ; -> joy0
 	dex
 	beq @1       ; -> joy1
@@ -215,7 +191,6 @@ joystick_get:
 	beq @4       ; -> joy4
 	lda #$ff
 	tax
-	tay
 	bra @5
 
 @0:
@@ -225,25 +200,38 @@ joystick_get:
 	bra @5
 
 @1:
-	lda joy1
+	lda joycon
+	and #bit_data1
+	bne :+
+	ldy #0
+:	lda joy1
 	ldx joy1+1
-	ldy joy1+2
 	bra @5
 
 @2:
-	lda joy2
+	lda joycon
+	and #bit_data2
+	bne :+
+	ldy #0
+:	lda joy2
 	ldx joy2+1
-	ldy joy2+2
 	bra @5
 
 @3:
-	lda joy3
+	lda joycon
+	and #bit_data3
+	bne :+
+	ldy #0
+:	lda joy3
 	ldx joy3+1
-	ldy joy3+2
 	bra @5
 
 @4:
-	lda joy4
+	lda joycon
+	and #bit_data4
+	bne :+
+	ldy #0
+:	lda joy4
 	ldx joy4+1
 	ldy joy4+2
 
