@@ -86,7 +86,7 @@ def scan_map(map_filename: str, lst_filename:str, segment_map:Dict[str,Segment],
         # print(f"Done reading {line_num} lines")
         return segment_map, module_map
 
-lst_matcher = re.compile(r"^([0-9A-F]{6})r \\d  (\w\w |   )(\w\w |   )(\w\w |   )(\w\w |   )\s*$")
+lst_matcher = re.compile(r"^([0-9A-F]{6})r \d  (\w\w |   )(\w\w |   )(\w\w |   )(\w\w |   )\s*$")
 seg_matcher = re.compile(r'^\s*\.segment "([A-Z_][A-Z0-9_]*)"', re.IGNORECASE)
 spc_matcher = re.compile(r'^\s*\.(bss|code|data|rodata|zeropage)(\s|$)', re.IGNORECASE)
 
