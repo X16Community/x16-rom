@@ -100,8 +100,9 @@ ld27	jsr acptr       ;get first byte
 ld30	jsr loding      ;tell user loading
 ;
 	ldy verck       ;load/verify/vram?
-	beq ld40        ;verify
-	bpl ld35        ;loading into vram
+	bne :+
+	jmp ld40        ;verify
+:	bpl ld35        ;loading into vram
 
 ;
 ;block-wise load into RAM
@@ -110,11 +111,10 @@ bld10
 	jsr stop        ;stop key?
 	beq break2
 	lda verck
-	clc
-	bmi bld11							; check load into RAM/VRAM
-	sec       						; RAM
+	bmi bld11             ; check load into RAM/VRAM
+	sec                   ; VRAM
 	ldx #<VERA_DATA0      ; use data0 for call to MACPTR instead of VRAM address
-	ldy eah								; store VRAM address as EAH instead of data0 address.
+	ldy eah               ; store VRAM address as EAH instead of data0 address.
 	phy
 	ldy #>VERA_DATA0
 	bra bld12
@@ -123,7 +123,14 @@ break2
 bld11:
 	ldx eal
 	ldy eah
+	cpy #$9d
+	bcc @cont
+	cpy #$a0
+	bcs @cont
+	jmp ld40
+@cont
 	phy             ;save address hi
+	clc
 bld12:
 	lda #0          ;load as many bytes as device wants
 	jsr macptr
