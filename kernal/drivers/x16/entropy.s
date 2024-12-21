@@ -32,9 +32,9 @@ entropy_init:
 ;            x    random value
 ;            y    random value
 ;---------------------------------------------------------------
-; We only have two bytes of entropy, so we return the XOR in the
-; third byte:
-;            a    timer lo
+; We only have two bytes of entropy from the timer, so we
+; also return the XOR with the current scan line as 3rd byte
+;            a    timer lo eor rotated scanline
 ;            x    timer hi
 ;            y    timer lo + timer hi
 ; Timer lo is read twice, so there will be some difference.
@@ -43,5 +43,7 @@ entropy_get:
 	tax
 	adc d1t1l ; feed in .C from user
 	tay
-	lda d1t1l
+	lda VERA_IRQ_LINE_L
+	rol
+	eor d1t1l
 	rts
