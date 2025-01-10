@@ -230,12 +230,12 @@ memory_crc:
 	cmp #IO_PAGE
 	beq io_crc
 
+	ldy #0
 	pha
 	lda r1H
 	beq @2
 
 ; accumulate a whole number of 256 bytes chunks
-	ldy #0
 @1:	lda (r0),y
 	jsr crc16_f
 	iny
@@ -245,12 +245,13 @@ memory_crc:
 	bne @1
 
 ; accumulate remainder
-@2:	ldy r1L
+@2:	lda r1L
 	beq @4
-@3:	dey
-	lda (r0),y
+	; y starts at 0
+@3:	lda (r0),y
 	jsr crc16_f
-	cpy #0
+	iny
+	dec r1L
 	bne @3
 @4:	PopB r0H
 	rts
