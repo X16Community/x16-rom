@@ -225,13 +225,17 @@ memory_crc:
 	sta r2L
 	sta r2H
 
+; CRC at address 9Fxx uses fixed address
 	lda r0H
 	cmp #IO_PAGE
 	beq io_crc
+
+	ldy #0
 	pha
 	lda r1H
 	beq @2
-	ldy #0
+
+; accumulate a whole number of 256 bytes chunks
 @1:	lda (r0),y
 	jsr crc16_f
 	iny
@@ -239,12 +243,15 @@ memory_crc:
 	inc r0H
 	dec r1H
 	bne @1
-@2:	ldy r1L
+
+; accumulate remainder
+@2:	lda r1L
 	beq @4
-@3:	dey
-	lda (r0),y
+	; y starts at 0
+@3:	lda (r0),y
 	jsr crc16_f
-	cpy #0
+	iny
+	dec r1L
 	bne @3
 @4:	PopB r0H
 	rts
