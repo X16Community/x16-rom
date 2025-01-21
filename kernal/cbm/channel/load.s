@@ -100,8 +100,9 @@ ld27	jsr acptr       ;get first byte
 ld30	jsr loding      ;tell user loading
 ;
 	ldy verck       ;load/verify/vram?
-	beq ld40        ;verify
-	bpl ld35        ;loading into vram
+	bne :+
+	jmp ld40        ;verify
+:	bpl ld35        ;loading into vram
 
 ;
 ;block-wise load into RAM
@@ -110,17 +111,26 @@ bld10
 	jsr stop        ;stop key?
 	beq break2
 	lda verck
-	clc
-	bmi bld11							; check load into RAM/VRAM
-	sec       						; RAM
+	bmi bld11             ; check load into RAM/VRAM
+	sec                   ; VRAM
 	ldx #<VERA_DATA0      ; use data0 for call to MACPTR instead of VRAM address
-	ldy eah								; store VRAM address as EAH instead of data0 address.
+	ldy eah               ; store VRAM address as EAH instead of data0 address.
 	phy
 	ldy #>VERA_DATA0
 	bra bld12
+break2
+	jmp break
 bld11:
 	ldx eal
 	ldy eah
+	cpy #$9d
+	bcc @cont2
+	cpy #$a0
+	bcs @cont
+	jmp ld40
+@cont
+	clc
+@cont2
 	phy             ;save address hi
 bld12:
 	lda #0          ;load as many bytes as device wants
@@ -155,11 +165,14 @@ bld12:
 	sta eah
 	bit status      ;eoi?
 	bvc bld10       ;no...continue load
+ld32
 	lda tmp2        ;first block of headerless load?
-	bpl ld70        ;no, regular eoi
+	bpl ld33        ;no, regular eoi
 	lsr a
 	lsr a
-	bcc ld70        ;no timeout/fnf so just eoi
+	bcs ld34
+ld33
+	jmp ld70        ;no timeout/fnf so just eoi
 ld34	jmp ld15    ;file not found when on first attempt
 
 ;
@@ -178,6 +191,8 @@ ld35
 	bra bld10       ; attempt block read using macptr
 ;
 ld39	sta eah
+	bit status      ;eoi?
+	bvs ld32        ;yes...go back to blockwise eoi check logic
 ld40	lda #$fd        ;mask off timeout
 	and status
 	sta status
@@ -185,7 +200,7 @@ ld40	lda #$fd        ;mask off timeout
 	jsr stop        ;stop key?
 	bne ld45        ;no...
 ;
-break2	jmp break       ;stop key pressed
+	jmp break       ;stop key pressed
 ;
 ld45	jsr acptr       ;get byte off ieee
 	tax
@@ -254,7 +269,7 @@ ld80	ldx eal
 	rts
 ld81	lda verck
 	dec
-	beq ld64        ; loading to VRAM
+	bpl ld64        ; loading to VRAM
 	bit status      ; eoi?
 	bvs ld70        ; yes...exit normally
 	jsr untlk       ; close channel
