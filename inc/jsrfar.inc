@@ -1,5 +1,7 @@
 ; LONG CALL  utility
 
+; (begin copyright notice and conditions)
+;
 ; Copyright 2019-2025 Commander Computers LLC, Michael Steil, and others.
 ;
 ; Redistribution and use in source and binary forms, with or without
@@ -23,24 +25,29 @@
 ; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ; POSSIBILITY OF SUCH DAMAGE.
+;
+; (end copyright notice and conditions)
 
+; The following text is informational and not part of the conditions:
+;
+; This file or a modified version may be used in other projects, whether free
+; or proprietary, with or without source available, such as cartridge-based
+; applications and games, so long as the above copyright notice and conditions
+; remains in distributed source code and that binary distributions include the
+; above copyright notice and conditions somewhere in the included documentation.
 
 ; This include file, in combination with the constants inside "banks.inc"
 ; implement the ROM portion of the jsrfar call.  It is the meat of the jsrfar
 ; code inside the KERNAL bank of x16-rom. It is also separately ".include"ed in
 ; other x16-rom banks to facilitate inter-bank calls.
 
-; This file or a modified version may be used in other projects, whether free
-; or proprietary, with or without source available, such as cartridge-based
-; applications and games, so long as the above copyright notice remains in
-; distributed source code and that binary distributions include the above
-; copyright notice somewhere in the included documentation.
-
 ; To use in your projects, include this file after your custom jsrfar label.
 ; For instance:
 ;
+; .include "banks.inc"
+;
 ; myjsrfar:
-;     .include "jsrfar.inc"
+;   .include "jsrfar.inc"
 ;
 ; myfunc:
 ;   lda #0
@@ -52,7 +59,7 @@
 ;   .byte 0
 ;
 
-; Below is the original comment for jsrfar usage
+; Below is the original comment showing jsrfar usage
 
 ; jsr jsrfar
 ; .word address
