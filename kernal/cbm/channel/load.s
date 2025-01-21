@@ -124,13 +124,14 @@ bld11:
 	ldx eal
 	ldy eah
 	cpy #$9d
-	bcc @cont
+	bcc @cont2
 	cpy #$a0
 	bcs @cont
 	jmp ld40
 @cont
-	phy             ;save address hi
 	clc
+@cont2
+	phy             ;save address hi
 bld12:
 	lda #0          ;load as many bytes as device wants
 	jsr macptr
