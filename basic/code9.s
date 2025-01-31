@@ -196,7 +196,7 @@ pival	.byt $82
 	.byt $49
 	.byt $0f
 	.byt $da
-	.byt $a1
+	.byt $a2
 qdot	cmp #'.'
 	beq eval1
 	cmp #minutk
