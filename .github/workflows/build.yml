@@ -50,13 +50,13 @@ jobs:
           cp build/x16/rom.bin artifact/.
       - name: Upload Artifacts (non-release)
         if: startsWith(github.ref, 'refs/tags/r') != true
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ROM Image
           path: artifact
       - name: Upload Artifacts (release)
         if: startsWith(github.ref, 'refs/tags/r')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Release ROM Image
           path: artifact
