@@ -117,6 +117,7 @@ sdcard_check:
 
 	cmp dos_unit
 	beq @1
+	BANKING_END
 	sec
 	rts
 
