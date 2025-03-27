@@ -149,6 +149,11 @@ volumes:             .res FS_SIZE * FAT32_VOLUMES
 
 _fat32_bss_end:
 
+.segment "FAT816"
+; low RAM trampoline to support 24-bit ops
+fat32_mvn:
+	.res 4
+
 .export fat32_alloc_context
 .export fat32_chdir
 .export fat32_close
@@ -1249,6 +1254,12 @@ fat32_init:
 
 	lda #0 ; default to slow/traditional SD accesses
 	jsr sdcard_set_fast_mode
+
+	; populate MVN trampoline
+	lda #$54
+	sta fat32_mvn ; MVN opcode
+	lda #$60
+	sta fat32_mvn + 3 ; RTS opcode
 
 	sec
 	rts
@@ -3037,6 +3048,150 @@ fat32_read_byte:
 
 @error:	clc
 	rts
+
+
+;-----------------------------------------------------------------------------
+; fat32_read_long
+;
+; .A                 : destination data bank
+; fat32_ptr          : pointer to store read data
+; fat32_size (16-bit): size of data to read
+; krn_ptr1           : if MSB set, and .A=0, copy all bytes to same
+;                      destination address via original code
+; e=0                : 65C816 native mode required.
+;
+; On return fat32_size reflects the number of bytes actually read
+;
+; * c=0: failure; sets errno
+;-----------------------------------------------------------------------------
+
+.pushcpu
+.setcpu "65816"
+
+fat32_read_long:
+	php ; save entry width flags for return
+	sep #$30 ; 8 bit mem/idx
+.a8
+.i8
+	ora #0
+	bne @3
+	jsr fat32_read
+	bcc @2
+@1:
+	plp ; restore width flags
+	sec
+	rts
+@2:
+	plp ; restore width flags
+	clc
+	rts
+@3:
+	sta fat32_mvn + 1 ; destination DB
+	stz fat32_mvn + 2 ; sector buffer source, DB 0
+
+	stz fat32_errno
+	rep #$30 ; 16 bit mem/idx
+.a16
+.i16
+	set16_long fat32_ptr2, fat32_size
+
+fat32_read_long_again:
+	; Calculate number of bytes remaining in file
+	sub32_long tmp_buf, cur_context + context::file_size, cur_context + context::file_offset
+	lda tmp_buf + 0
+	ora tmp_buf + 2
+	bne @1
+
+	clc
+	jmp fat32_read_long_done
+@1:
+	sec
+	lda #sector_buffer_end
+	sbc fat32_bufptr
+	sta bytecnt
+	bne @nonzero
+
+	lda #0
+	sep #$30 ; 8-bit mem/idx
+.a8
+.i8
+	jsr next_sector
+	bcs @2
+
+	lda #ERRNO_FS_INCONSISTENT
+	jsr set_errno
+	sec
+	jmp fat32_read_long_done
+@2:
+	lda #2
+	sta bytecnt + 1
+
+	rep #$30
+@nonzero:
+.a16
+.i16
+	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
+	lda fat32_size
+	cmp bytecnt
+	bcs @3
+	set16_long bytecnt, fat32_size
+@3:
+	; original routine had this check: if (bytecnt > 256) bytecnt = 256
+	; but we don't need it in native mode
+	; instead we check to see if we would wrap around the dest bank
+	; and stop it at the end
+	lda fat32_ptr
+	eor #$ffff
+	inc
+	beq @4 ; if pointer is $0000, we can transfer $10000 bytes, so we're always safe
+	cmp bytecnt
+	bcs @4
+	sta bytecnt
+@4:
+	; if (tmp_buf - bytecnt < 0) bytecnt = tmp_buf
+	; (if remainder of file has less than the requested number of bytes)
+	sec
+	lda tmp_buf + 0
+	sbc bytecnt + 0
+	lda tmp_buf + 2
+	sbc #0
+	bpl @5
+	set16_long bytecnt, tmp_buf
+@5:
+	lda bytecnt
+	dec
+	ldx #fat32_bufptr
+	ldy fat32_ptr
+	phb
+	jsr fat32_mvn
+	plb
+
+	add16_long fat32_ptr, fat32_ptr, bytecnt
+	add16_long fat32_bufptr, fat32_bufptr, bytecnt
+	sub16_long fat32_size, fat32_size, bytecnt
+	add32_16_long cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
+
+	; Check if done
+	lda fat32_size
+	beq :+
+	jmp fat32_read_long_again; Not done yet
+:	sec                 ; Indicate success
+
+fat32_read_long_done:
+	bcc @1
+	; Calculate number of bytes read
+	sub16_long fat32_size, fat32_ptr2, fat32_size
+	plp ; restore widths
+	sec
+	rts
+@1:
+	sub16_long fat32_size, fat32_ptr2, fat32_size
+	plp ; restore widths
+	clc
+	rts
+.a8
+.i8
+.popcpu
 
 ;-----------------------------------------------------------------------------
 ; fat32_read
