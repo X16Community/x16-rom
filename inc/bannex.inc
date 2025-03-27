@@ -19,3 +19,4 @@ bannex_basload          = $C030
 bannex_pause            = $C033
 bannex_tdata		= $C036
 bannex_tattr		= $C039
+bannex_memdiag		= $C03C

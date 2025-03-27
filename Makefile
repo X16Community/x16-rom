@@ -170,7 +170,8 @@ BANNEX_SOURCES= \
 	bannex/tile.s \
 	bannex/x16edit.s \
 	bannex/sprite.s \
-	bannex/basload.s
+	bannex/basload.s \
+	bannex/memdiag.s
 
 DIAG_SOURCES = \
 	diag/diag.s
