@@ -39,6 +39,8 @@
 .export macptr
 .export mciout
 
+.export xmacptr
+
 .export led_update
 
 .segment "KVAR"
@@ -176,6 +178,32 @@ mciout:
 	.word $c000 + 3 * 18
 	.byte BANK_CBDOS
 	rts
+
+.pushcpu
+.setcpu "65816"
+xmacptr:
+	sep #$30 ; 8 bit mem/idx
+.a8
+.i8
+	bit cbdos_flags
+	bmi :+
+	sec ; error: unsupported
+	rep #$30 ; 16 bit mem/idx
+.a16
+.i16
+	rts
+.a8
+.i8
+:	jsr jsrfar
+	.word $c000 + 3 * 19
+	.byte BANK_CBDOS
+	rep #$30 ; 16 bit mem/idx
+.a16
+.i16
+	rts
+.a8
+.i8
+.popcpu
 
 ; Called by SECOND: If it's a CLOSE command, upload the curent time.
 upload_time:

@@ -189,6 +189,7 @@ fat32_mvn:
 .export sync_sector_buffer
 .export fat32_set_time
 .export fat32_get_size
+.export fat32_read_long
 
 .code
 
@@ -3058,7 +3059,7 @@ fat32_read_byte:
 ; fat32_size (16-bit): size of data to read
 ; krn_ptr1           : if MSB set, and .A=0, copy all bytes to same
 ;                      destination address via original code
-; e=0                : 65C816 native mode required.
+; mx=1, e=0          : 65C816 native mode required.
 ;
 ; On return fat32_size reflects the number of bytes actually read
 ;
@@ -3069,23 +3070,17 @@ fat32_read_byte:
 .setcpu "65816"
 
 fat32_read_long:
-	php ; save entry width flags for return
-	sep #$30 ; 8 bit mem/idx
+	; called with 8 bit mem/idx
 .a8
 .i8
 	ora #0
-	bne @3
+	bne @2
 	jsr fat32_read
-	bcc @2
-@1:
-	plp ; restore width flags
+	bcc @1
 	sec
+@1:
 	rts
 @2:
-	plp ; restore width flags
-	clc
-	rts
-@3:
 	sta fat32_mvn + 1 ; destination DB
 	stz fat32_mvn + 2 ; sector buffer source, DB 0
 
@@ -3171,26 +3166,31 @@ fat32_read_long_again:
 	sub16_long fat32_size, fat32_size, bytecnt
 	add32_16_long cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
 
+	; if we're on a bank boundary, increment the destination bank
+	lda fat32_ptr
+	bne @6
+	lda fat32_mvn + 1 ; load dest, src bytes in that order
+	inc
+	cmp #$0100
+	bcs fat32_read_long_done ; success, but don't wrap from bank $FF to $00
+	sta fat32_mvn + 1
+@6:
 	; Check if done
 	lda fat32_size
-	beq :+
+	beq fat32_read_long_done_sec
 	jmp fat32_read_long_again; Not done yet
-:	sec                 ; Indicate success
 
+fat32_read_long_done_sec:
+	sec
 fat32_read_long_done:
-	bcc @1
+	php
 	; Calculate number of bytes read
 	sub16_long fat32_size, fat32_ptr2, fat32_size
-	plp ; restore widths
-	sec
-	rts
-@1:
-	sub16_long fat32_size, fat32_ptr2, fat32_size
-	plp ; restore widths
-	clc
-	rts
+	plp
+	sep #$30 ; 8 bit mem/idx
 .a8
 .i8
+	rts
 .popcpu
 
 ;-----------------------------------------------------------------------------

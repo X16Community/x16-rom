@@ -28,7 +28,7 @@
 .import skip_mask
 
 ; jumptab.s
-.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr, dos_mciout
+.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr, dos_mciout, dos_xmacptr
 .export dos_set_time
 
 ; from declare.s, so that state can be cleared
@@ -506,6 +506,43 @@ file_close_clr_channel:
 ;---------------------------------------------------------------
 dos_untlk:
 	rts
+
+;---------------------------------------------------------------
+; BLOCK-WISE RECEIVE (LONG, 65C816)
+;
+; In:   .X   destination data bank
+;       r0   pointer to destination
+;       r1   number of bytes to read
+;            =0: implementation decides; up to 512
+; Out:  r1  number of bytes read
+;       c    =1: unsupported
+;       (EOI flag in ieee_status)
+;
+; Requirements: mx=1, e=0
+;---------------------------------------------------------------
+dos_xmacptr:
+	BANKING_START
+	bit cur_context
+	bmi @1
+
+	stz ieee_status
+
+	jsr file_read_block_long
+	bcc @end
+
+	jsr file_close_clr_channel
+	lda #$40 ; EOI
+	ora ieee_status
+	sta ieee_status
+
+@end:
+	BANKING_END
+	rts
+
+
+@1:	sec ; error: unsupported
+	bra @end
+
 
 ;---------------------------------------------------------------
 ; BLOCK-WISE RECEIVE

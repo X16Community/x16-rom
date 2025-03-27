@@ -6,6 +6,7 @@
 .include "macros.inc"
 .include "../fat32/regs.inc"
 .include "file.inc"
+.include "regs.inc"
 
 ; cmdch.s
 .import set_status, add_decimal
@@ -244,6 +245,77 @@ file_read:
 @acptr_file_not_open:
 	sec
 	rts
+
+.pushcpu
+.setcpu "65816"
+;---------------------------------------------------------------
+; file_read_block_long (65C816-only, e=0)
+;
+; Read up to 65536 bytes from the current context. The
+; implementation is free to return any number of bytes,
+;
+; In:   .X   destination data bank
+;       r0   16-bit pointer to destination
+;       r1   number of bytes to read
+;            =0: implementation decides; up to 65536
+;       c    =0: regular load into memory
+;            =1: stream load into single address (e.g. VERA_data0)
+; Out:  r1   number of bytes read
+;       c    =1: error or EOF (no bytes received)
+;---------------------------------------------------------------
+.importzp krn_ptr1
+file_read_block_long:
+	sep #$30 ; 8-bit mem/idx
+.a8
+.i8
+	lda r0
+	sta fat32_ptr
+	lda r0+1
+	sta fat32_ptr+1
+
+	; backup krn_ptr1 and use as load type: MSB clear=ram / MSB set=single address
+	lda krn_ptr1
+	pha
+	lda #0
+	ror            ; store carry flag as MSB of krn_ptr1
+	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
+
+	lda r1
+	sta fat32_size
+	lda r1+1
+	sta fat32_size+1
+
+	txa
+	; Read
+	fat32_call fat32_read_long
+
+	; restore krn_ptr1 (doesn't affect C)
+	pla
+	sta krn_ptr1
+	bcc @eoi_or_error
+
+	clc
+@end:
+	lda fat32_size + 0
+	sta r1
+	lda fat32_size + 1
+	sta r1+1
+	rts
+
+@eoi_or_error:
+	lda fat32_errno
+	beq @eoi
+
+; EOF or error, no data received
+	jsr set_errno_status
+	stz r1
+	stz r1+1
+	sec
+	rts
+
+@eoi:	sec
+	bra @end
+.popcpu
 
 ;---------------------------------------------------------------
 ; file_read_block
