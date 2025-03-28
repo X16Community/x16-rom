@@ -254,26 +254,29 @@ file_read:
 ; Read up to 65536 bytes from the current context. The
 ; implementation is free to return any number of bytes,
 ;
-; In:   .X   destination data bank
-;       r0   16-bit pointer to destination
-;       r1   number of bytes to read
-;            =0: 65536 bytes
-;       c    =0: regular load into memory
-;            =1: stream load into single address (e.g. VERA_data0)
-;                (only has this effect if the data bank, .X=0)
-; Out:  r1   number of bytes read
-;       c    =1: error or EOF (no bytes received)
+; In:   r0-r1L  24-bit pointer to destination
+;       r2      number of bytes to read
+;               =0: 65536 bytes
+;       c       =0: regular load into memory
+;               =1: stream load into single address (e.g. VERA_data0)
+;                   (only has this effect if the bank byte (r1L) is 0)
+; Out:  r2      number of bytes read
+;       c       =1: error or EOF (no bytes received)
 ;---------------------------------------------------------------
 .importzp krn_ptr1
 file_read_block_long:
+	rep #$30 ; 16-bit mem/idx
+.A16
+.I16
+	lda r0
+	sta fat32_ptr
+
+	lda r2
+	sta fat32_size
+
 	sep #$30 ; 8-bit mem/idx
 .A8
 .I8
-	lda r0
-	sta fat32_ptr
-	lda r0+1
-	sta fat32_ptr+1
-
 	; backup krn_ptr1 and use as load type: MSb clear=ram / MSb set=single address
 	lda krn_ptr1
 	pha
@@ -281,26 +284,26 @@ file_read_block_long:
 	ror            ; store carry flag as MSb of krn_ptr1
 	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
 
-	lda r1
-	sta fat32_size
-	lda r1+1
-	sta fat32_size+1
-
-	txa
+	lda r1L
 	; Read
 	fat32_call fat32_read_long
 
-	; restore krn_ptr1 (doesn't affect C)
+	; restore krn_ptr1 (doesn't affect c)
 	pla
 	sta krn_ptr1
 	bcc @eoi_or_error
 
 	clc
 @end:
-	lda fat32_size + 0
-	sta r1
-	lda fat32_size + 1
-	sta r1+1
+	php
+	rep #$30 ; 16-bit mem/idx
+.A16
+.I16
+	lda fat32_size
+	sta r2
+	plp
+.A8
+.I8
 	rts
 
 @eoi_or_error:
@@ -309,8 +312,8 @@ file_read_block_long:
 
 ; EOF or error, no data received
 	jsr set_errno_status
-	stz r1
-	stz r1+1
+	stz r2L
+	stz r2H
 	sec
 	rts
 
@@ -325,23 +328,22 @@ file_read_block_long:
 ; implementation is free to write any number of bytes,
 ; optimizing for speed and simplicity.
 ;
-; In:   .X   source data bank
-;       r0   pointer to data
-;       r1   number of bytes to write
-;            =0: up to 65536
-;       c    =0: regular save from memory
-;            =1: stream from single address (e.g. VERA_data0)
-;                (only has an effect if the data bank, .X=0)
-; Out:  r1   number of bytes written
-;       c    =1: error
+; In:   r0L-r1L   24-bit pointer to data
+;       r2        number of bytes to write
+;                 =0: up to 65536
+;       c         =0: regular save from memory
+;                 =1: stream from single address (e.g. VERA_data0)
+;                     (only has an effect if the bank byte (r1L) 0)
+; Out:  r1        number of bytes written
+;       c         =1: error
 ;---------------------------------------------------------------
 file_write_block_long:
 	sep #$30 ; 8-bit mem/idx
 .A8
 .I8
-	lda r0
+	lda r0L
 	sta fat32_ptr
-	lda r0+1
+	lda r0H
 	sta fat32_ptr + 1
 
 	; backup krn_ptr1 and use as load type: MSb clear=ram / MSb set=single address
@@ -354,6 +356,12 @@ file_write_block_long:
 	bit cur_mode
 	bpl @not_present
 
+	lda r2L
+	sta fat32_size
+	lda r2H
+	sta fat32_size+1
+
+	lda r1L
 	; Write
 	fat32_call fat32_write_long
 	; restore krn_ptr1 (doesn't affect C)
@@ -371,9 +379,9 @@ file_write_block_long:
 .A16
 .I16
 	sec
-	lda r1
+	lda r2
 	sbc fat32_size
-	sta r1
+	sta r2
 	plp ; return to 8 bit acc/idx, and propagate prior carry status
 .A8
 .I8

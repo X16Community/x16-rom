@@ -3074,7 +3074,7 @@ fat32_read_long:
 	; called with 8 bit mem/idx
 .A8
 .I8
-	ora #0
+	tax ; populate z with .A's zeroness
 	bne @1
 	jmp fat32_read
 @1:
@@ -3209,7 +3209,7 @@ fat32_write_long:
 	; called with 8 bit mem/idx
 .A8
 .I8
-	ora #0
+	tax ; populate z with .A's zero-ness
 	bne @1
 	jmp fat32_write
 @1:
