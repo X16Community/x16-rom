@@ -3075,13 +3075,9 @@ fat32_read_long:
 .A8
 .I8
 	ora #0
-	bne @2
-	jsr fat32_read
-	bcc @1
-	sec
+	bne @1
+	jmp fat32_read
 @1:
-	rts
-@2:
 	sta fat32_mvn + 1 ; destination DB
 	stz fat32_mvn + 2 ; sector buffer source, DB 0
 
@@ -3214,13 +3210,9 @@ fat32_write_long:
 .A8
 .I8
 	ora #0
-	bne @2
-	jsr fat32_write
-	bcc @1
-	sec
+	bne @1
+	jmp fat32_write
 @1:
-	rts
-@2:
 	stz fat32_mvn + 1 ; sector buffer dest, DB 0
 	sta fat32_mvn + 2 ; source DB
 
