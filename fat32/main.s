@@ -47,7 +47,8 @@
 .import fat32_get_offset        ; Get current file offset, result in fat32_size
 .import fat32_seek              ; Set current file offset to fat32_size
 
-.import fat32_read_long         ; blockwise read into-24 bit address space
+.import fat32_read_long         ; blockwise read into 24-bit address space
+.import fat32_write_long        ; blockwise write from 24-bit address space
 
 .import sync_sector_buffer
 
@@ -112,3 +113,4 @@
 	jmp fat32_get_size          ; $C072
 
 	jmp fat32_read_long         ; $C075
+	jmp fat32_write_long        ; $C078

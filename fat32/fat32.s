@@ -147,12 +147,12 @@ contexts:            .res CONTEXT_SIZE * FAT32_CONTEXTS
 volumes:             .res FS_SIZE * FAT32_VOLUMES
 .endif
 
-_fat32_bss_end:
-
-.segment "FAT816"
-; low RAM trampoline to support 24-bit ops
+; self mod trampoline to support dynamic block copy ops
 fat32_mvn:
 	.res 4
+
+_fat32_bss_end:
+
 
 .export fat32_alloc_context
 .export fat32_chdir
@@ -190,6 +190,7 @@ fat32_mvn:
 .export fat32_set_time
 .export fat32_get_size
 .export fat32_read_long
+.export fat32_write_long
 
 .code
 
@@ -3057,7 +3058,7 @@ fat32_read_byte:
 ; .A                 : destination data bank
 ; fat32_ptr          : pointer to store read data
 ; fat32_size (16-bit): size of data to read
-; krn_ptr1           : if MSB set, and .A=0, copy all bytes to same
+; krn_ptr1           : if MSb set, and .A=0, copy all bytes to same
 ;                      destination address via original code
 ; mx=1, e=0          : 65C816 native mode required.
 ;
@@ -3071,8 +3072,8 @@ fat32_read_byte:
 
 fat32_read_long:
 	; called with 8 bit mem/idx
-.a8
-.i8
+.A8
+.I8
 	ora #0
 	bne @2
 	jsr fat32_read
@@ -3086,13 +3087,13 @@ fat32_read_long:
 
 	stz fat32_errno
 	rep #$30 ; 16 bit mem/idx
-.a16
-.i16
-	set16_long fat32_ptr2, fat32_size
+.A16
+.I16
+	set16 fat32_ptr2, fat32_size
 
 fat32_read_long_again:
 	; Calculate number of bytes remaining in file
-	sub32_long tmp_buf, cur_context + context::file_size, cur_context + context::file_offset
+	sub32 tmp_buf, cur_context + context::file_size, cur_context + context::file_offset
 	lda tmp_buf + 0
 	ora tmp_buf + 2
 	bne @1
@@ -3108,8 +3109,8 @@ fat32_read_long_again:
 
 	lda #0
 	sep #$30 ; 8-bit mem/idx
-.a8
-.i8
+.A8
+.I8
 	jsr next_sector
 	bcs @2
 
@@ -3123,13 +3124,13 @@ fat32_read_long_again:
 
 	rep #$30
 @nonzero:
-.a16
-.i16
+.A16
+.I16
 	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
 	lda fat32_size
 	cmp bytecnt
 	bcs @3
-	set16_long bytecnt, fat32_size
+	set16 bytecnt, fat32_size
 @3:
 	; original routine had this check: if (bytecnt > 256) bytecnt = 256
 	; but we don't need it in native mode
@@ -3151,7 +3152,7 @@ fat32_read_long_again:
 	lda tmp_buf + 2
 	sbc #0
 	bpl @5
-	set16_long bytecnt, tmp_buf
+	set16 bytecnt, tmp_buf
 @5:
 	lda bytecnt
 	dec
@@ -3161,10 +3162,10 @@ fat32_read_long_again:
 	jsr fat32_mvn
 	plb
 
-	add16_long fat32_ptr, fat32_ptr, bytecnt
-	add16_long fat32_bufptr, fat32_bufptr, bytecnt
-	sub16_long fat32_size, fat32_size, bytecnt
-	add32_16_long cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
+	add16 fat32_ptr, fat32_ptr, bytecnt
+	add16 fat32_bufptr, fat32_bufptr, bytecnt
+	sub16 fat32_size, fat32_size, bytecnt
+	add32_16 cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
 
 	; if we're on a bank boundary, increment the destination bank
 	lda fat32_ptr
@@ -3185,12 +3186,145 @@ fat32_read_long_done_sec:
 fat32_read_long_done:
 	php
 	; Calculate number of bytes read
-	sub16_long fat32_size, fat32_ptr2, fat32_size
+	sub16 fat32_size, fat32_ptr2, fat32_size
 	plp
 	sep #$30 ; 8 bit mem/idx
-.a8
-.i8
+.A8
+.I8
 	rts
+
+
+;-----------------------------------------------------------------------------
+; fat32_write_long
+;
+; .A                 : source data bank
+; fat32_ptr          : pointer to read data from for save
+; fat32_size (16-bit): size of data to read
+; krn_ptr1           : if MSb set, and .A=0, copy all bytes to same
+;                      destination address via original code
+; mx=1, e=0          : 65C816 native mode required.
+;
+; On return fat32_size reflects the number of bytes actually written
+;
+; * c=0: failure; sets errno
+;
+;-----------------------------------------------------------------------------
+fat32_write_long:
+	; called with 8 bit mem/idx
+.A8
+.I8
+	ora #0
+	bne @2
+	jsr fat32_write
+	bcc @1
+	sec
+@1:
+	rts
+@2:
+	stz fat32_mvn + 1 ; sector buffer dest, DB 0
+	sta fat32_mvn + 2 ; source DB
+
+	stz fat32_errno
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+	set16 fat32_ptr2, fat32_size
+
+fat32_write_long_again:
+	; Calculate number of bytes remaining in buffer
+	sec
+	lda #sector_buffer_end
+	sbc fat32_bufptr
+	sta bytecnt
+	bne @nonzero
+
+	; Handle end of buffer condition
+	sep #$30 ; 8 bit mem/idx
+.A8
+.I8
+	jsr write__end_of_buffer
+	bcs @1
+	rts
+@1:	lda #2
+	sta bytecnt + 1
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+@nonzero:
+	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
+	lda fat32_size
+	cmp bytecnt
+	bcs @2
+	set16 bytecnt, fat32_size
+@2:
+
+	; original routine had this check: if (bytecnt > 256) bytecnt = 256
+	; but we don't need it in native mode
+	; instead we check to see if we would wrap around the src bank
+	; and stop it at the end
+	lda fat32_ptr
+	eor #$ffff
+	inc
+	beq @3 ; if pointer is $0000, we can transfer $10000 bytes, so we're always safe
+	cmp bytecnt
+	bcs @3
+	sta bytecnt
+@3:
+	lda bytecnt
+	dec
+	ldx fat32_ptr
+	ldy #fat32_bufptr
+	phb
+	jsr fat32_mvn
+	plb
+
+	; fat32_ptr += bytecnt, fat32_bufptr += bytecnt, fat32_size -= bytecnt, file_offset += bytecnt
+	add16 fat32_ptr, fat32_ptr, bytecnt
+	add16 fat32_bufptr, fat32_bufptr, bytecnt
+	sub16 fat32_size, fat32_size, bytecnt
+	add32_16 cur_context + context::file_offset, cur_context + context::file_offset, bytecnt
+
+	; if (file_size - file_offset < 0) file_size = file_offset
+	sec
+	lda cur_context + context::file_size + 0
+	sbc cur_context + context::file_offset + 0
+	lda cur_context + context::file_size + 2
+	sbc cur_context + context::file_offset + 2
+	bpl @4
+	set32 cur_context + context::file_size, cur_context + context::file_offset
+@4:
+	sep #$30
+.A8
+.I8
+	; Set sector as dirty, dirent needs update
+	lda cur_context + context::flags
+	ora #(FLAG_DIRTY | FLAG_DIRENT)
+	sta cur_context + context::flags
+
+	rep #$30
+.A16
+.I16
+	; if we're on a bank boundary, increment the source bank
+	lda fat32_ptr
+	bne @5
+	lda fat32_mvn + 1 ; load dest, src bytes in that order
+	xba ; swap em
+	inc
+	cmp #$0100
+	bcs @6 ; success, but don't wrap from bank $FF to $00
+	xba ; swap em back
+	sta fat32_mvn + 1
+@5:
+	; Check if done
+	lda fat32_size
+	beq @6
+	jmp fat32_write_long_again		; Not done yet
+@6:
+	sep #$31 ; sec indicate success, 8-bit mem/idx
+.A8
+.I8
+	rts
+
 .popcpu
 
 ;-----------------------------------------------------------------------------
@@ -3280,7 +3414,7 @@ fat32_read_again:
 	ldy bytecnt
 
 .importzp krn_ptr1
-	bit krn_ptr1        ; MSB=1: stream copy, MSB=0: normal copy
+	bit krn_ptr1        ; MSb=1: stream copy, MSb=0: normal copy
 	bpl @5a
 	jmp x16_stream_copy
 @5a:

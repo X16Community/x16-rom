@@ -53,8 +53,10 @@
 .macro set16 dst, src
 	lda src + 0
 	sta dst + 0
+.if .ASIZE = 8
 	lda src + 1
 	sta dst + 1
+.endif
 .endmacro
 
 .macro set16_val dst, val
@@ -73,14 +75,6 @@
 .endmacro
 
 ;-----------------------------------------------------------------------------
-; Set 16-bit variable (16-bit accumulator/memory)
-;-----------------------------------------------------------------------------
-.macro set16_long dst, src
-	lda src
-	sta dst
-.endmacro
-
-;-----------------------------------------------------------------------------
 ; Add two 16-bit variables
 ;-----------------------------------------------------------------------------
 .macro add16 dst, src_a, src_b
@@ -88,19 +82,11 @@
 	lda src_a + 0
 	adc src_b + 0
 	sta dst + 0
+.if .ASIZE = 8
 	lda src_a + 1
 	adc src_b + 1
 	sta dst + 1
-.endmacro
-
-;-----------------------------------------------------------------------------
-; Add two 16-bit variables (16-bit accumulator/memory)
-;-----------------------------------------------------------------------------
-.macro add16_long dst, src_a, src_b
-	clc
-	lda src_a
-	adc src_b
-	sta dst
+.endif
 .endmacro
 
 .macro add16_8 dst, src_a, src_b
@@ -144,19 +130,11 @@
 	sbc src_b + 0
 	sta dst + 0
 
+.if .ASIZE = 8
 	lda src_a + 1
 	sbc src_b + 1
 	sta dst + 1
-.endmacro
-
-;-----------------------------------------------------------------------------
-; Subtract two 16-bit variables (16-bit accumulator/memory)
-;-----------------------------------------------------------------------------
-.macro sub16_long dst, src_a, src_b
-	sec
-	lda src_a
-	sbc src_b
-	sta dst
+.endif
 .endmacro
 
 ;-----------------------------------------------------------------------------
@@ -316,12 +294,16 @@
 .macro set32 dst, src
 	lda src + 0
 	sta dst + 0
+.if .ASIZE = 8
 	lda src + 1
 	sta dst + 1
+.endif
 	lda src + 2
 	sta dst + 2
+.if .ASIZE = 8
 	lda src + 3
 	sta dst + 3
+.endif
 .endmacro
 
 ;-----------------------------------------------------------------------------
@@ -439,33 +421,23 @@
 	adc src_b + 0
 	sta dst + 0
 
+.if .ASIZE = 8
 	lda src_a + 1
 	adc src_b + 1
 	sta dst + 1
+.endif
 
 	lda src_a + 2
 	adc #0
 	sta dst + 2
 
+.if .ASIZE = 8
 	lda src_a + 3
 	adc #0
 	sta dst + 3
+.endif
 .endmacro
 
-;-----------------------------------------------------------------------------
-; Add 32-bit and 16-bit variable (16 bit accumulator/memory)
-;-----------------------------------------------------------------------------
-.macro add32_16_long dst, src_a, src_b
-	clc
-
-	lda src_a + 0
-	adc src_b + 0
-	sta dst + 0
-
-	lda src_a + 2
-	adc #0
-	sta dst + 2
-.endmacro
 
 ;-----------------------------------------------------------------------------
 ; Add 32-bit and 16-bit variable
@@ -477,17 +449,21 @@
 	adc src_b + 0
 	sta dst + 0
 
+.if .ASIZE = 8
 	lda src_a + 1
 	adc #0
 	sta dst + 1
+.endif
 
 	lda src_a + 2
 	adc #0
 	sta dst + 2
 
+.if .ASIZE = 8
 	lda src_a + 3
 	adc #0
 	sta dst + 3
+.endif
 .endmacro
 
 ;-----------------------------------------------------------------------------
@@ -571,31 +547,21 @@
 	sbc src_b + 0
 	sta dst + 0
 
+.if .ASIZE = 8
 	lda src_a + 1
 	sbc src_b + 1
 	sta dst + 1
+.endif
 
 	lda src_a + 2
 	sbc src_b + 2
 	sta dst + 2
 
+.if .ASIZE = 8
 	lda src_a + 3
 	sbc src_b + 3
 	sta dst + 3
-.endmacro
-
-;-----------------------------------------------------------------------------
-; Subtract two 32-bit variables (16 bit accumulator/memory)
-;-----------------------------------------------------------------------------
-.macro sub32_long dst, src_a, src_b
-	sec
-	lda src_a + 0
-	sbc src_b + 0
-	sta dst + 0
-
-	lda src_a + 2
-	sbc src_b + 2
-	sta dst + 2
+.endif
 .endmacro
 
 
