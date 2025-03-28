@@ -751,8 +751,10 @@
 .macro shr32 dst
 .if .ASIZE = 8
 	lsr dst + 3
-.endif
 	ror dst + 2
+.else
+	lsr dst + 2
+.endif
 .if .ASIZE = 8
 	ror dst + 1
 .endif
