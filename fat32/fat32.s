@@ -3199,7 +3199,7 @@ fat32_read_long_done:
 ;
 ; .A                 : source data bank
 ; fat32_ptr          : pointer to read data from for save
-; fat32_size (16-bit): size of data to read
+; fat32_size (16-bit): size of data to write
 ; krn_ptr1           : if MSb set, and .A=0, copy all bytes to same
 ;                      destination address via original code
 ; mx=1, e=0          : 65C816 native mode required.
