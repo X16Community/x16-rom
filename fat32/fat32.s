@@ -3266,9 +3266,8 @@ fat32_write_long_again:
 	dec
 	ldx fat32_ptr
 	ldy #fat32_bufptr
-	phb
+	; no need to `phb` to preserve databank here since the dest bank is always $00
 	jsr fat32_mvn
-	plb
 
 	; fat32_ptr += bytecnt, fat32_bufptr += bytecnt, fat32_size -= bytecnt, file_offset += bytecnt
 	add16 fat32_ptr, fat32_ptr, bytecnt
