@@ -48,7 +48,8 @@ KERNAL_CORE_SOURCES = \
 KERNAL_GRAPH_SOURCES = \
 	kernal/graph/graph.s \
 	kernal/fonts/fonts.s \
-	kernal/graph/console.s
+	kernal/graph/console.s \
+	kernal/graph/palette.s
 
 
 KERNAL_DRIVER_SOURCES = \
@@ -131,7 +132,8 @@ GRAPH_SOURCES= \
 	graphics/graph/console.s \
 	graphics/drivers/framebuffer.s \
 	graphics/drivers/fb_vectors.s \
-	graphics/math.s
+	graphics/math.s \
+	graphics/palette.s
 
 DEMO_SOURCES= \
 	demo/test.s
