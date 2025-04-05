@@ -41,4 +41,4 @@ gr_FB_fill_pixels              = $C05A
 gr_FB_filter_pixels            = $C05D
 gr_FB_move_pixels              = $C060
 
-gr_upload_default_palette      = $C063
+gr_default_palette             = $C063

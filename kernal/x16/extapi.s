@@ -13,6 +13,7 @@
 .import scnsiz
 .import kbd_leds
 .import memory_decompress_internal
+.import default_palette
 
 .export extapi
 
@@ -59,3 +60,4 @@ apitbl:
 	.word scnsiz-1                     ; API 13
 	.word kbd_leds-1                   ; API 14
 	.word memory_decompress_internal-1 ; API 15
+	.word default_palette-1            ; API 16

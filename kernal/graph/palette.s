@@ -1,4 +1,4 @@
-.export upload_default_palette
+.export default_palette
 
 .include "banks.inc"
 .include "graphics.inc"
@@ -13,6 +13,6 @@
 
 .segment "GRAPH"
 
-upload_default_palette:
-    graph_call gr_upload_default_palette
+default_palette:
+    graph_call gr_default_palette
     rts

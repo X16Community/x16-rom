@@ -43,7 +43,7 @@
 
 .import GRAPH_init
 
-.import upload_default_palette
+.import default_palette
 
 ; RTC
 .import rtc_set_nvram
@@ -80,7 +80,8 @@ screen_init:
 	lda #2
 	jsr screen_set_charset
 
-	jsr upload_default_palette
+	clc
+	jsr default_palette
 
 	; Layer 1 configuration
 	lda #((1<<6)|(2<<4)|(0<<0))

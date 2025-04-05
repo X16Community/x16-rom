@@ -1,10 +1,21 @@
+.include "banks.inc"
 .include "io.inc"
 
-.export upload_default_palette
+.export default_palette
 
 .segment "PALETTEAPI"
 
-upload_default_palette:
+default_palette:
+	.byte $DB
+	bcc @upload
+
+	lda #BANK_GRAPH
+	ldx #<default_palette
+	ldy #>default_palette
+
+	rts
+
+@upload:
 	stz VERA_CTRL
 	lda #<VERA_PALETTE_BASE
 	sta VERA_ADDR_L
@@ -15,12 +26,12 @@ upload_default_palette:
 
 	ldx #0
 @1:
-	lda default_palette,x
+	lda default_palette_data,x
 	sta VERA_DATA0
 	inx
 	bne @1
 @2:
-	lda default_palette+256,x
+	lda default_palette_data+256,x
 	sta VERA_DATA0
 	inx
 	bne @2
@@ -29,7 +40,7 @@ upload_default_palette:
 
 .segment "PALETTE"
 
-default_palette:
+default_palette_data:
 	.word $0000,$0fff,$0800,$0afe,$0c4c,$00c5,$000a,$0ee7
 	.word $0d85,$0640,$0f77,$0333,$0777,$0af6,$008f,$0bbb
 	.word $0000,$0111,$0222,$0333,$0444,$0555,$0666,$0777
