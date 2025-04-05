@@ -55,8 +55,8 @@ Most API calls require a context to be allocated and set. Contexts are associate
 * `fat32_open`: Open existing file. Pass path in `fat32_ptr`.
 * `fat32_create`: Create new file. Pass path in `fat32_ptr`, C=1 to overwrite.
 * `fat32_close`: Close open file. The timestamp will be updated from `fat32_time_year` etc.
-* `fat32_read`: Read from file. Pass pointer in `fat32_ptr`, size in `fat32_size`. Returns bytes read in `fat32_size`.
-* `fat32_write`: Write to file. Pass pointer in `fat32_ptr`, size in `fat32_size`.
+* `fat32_read`: Read from file. Pass pointer in `fat32_ptr`, size in `fat32_size`. Returns bytes read in `fat32_size`. C=1 to not increment the buffer pointer (useful for reads into the IO range).
+* `fat32_write`: Write to file. Pass pointer in `fat32_ptr`, size in `fat32_size`. C=1 to not increment the buffer pointer (useful for reads into the IO range).
 * `fat32_read_byte`: Read a byte from open file. Returns byte in A.
 * `fat32_write_byte`: Write a byte to open file. Pass byte in A.
 * `fat32_get_offset`: Get current offset in file. Returns value in `fat32_size`.
