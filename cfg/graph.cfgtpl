@@ -11,6 +11,8 @@ SEGMENTS {
     GRAPH:		load = GRAPH, type = ro;
     MATH:       load = GRAPH, type = ro;
     MATHTABLES: load = GRAPH, type = ro, align = $100;
+    PALETTE:    load = GRAPH, type = ro, align = $100;
+    PALETTEAPI: load = GRAPH, type = ro;
     KVARSB0:	load = GRVARSB0,  type = bss, define=yes;
     CONSOLE:	load = GRAPH,   type = ro;
     VECTORS:	load = VECTORS,  type = ro;

@@ -32,6 +32,8 @@
 
 .import console_init, console_put_char, console_get_char, console_put_image, console_set_paging_message
 
+.import default_palette
+
 ;Jump table
 
 jmp GRAPH_clear                 ;C000
@@ -71,3 +73,5 @@ jmp (I_FB_set_8_pixels_opaque)  ;C057
 jmp (I_FB_fill_pixels)          ;C05A
 jmp (I_FB_filter_pixels)        ;C05D
 jmp (I_FB_move_pixels)          ;C060
+
+jmp default_palette             ;C063
