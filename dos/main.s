@@ -513,12 +513,11 @@ dos_untlk:
 ;---------------------------------------------------------------
 ; BLOCK-WISE RECEIVE (LONG, 65C816)
 ;
-; In:   .X   destination data bank
-;       r0   pointer to destination
-;       r1   number of bytes to read
-;            =0: 65536 bytes
-; Out:  r1  number of bytes read
-;       c    =1: unsupported
+; In:   r0L-r1L   pointer to destination
+;       r2        number of bytes to read
+;                 =0: 65536 bytes
+; Out:  r2        number of bytes read
+;       c         =1: unsupported
 ;       (EOI flag in ieee_status)
 ;
 ; Requirements: mx=1, e=0

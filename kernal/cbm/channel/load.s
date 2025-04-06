@@ -22,7 +22,7 @@
 ;* .a=0 performs load to ram      *
 ;* .a=1 performs verify           *
 ;* .a>1 performs load to vram;    *
-;*      (.a-2)&0x0f is the bank   *
+;*      (.a-2)&0x01 is the bank   *
 ;*      number.                   *
 ;*                                *
 ;* high load return in x,y,a      *

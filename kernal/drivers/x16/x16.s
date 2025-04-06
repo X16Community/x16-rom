@@ -8,6 +8,7 @@
 ; for initializing the audio subsystems
 .include "banks.inc"
 .include "audio.inc"
+.include "65c816.inc"
 
 .export ioinit
 .export iokeys
@@ -28,6 +29,10 @@
 .importzp tmp2
 
 MODIFIER_SHIFT = 1
+
+.segment "KVARSB0"
+machine_type:
+	.res 1
 
 .segment "MACHINE"
 
@@ -190,3 +195,78 @@ boot_cartridge:
 	rts
 @signature:
 	.byte "CX16"
+
+
+get_machine_type:
+	KVARS_START_TRASH_X_NZ
+	lda machine_type
+	KVARS_END_TRASH_X_NZ
+	rts
+
+detect_machine_type:
+	KVARS_START_TRASH_X_NZ
+	stz machine_type
+	set_carry_if_65c816
+	bcc @c02
+	rol machine_type ; 65816
+.pushcpu
+.setcpu "65816"
+.A8
+.I8
+	lda $010002
+	pha
+	lda $000002
+	pha
+	stz $000002
+	lda #42
+	sta $010002
+	cmp $000002
+	sec
+	bne @1
+	clc
+@1:
+	rol machine_type ; 24 bit flat memory model
+	pla
+	sta $000002
+	pla
+	sta $010002
+
+	asl machine_type ; GS I/O detection NYI
+@c02:
+	asl machine_type ; Shared bank detection NYI
+
+	ldx #1
+	sta ram_bank
+	lda $A000
+	pha
+	ldy #65
+	sty ram_bank
+	lda $A000
+	pha
+	lda #42
+	sta $A000
+	stx ram_bank
+	stz $A000
+	cmp $A000
+	sec
+	bne @3
+	clc
+@3:
+	sty ram_bank
+	pla
+	sta $A000
+	stx ram_bank
+	pla
+	sta $A000
+	stz ram_bank
+	rol machine_type ; if set, banked RAM is mirrored at bank 64
+
+	asl machine_type
+	asl machine_type
+	asl machine_type ; 3 reserved feature bits
+
+.popcpu
+@end:
+	lda machine_type
+	KVARS_END_TRASH_X_NZ
+	rts
