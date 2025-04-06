@@ -9,8 +9,8 @@ default_palette:
 	bcc @upload
 
 	lda #BANK_GRAPH
-	ldx #<default_palette
-	ldy #>default_palette
+	ldx #<default_palette_data
+	ldy #>default_palette_data
 
 	rts
 
