@@ -6,7 +6,6 @@
 .segment "PALETTEAPI"
 
 default_palette:
-	.byte $DB
 	bcc @upload
 
 	lda #BANK_GRAPH
