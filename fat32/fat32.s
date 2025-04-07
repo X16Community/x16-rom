@@ -3124,6 +3124,7 @@ fat32_read_long_again:
 .I16
 	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
 	lda fat32_size
+	beq @3 ; fat32_size == 0, which means $10000
 	cmp bytecnt
 	bcs @3
 	set16 bytecnt, fat32_size
@@ -3152,7 +3153,7 @@ fat32_read_long_again:
 @5:
 	lda bytecnt
 	dec
-	ldx #fat32_bufptr
+	ldx fat32_bufptr
 	ldy fat32_ptr
 	phb
 	jsr fat32_mvn

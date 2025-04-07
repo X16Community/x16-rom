@@ -1,6 +1,6 @@
 ; Error return value for kernal calls which indicate
 ; the machine does not have the necessary capabilities
-ERROR_MACHINE_TYPE = 20
+ERROR_MACHINE_TYPE = 40
 
 ; Machine has detected a 65C816 processor
 MACHINE_TYPE_C816       = %10000000

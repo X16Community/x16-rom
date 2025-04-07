@@ -163,14 +163,14 @@ hbl90:            ;verify
 loding24:
 	ldy #ms10-ms1   ;assume 'loading'
 	lda verck       ;check flag
-	bne ld2410      ;are doing load
+	beq ld2410      ;are doing load
 	ldy #ms21-ms1   ;are 'verifying'
 ld2410:
 	jsr spmsg
 	bit msgflg      ;printing messages?
 	bpl l24rts      ;no...
 	lda verck       ;check flag
-	beq l24rts      ;skip if verify
+	bne l24rts      ;skip if verify
 	ldy #ms7-ms1    ;"from $"
 msghex24:
 	jsr msg
@@ -186,6 +186,6 @@ prnto24:
 	bit msgflg      ;printing messages?
 	bpl l24rts      ;no...
 	lda verck       ;check flag
-	beq l24rts      ;skip if verify
+	bne l24rts      ;skip if verify
 	ldy #ms8-ms1    ;"to $"
 	bra msghex24

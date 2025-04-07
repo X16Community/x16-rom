@@ -27,7 +27,11 @@
 .import basic_error
 .export error
 .export fcerr
+.export snerr
+.export mterr
+errsn=11
 errfc=14
+errmt=40
 
 .import basic_frefac
 .export frefac
@@ -52,6 +56,9 @@ errfc=14
 
 .import basic_nsnerr6
 .export nsnerr6
+
+.import basic_plsvbin
+.export plsvbin
 
 .import basic_sngflt
 .export sngflt
@@ -150,11 +157,25 @@ linprt:
 	.byte BANK_BASIC
 	rts
 
+mterr:
+	ldx #errmt
+	jmp error
+
 nsnerr6:
 	jsr bajsrfar
 	.word basic_nsnerr6
 	.byte BANK_BASIC
 	rts
+
+plsvbin:
+	jsr bajsrfar
+	.word basic_plsvbin
+	.byte BANK_BASIC
+	rts
+
+snerr:
+	ldx #errsn
+	jmp error
 
 sngflt:
 	jsr bajsrfar

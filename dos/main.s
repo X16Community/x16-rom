@@ -536,9 +536,8 @@ dos_xmacptr:
 
 	jsr file_close_clr_channel
 	lda #$40 ; EOI
-	ora ieee_status
-	sta ieee_status
-
+	tsb ieee_status
+	clc
 @end:
 	BANKING_END
 	rts

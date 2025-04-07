@@ -91,6 +91,7 @@ untlk = $ffab
 ; misc x16 additions
 .export clear_status
 .export extapi_getlfs
+.export hbload
 
 
 .segment "ZPCHANNEL" : zeropage
