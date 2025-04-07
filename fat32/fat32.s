@@ -3246,6 +3246,7 @@ fat32_write_long_again:
 @nonzero:
 	; if (fat32_size - bytecnt < 0) bytecnt = fat32_size
 	lda fat32_size
+	beq @2 ; fat32_size == 0, which means $10000
 	cmp bytecnt
 	bcs @2
 	set16 bytecnt, fat32_size
@@ -3266,7 +3267,7 @@ fat32_write_long_again:
 	lda bytecnt
 	dec
 	ldx fat32_ptr
-	ldy #fat32_bufptr
+	ldy fat32_bufptr
 	; no need to `phb` to preserve databank here since the dest bank is always $00
 	jsr fat32_mvn
 
