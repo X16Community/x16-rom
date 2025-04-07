@@ -16,6 +16,8 @@
 .export vera_wait_ready
 .export call_audio_init
 .export boot_cartridge
+.export get_machine_type
+.export detect_machine_type
 
 .import ps2_init
 .import serial_init
