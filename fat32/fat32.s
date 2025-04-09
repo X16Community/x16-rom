@@ -3043,7 +3043,7 @@ fat32_read_byte:
 ;
 ; fat32_ptr          : pointer to store read data
 ; fat32_size (16-bit): size of data to read
-; krn_ptr1           : if MSB set, copy all bytes to same destination address.
+; c=1                : copy all bytes to same destination address.
 ;
 ; On return fat32_size reflects the number of bytes actually read
 ;
@@ -3051,6 +3051,10 @@ fat32_read_byte:
 ;-----------------------------------------------------------------------------
 fat32_read:
 	stz fat32_errno
+
+	; Store carry flag
+	ror krn_ptr1
+
 	set16 fat32_ptr2, fat32_size
 
 fat32_read_again:
@@ -3391,12 +3395,15 @@ fat32_write_byte:
 ;
 ; fat32_ptr          : pointer to data to write
 ; fat32_size (16-bit): size of data to write
-; krn_ptr1           : if MSb set, copy all bytes from same source address.
+; c=1                : copy all bytes from same source address.
 ;
 ; * c=0: failure; sets errno
 ;-----------------------------------------------------------------------------
 fat32_write:
 	stz fat32_errno
+
+	; Store carry flag
+	ror krn_ptr1
 
 	; Calculate number of bytes remaining in buffer
 	sec

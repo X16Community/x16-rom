@@ -33,7 +33,7 @@
 .import create_unix_path_only_dir, create_unix_path_only_name, append_unix_path_only_name
 
 .import buffer
-.importzp krn_ptr1, bank_save
+.importzp bank_save
 
 .import context_for_channel
 
@@ -631,9 +631,7 @@ copy_do:
 	stz fat32_size
 	lda #1
 	sta fat32_size + 1
-	lda krn_ptr1			; krn_ptr1 bit 7 = 0 => disable that fat32_read stores to all data to same destination address
-	and #%01111111
-	sta krn_ptr1
+	clc ; disable that fat32_read stores to all data to same destination address
 	fat32_call fat32_read
 	bcs :+
 	lda fat32_errno
@@ -651,6 +649,7 @@ copy_do:
 	sta fat32_ptr
 	lda #>unix_path
 	sta fat32_ptr + 1
+	clc
 	fat32_call fat32_write
 	bcc @error_errno
 

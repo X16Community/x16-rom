@@ -267,15 +267,10 @@ file_read_block:
 	stx fat32_ptr
 	sty fat32_ptr + 1
 	tax
-	; backup krn_ptr1 and use as load type: MSB clear=ram / MSB set=single address
-	lda krn_ptr1
-	pha
-	lda #0
-	ror            ; store carry flag as MSB of krn_ptr1
-	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
-	txa
 	bne @1
 
+	; preserve carry flag - fat32_read examines it to determine which copy routine to use.
+	php
 	; A=0: read to end of 512-byte sector
 	fat32_call fat32_get_offset
 	lda #0
@@ -290,6 +285,7 @@ file_read_block:
 	lda #2
 	sbc fat32_size + 1
 	sta fat32_size + 1
+	plp
 	bra @2
 
 	; A!=0: read A bytes
@@ -297,10 +293,8 @@ file_read_block:
 	stz fat32_size + 1
 
 	; Read
-@2:	fat32_call fat32_read
-	; restore krn_ptr1 (doesn't affect C)
-	pla
-	sta krn_ptr1
+@2:
+	fat32_call fat32_read
 	bcc @eoi_or_error
 
 	clc
@@ -343,13 +337,6 @@ file_write_block:
 	stx fat32_ptr
 	sty fat32_ptr + 1
 	tax
-	; backup krn_ptr1 and use as load type: MSB clear=ram / MSB set=single address
-	lda krn_ptr1
-	pha
-	lda #0
-	ror            ; store carry flag as MSB of krn_ptr1
-	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
-	txa
 	bne @1
 	stz fat32_size + 0
 	lda #1
@@ -370,9 +357,8 @@ file_write_block:
 	bit cur_mode
 	bpl @not_present
 
-	; Write
+	; Write - carry flag has not been touched since the start of this function
 	fat32_call fat32_write
-	; restore krn_ptr1 (doesn't affect C)
 	bcc @error
 
 	clc
@@ -390,8 +376,6 @@ file_write_block:
 	sbc fat32_size + 1
 	tay
 	plp
-	pla
-	sta krn_ptr1
 	rts
 
 @error:
