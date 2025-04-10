@@ -149,6 +149,7 @@ stmdsp2	; statements
 	.word basload-1
 	.word oval-1
 	.word ring-1
+	.word memdiag-1
 	; functions
 ptrfunc	.word vpeek
 	.word mx

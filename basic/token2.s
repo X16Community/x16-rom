@@ -128,6 +128,7 @@ reslst3
 	.byt "BASLOA", 'D' + $80
 	.byt "OVA", 'L' + $80
 	.byt "RIN", 'G' + $80
+	.byt "MEMDIA", 'G' + $80
 
 	; add new statements before this line
 

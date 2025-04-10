@@ -976,6 +976,10 @@ basload:
 	bannex_call bannex_basload
 	rts
 
+memdiag:
+	bannex_call bannex_memdiag
+	rts
+
 ; BASIC's entry into jsrfar
 .setcpu "65c02"
 .export bjsrfar
