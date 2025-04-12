@@ -263,7 +263,6 @@ file_read:
 ; Out:  r2      number of bytes read
 ;       c       =1: error or EOF (no bytes received)
 ;---------------------------------------------------------------
-.importzp krn_ptr1
 file_read_block_long:
 	rep #$30 ; 16-bit mem/idx
 .A16
@@ -277,20 +276,9 @@ file_read_block_long:
 	sep #$30 ; 8-bit mem/idx
 .A8
 .I8
-	; backup krn_ptr1 and use as load type: MSb clear=ram / MSb set=single address
-	lda krn_ptr1
-	pha
-	lda #0
-	ror            ; store carry flag as MSb of krn_ptr1
-	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
-
 	lda r1L
 	; Read
 	fat32_call fat32_read_long
-
-	; restore krn_ptr1 (doesn't affect c)
-	pla
-	sta krn_ptr1
 	bcc @eoi_or_error
 
 	clc
@@ -346,13 +334,6 @@ file_write_block_long:
 	lda r0H
 	sta fat32_ptr + 1
 
-	; backup krn_ptr1 and use as load type: MSb clear=ram / MSb set=single address
-	lda krn_ptr1
-	pha
-	lda #0
-	ror            ; store carry flag as MSb of krn_ptr1
-	sta krn_ptr1   ; fat32_read examines it to determine which copy routine to use.
-
 	bit cur_mode
 	bpl @not_present
 
@@ -364,9 +345,7 @@ file_write_block_long:
 	lda r1L
 	; Write
 	fat32_call fat32_write_long
-	; restore krn_ptr1 (doesn't affect C)
-	pla
-	sta krn_ptr1
+
 	bcc @error
 
 	clc

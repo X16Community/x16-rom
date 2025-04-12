@@ -3058,8 +3058,8 @@ fat32_read_byte:
 ; .A                 : destination data bank
 ; fat32_ptr          : pointer to store read data
 ; fat32_size (16-bit): size of data to read
-; krn_ptr1           : if MSb set, and .A=0, copy all bytes to same
-;                      destination address via original code
+; c                  : if set, and .A=0, copy all bytes to same
+;                      destination address via original read routine
 ; mx=1, e=0          : 65C816 native mode required.
 ;
 ; On return fat32_size reflects the number of bytes actually read
@@ -3078,6 +3078,9 @@ fat32_read_long:
 	bne @1
 	jmp fat32_read
 @1:
+	; Store carry flag
+	ror krn_ptr1
+
 	sta fat32_mvn + 1 ; destination DB
 	stz fat32_mvn + 2 ; sector buffer source, DB 0
 
@@ -3197,8 +3200,8 @@ fat32_read_long_done:
 ; .A                 : source data bank
 ; fat32_ptr          : pointer to read data from for save
 ; fat32_size (16-bit): size of data to write
-; krn_ptr1           : if MSb set, and .A=0, copy all bytes to same
-;                      destination address via original code
+; c                  : if set, and .A=0, copy all bytes from same
+;                      source address via original write routine
 ; mx=1, e=0          : 65C816 native mode required.
 ;
 ; On return fat32_size reflects the number of bytes actually written
@@ -3214,6 +3217,9 @@ fat32_write_long:
 	bne @1
 	jmp fat32_write
 @1:
+	; Store carry flag
+	ror krn_ptr1
+
 	stz fat32_mvn + 1 ; sector buffer dest, DB 0
 	sta fat32_mvn + 2 ; source DB
 
