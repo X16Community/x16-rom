@@ -2,7 +2,6 @@
 .include "regs.inc"
 .include "machine.inc"
 
-.import xmacptr
 .import get_machine_type
 
 clear_status:
@@ -85,7 +84,8 @@ hbl10:
 .A16
 .I16
 	stz r2          ;load as much as possible
-	jsr xmacptr
+	lda #5          ;EXTAPI16_XMACPTR
+	jsr extapi16    ;we're using extapi16 here so that the emulator can intercept the call
 	bcs hbl60
 	lda r2
 	bne @1

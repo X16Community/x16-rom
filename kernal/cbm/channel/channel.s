@@ -33,6 +33,10 @@ talk  = $ffb4
 tksa  = $ff96
 unlsn = $ffae
 untlk = $ffab
+
+; for xmacptr, etc
+extapi16 = $fea8
+
 .import scatn
 .import tkatn
 
