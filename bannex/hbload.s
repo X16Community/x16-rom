@@ -7,8 +7,8 @@
 
 .import snerr
 .import mterr
-.import error
 .import plsvbin
+.import erexit
 .importzp poker, andmsk
 
 .export hbload
@@ -48,7 +48,7 @@
     plp
     xce
     tax
-    jmp error
+    jmp erexit
 loadok:
     plp
     xce
