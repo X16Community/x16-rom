@@ -29,6 +29,7 @@ rom_bank = 1
 .import pause
 .import tdata
 .import tattr
+.import hbload
 
 .segment "JMPTBL"
 	jmp renumber           ; $C000
@@ -49,5 +50,7 @@ rom_bank = 1
 	jmp sprmem             ; $C02D
 	jmp basload            ; $C030
 	jmp pause              ; $C033
-	jmp tdata	       ; $C036
-	jmp tattr	       ; $C039
+	jmp tdata              ; $C036
+	jmp tattr              ; $C039
+	jmp hbload             ; $C03C
+

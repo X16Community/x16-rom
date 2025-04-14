@@ -4,6 +4,7 @@
 
 .import stack_push, stack_pop
 .import stack_enter_kernal_stack, stack_leave_kernal_stack
+.import xmacptr, xmciout, hbload
 
 .export extapi16
 
@@ -18,6 +19,7 @@
 
 ; This API call expects and requires m=0, e=0
 ; Some calls require x=0, some allow x=1
+; Return m and x vary
 extapi16:
 	php ; preserve flags
 	set_carry_if_65c816
@@ -38,11 +40,14 @@ secrts:
 	rts
 
 apitbl:
-	.word addition_test-1              ; API 0 (x=0 or x=1)
-	.word stack_push-1                 ; API 1 (x=0)
-	.word stack_pop-1                  ; API 2 (x=0)
-	.word stack_enter_kernal_stack-1   ; API 3 (x=0)
-	.word stack_leave_kernal_stack-1   ; API 4 (x=0)
+	.word addition_test-1              ; API 0 (x=0 or x=1, returns with mx as called)
+	.word stack_push-1                 ; API 1 (x=0, returns with m=0,x=0)
+	.word stack_pop-1                  ; API 2 (x=0, returns with m=0,x=0)
+	.word stack_enter_kernal_stack-1   ; API 3 (x=0, returns with m=0,x=0)
+	.word stack_leave_kernal_stack-1   ; API 4 (x=0, returns with m=0,x=0)
+	.word xmacptr-1                    ; API 5 (x=0 or x=1, returns with m=0,x=0)
+	.word xmciout-1                    ; API 6 (x=0 or x=1, returns with m=0,x=0)
+	.word hbload-1                     ; API 7 (x=0 or x=1, returns with m=0,x=0)
 
 
 addition_test: ; add .X to .Y, no carry, return in .C, used in the jsrfar unit tests

@@ -28,7 +28,8 @@
 .import skip_mask
 
 ; jumptab.s
-.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk, dos_macptr, dos_mciout
+.export dos_secnd, dos_tksa, dos_acptr, dos_ciout, dos_untlk, dos_unlsn, dos_listn, dos_talk
+.export dos_macptr, dos_mciout, dos_xmacptr, dos_xmciout
 .export dos_set_time
 
 ; from declare.s, so that state can be cleared
@@ -506,6 +507,84 @@ file_close_clr_channel:
 ;---------------------------------------------------------------
 dos_untlk:
 	rts
+
+.pushcpu
+.setcpu "65816"
+;---------------------------------------------------------------
+; BLOCK-WISE RECEIVE (LONG, 65C816)
+;
+; In:   r0L-r1L   pointer to destination
+;       r2        number of bytes to read
+;                 =0: 65536 bytes
+; Out:  r2        number of bytes read
+;       c         =1: unsupported
+;       (EOI flag in ieee_status)
+;
+; Requirements: mx=1, e=0
+;---------------------------------------------------------------
+dos_xmacptr:
+.A8
+.I8
+	BANKING_START
+	bit cur_context
+	bmi @1
+
+	stz ieee_status
+
+	jsr file_read_block_long
+	bcc @end
+
+	jsr file_close_clr_channel
+	lda #$40 ; EOI
+	tsb ieee_status
+	clc
+@end:
+	BANKING_END
+	rts
+
+
+@1:	sec ; error: unsupported
+	bra @end
+
+;---------------------------------------------------------------
+; BLOCK-WISE SEND (LONG, 65C816)
+;
+; In:   .X   source data bank
+;       r0   pointer to source
+;       r1   number of bytes to write
+;            =0: 65536 bytes
+; Out:  r1  number of bytes written
+;       c    =1: unsupported
+;       (EOI flag in ieee_status)
+;
+; Requirements: mx=1, e=0
+;---------------------------------------------------------------
+dos_xmciout:
+.I8
+.A8
+	BANKING_START
+	bit cur_context
+	bmi @1
+
+	stz ieee_status
+
+	jsr file_write_block_long
+	bcc @end
+
+	jsr file_close_clr_channel
+	lda #$01 ; write timeout to indicate error
+	tsb ieee_status
+	clc
+
+@end:
+	BANKING_END
+	rts
+@1:	sec ; error: unsupported
+	bra @end
+
+.I8
+.A8
+.popcpu
 
 ;---------------------------------------------------------------
 ; BLOCK-WISE RECEIVE

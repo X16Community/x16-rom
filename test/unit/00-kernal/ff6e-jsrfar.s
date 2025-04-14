@@ -118,8 +118,8 @@ code_bank_1_load = *
 	; TEST 4
 	; native jsrfar (m8 x8) from KERNAL bank, BRAM to BRAM
 	; -----------------------------------------------------------------------
-	.a8
-	.i8
+	.A8
+	.I8
 
 	lda #49
 	ldx #149
@@ -139,8 +139,8 @@ code_bank_1_load = *
 	; -----------------------------------------------------------------------
 	rep #$10
 
-	.a8
-	.i16
+	.A8
+	.I16
 
 	lda #120
 	ldx #1337
@@ -160,7 +160,7 @@ code_bank_1_load = *
 	; -----------------------------------------------------------------------
 	rep #$20
 
-	.a16
+	.A16
 
 	lda #12345
 	ldx #54321
@@ -179,11 +179,11 @@ code_bank_1_load = *
 	; native jsrfar (m16 x16) from BASIC bank, BRAM to KERNAL bank
 	; -----------------------------------------------------------------------
 	sep #$20
-	.a8
+	.A8
 	lda #4
 	sta rom_bank
 	rep #$20
-	.a16
+	.A16
 
 	lda #0      ; X+Y -> A
 	ldx #12321
@@ -202,7 +202,7 @@ code_bank_1_load = *
 	; native jsrfar (m16 x8) from BASIC bank, BRAM to KERNAL bank
 	; -----------------------------------------------------------------------
 	sep #$10
-	.i8
+	.I8
 
 	lda #0      ; X+Y -> A
 	ldx #129
@@ -219,8 +219,8 @@ code_bank_1_load = *
 	sec
 	xce
 
-	.a8
-	.i8
+	.A8
+	.I8
 
 	pla
 	sta rom_bank

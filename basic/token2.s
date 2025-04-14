@@ -128,6 +128,7 @@ reslst3
 	.byt "BASLOA", 'D' + $80
 	.byt "OVA", 'L' + $80
 	.byt "RIN", 'G' + $80
+	.byt "HBLOA", 'D' + $80
 
 	; add new statements before this line
 
@@ -150,7 +151,8 @@ reslst3
 	; add new functions before this line
 	.byt 0
 
-.assert reslst3 - reslst2 < 256, error, "<--- See line number. Too many bytes in reslst2. Keep the ordering of the statements but move one of the declarations from the end of reslst2 to the beginning of reslst3.  Keep the .byt 0 as the final entry of reslst2."
+.assert reslst3 - reslst2 < 256, error, "<--- See line number. Too many bytes in reslst2 section. Keep the ordering of the statements but move one of the declarations from the end of reslst2 to the beginning of reslst3.  Keep the .byt 0 as the final entry of reslst2."
+.assert * - reslst3 < 256, error, "<--- See line number. Too many bytes in reslst3 section."
 ;**************************************
 
 err01	.byt "TOO MANY FILE",$d3
@@ -248,6 +250,7 @@ errtab	.word err01
 	.word err37
 	.word err38
 	.word err39
+	.word err40
 
 okmsg	.byt $d,"OK",$d,$0
 err	.byt " ERROR",0
@@ -274,6 +277,8 @@ err38	.byt "FREQUENC", 'Y'+$80
 erfrq	=38
 err39	.byt "PA", 'N'+$80
 erpan	=39
+err40	.byt "MACHINE TYP", 'E'+$80
+errmt	=40
 
 forsiz	=$12
 fndfor	tsx

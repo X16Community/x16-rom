@@ -3,6 +3,7 @@
 ;----------------------------------------------------------------------
 ; (C)2020 Michael Steil, License: 2-clause BSD
 
+.include "dos.inc"
 .include "banks.inc"
 
 .import jsrfar
@@ -39,6 +40,9 @@
 .export macptr
 .export mciout
 
+.export xmacptr
+.export xmciout
+
 .export led_update
 
 .segment "KVAR"
@@ -50,75 +54,65 @@ _cbdos_flags:  ; bit   7:   =1: CBDOS is listener
 	       ; bit 3-0:   blink counter
 .assert _cbdos_flags = cbdos_flags, error, "update banks.inc!"
 
+.macro dos_call addr
+	jsr jsrfar
+	.word addr
+	.byte BANK_CBDOS
+.endmacro
+
 .segment "IEEESWTCH"
 
 ieeeswitch_init:
-	jsr jsrfar
-	.word $c000 + 3 * 15 ; cbdos_init
-	.byte BANK_CBDOS
+	dos_call dos_init
 	rts
 
 secnd:
 	bit cbdos_flags
 	bpl :+
 	jsr upload_time
-	jsr jsrfar
-	.word $c000 + 3 * 0
-	.byte BANK_CBDOS
+	dos_call dos_secnd
 	rts
 :	jmp serial_secnd
 
 tksa:
 	bit cbdos_flags
 	bvc :+
-	jsr jsrfar
-	.word $c000 + 3 * 1
-	.byte BANK_CBDOS
+	dos_call dos_tksa
 	rts
 :	jmp serial_tksa
 
 acptr:
 	bit cbdos_flags
 	bvc :+
-	jsr jsrfar
-	.word $c000 + 3 * 2
-	.byte BANK_CBDOS
+	dos_call dos_acptr
 	rts
 :	jmp serial_acptr
 
 ciout:
 	bit cbdos_flags
 	bpl :+
-	jsr jsrfar
-	.word $c000 + 3 * 3
-	.byte BANK_CBDOS
+	dos_call dos_ciout
 	rts
 :	jmp serial_ciout
 
 untlk:
 	bit cbdos_flags
 	bvc :+
-	jsr jsrfar
-	.word $c000 + 3 * 4
-	.byte BANK_CBDOS
+	dos_call dos_untlk
 	rts
 :	jmp serial_untlk
 
 unlsn:
 	bit cbdos_flags
 	bpl :+
-	jsr jsrfar
-	.word $c000 + 3 * 5
-	.byte BANK_CBDOS
+	dos_call dos_unlsn
 	rts
 :	jmp serial_unlsn
 
 listn:
 	pha
 	phx
-	jsr jsrfar
-	.word $c000 + 3 * 6
-	.byte BANK_CBDOS
+	dos_call dos_listn
 	bcs @1 ; no CBDOS device
 
 	lda cbdos_flags
@@ -138,9 +132,7 @@ listn:
 talk:
 	pha
 	phx
-	jsr jsrfar
-	.word $c000 + 3 * 7
-	.byte BANK_CBDOS
+	dos_call dos_talk
 	bcs @1 ; no CBDOS device
 
 	lda cbdos_flags
@@ -162,9 +154,7 @@ macptr:
 	bvs :+
 	sec ; error: unsupported
 	rts
-:	jsr jsrfar
-	.word $c000 + 3 * 17
-	.byte BANK_CBDOS
+:	dos_call dos_macptr
 	rts
 
 mciout:
@@ -172,10 +162,53 @@ mciout:
 	bmi :+
 	sec ; error: unsupported
 	rts
-:	jsr jsrfar
-	.word $c000 + 3 * 18
-	.byte BANK_CBDOS
+:	dos_call dos_mciout
 	rts
+
+.pushcpu
+.setcpu "65816"
+xmacptr:
+	sep #$30 ; 8 bit mem/idx
+.A8
+.I8
+	bit cbdos_flags
+	bmi :+
+	sec ; error: unsupported
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+	rts
+.A8
+.I8
+:	dos_call dos_xmacptr
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+	rts
+.A8
+.I8
+
+xmciout:
+	sep #$30 ; 8 bit mem/idx
+.A8
+.I8
+	bit cbdos_flags
+	bmi :+
+	sec ; error: unsupported
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+	rts
+.A8
+.I8
+:	dos_call dos_xmciout
+	rep #$30 ; 16 bit mem/idx
+.A16
+.I16
+	rts
+.A8
+.I8
+.popcpu
 
 ; Called by SECOND: If it's a CLOSE command, upload the curent time.
 upload_time:
@@ -205,9 +238,7 @@ upload_time:
 	sbc #80
 @3:	sta 2
 
-	jsr jsrfar
-	.word $c000 + 3 * 16
-	.byte BANK_CBDOS
+	dos_call dos_set_time
 
 	ldx #9
 @4:	pla
