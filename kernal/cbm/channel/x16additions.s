@@ -37,10 +37,11 @@ hbload:
 .I8
 	stx verck
 	jsr get_machine_type
-	bit #MACHINE_TYPE_FLAT24
+	bit #MACHINE_TYPE_24BIT
 	bne @1
 	lda #ERROR_MACHINE_TYPE
 	sec
+	rep #$30
 	rts
 @1:
 	stz r1H
@@ -56,6 +57,7 @@ hbload:
 	jsr nload
 	stx r0L
 	sty r0H
+	rep #$30        ;mx=0 to exit extapi16
 	rts
 @2:
 	jsr luking      ;tell user looking
@@ -74,61 +76,61 @@ hbload:
 	sta tmp2
 
 	ldy verck
-	bne hbl61
-hbl10:
+	bne hbl_byteloop
+hbl_blockloop:
 	jsr stop
-	bne @0
+	bne @1
 	jmp break
-@0:
+@1:
 	rep #$30
 .A16
 .I16
-	stz r2          ;load as much as possible
-	lda #5          ;EXTAPI16_XMACPTR
-	jsr extapi16    ;we're using extapi16 here so that the emulator can intercept the call
-	bcs hbl60
+	stz r2            ;load as much as possible
+	lda #5            ;EXTAPI16_XMACPTR
+	jsr extapi16      ;we're using extapi16 here so that the emulator can intercept the call
+	bcs hbl_enter_byteloop
 	lda r2
-	bne @1
-	inc r1
-@1:
-	adc r0
-	sta r0
-	bcc @2
+	bne @2
 	inc r1
 @2:
+	adc r0
+	sta r0
+	bcc @3
+	inc r1
+@3:
 	sep #$30
 .A8
 .I8
 	bit status
-	bvc hbl10      ;not EOI yet
-	bra hbl80
+	bvc hbl_blockloop ;not EOI yet
+	bra hbl_end
 
-hbl60:
+hbl_enter_byteloop:
 	sep #$30
 .A8
 .I8
-hbl61:
+hbl_byteloop:         ;this is the bytewise read or verify loop
 	lda #3
 	trb status
 	jsr stop
-	bne hbl65
+	bne @1
 	jmp break
-hbl65:
+@1:
 	jsr acptr
 	tax
 	lda status
 	lsr
 	lsr
-	bcc hbl70      ;no timeout
+	bcc @2            ;no timeout
 	asl tmp2
-	bcc hbl61
-	jmp error4     ;file not found
-hbl70:
+	bcc hbl_byteloop
+	jmp error4        ;file not found
+@2:
 	txa
 	ldy verck
-	bne hbl90
+	bne hbl_verify_byte
 	sta [r0]
-hbl75:
+hbl_inc_ptr:
 	inc r0L
 	bne @1
 	inc r0H
@@ -136,22 +138,22 @@ hbl75:
 	inc r1L
 @1:
 	bit status
-	bvc hbl61
-hbl80:
+	bvc hbl_byteloop
+hbl_end:
 	jsr untlk
 	jsr clsei
 	jsr prnto24
 
 	lda #0
-	clc
+	rep #$31          ;mx=0, clc
 	rts
 
-hbl90:            ;verify
+hbl_verify_byte:      ;verify
 	cmp [r0]
-	beq hbl75
-	lda #16
+	beq hbl_inc_ptr
+	lda #16           ;verify error status bit
 	jsr udst
-	bra hbl80
+	bra hbl_end
 
 .popcpu
 

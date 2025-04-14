@@ -55,9 +55,9 @@ _cbdos_flags:  ; bit   7:   =1: CBDOS is listener
 .assert _cbdos_flags = cbdos_flags, error, "update banks.inc!"
 
 .macro dos_call addr
-jsr jsrfar
-.word addr
-.byte BANK_CBDOS
+	jsr jsrfar
+	.word addr
+	.byte BANK_CBDOS
 .endmacro
 
 .segment "IEEESWTCH"

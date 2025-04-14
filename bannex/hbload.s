@@ -41,7 +41,7 @@
     ldx #0
     lda #7
     jsr extapi16
-    sep #$30 ; force this, but it should already be true
+    sep #$30
 .A8
 .I8
     bcc loadok

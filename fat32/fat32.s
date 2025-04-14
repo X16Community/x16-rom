@@ -3241,7 +3241,7 @@ fat32_write_long_again:
 	sep #$30 ; 8 bit mem/idx
 .A8
 .I8
-	jsr write__end_of_buffer
+	jsr write_end_of_buffer
 	bcs @1
 	rts
 @1:	lda #2
@@ -3603,11 +3603,11 @@ allocate_first_cluster:
 	rts
 
 ;-----------------------------------------------------------------------------
-; write__end_of_buffer
+; write_end_of_buffer
 ;
 ; * c=0: failure; sets errno
 ;-----------------------------------------------------------------------------
-write__end_of_buffer:
+write_end_of_buffer:
 	; Is this the first cluster?
 	lda cur_context + context::file_size + 0
 	ora cur_context + context::file_size + 1
@@ -3645,7 +3645,7 @@ fat32_write_byte:
 
 	; Handle end of buffer condition
 	pha
-	jsr write__end_of_buffer
+	jsr write_end_of_buffer
 	pla
 	bcs @write_byte
 	rts
@@ -3705,7 +3705,7 @@ fat32_write:
 	bne @nonzero
 
 	; Handle end of buffer condition
-	jsr write__end_of_buffer
+	jsr write_end_of_buffer
 	bcs @1
 	rts
 @1:	lda #2

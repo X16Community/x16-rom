@@ -227,7 +227,7 @@ detect_machine_type:
 	bne @1
 	clc
 @1:
-	rol machine_type ; 24 bit flat memory model
+	rol machine_type ; 24 bit memory model
 	pla
 	sta $000002
 	pla

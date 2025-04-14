@@ -326,7 +326,6 @@ file_read_block_long:
 ;       c         =1: error
 ;---------------------------------------------------------------
 file_write_block_long:
-	sep #$30 ; 8-bit mem/idx
 .A8
 .I8
 	lda r0L
