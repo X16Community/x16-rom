@@ -41,7 +41,7 @@ hbload:
 	bne @1
 	lda #ERROR_MACHINE_TYPE
 	sec
-	rep #$30
+	rep #$30 ; affects only the return
 	rts
 @1:
 	stz r1H
@@ -145,7 +145,7 @@ hbl_end:
 	jsr prnto24
 
 	lda #0
-	rep #$31          ;mx=0, clc
+	rep #$31          ;mx=0, clc, affects only the return
 	rts
 
 hbl_verify_byte:      ;verify
