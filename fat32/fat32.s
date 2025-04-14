@@ -3178,10 +3178,16 @@ fat32_read_long_again:
 @6:
 	; Check if done
 	lda fat32_size
-	beq fat32_read_long_done_sec
+	beq fat32_read_long_check_eof
 	jmp fat32_read_long_again; Not done yet
 
-fat32_read_long_done_sec:
+fat32_read_long_check_eof:
+	; Check for EOF
+	sub32 tmp_buf, cur_context + context::file_size, cur_context + context::file_offset
+	clc
+	lda tmp_buf + 0
+	ora tmp_buf + 2
+	beq fat32_read_long_done
 	sec
 fat32_read_long_done:
 	php

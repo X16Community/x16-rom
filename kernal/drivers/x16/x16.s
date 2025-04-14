@@ -210,7 +210,7 @@ detect_machine_type:
 	stz machine_type
 	set_carry_if_65c816
 	bcc @c02
-	rol machine_type ; 65816
+	rol machine_type ; 65C816 CPU
 .pushcpu
 .setcpu "65816"
 .A8

@@ -93,7 +93,7 @@ hbl_blockloop:
 	bne @2
 	inc r1
 @2:
-	adc r0
+	adc r0            ;carry is already clear
 	sta r0
 	bcc @3
 	inc r1
