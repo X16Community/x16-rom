@@ -53,7 +53,7 @@ hbload:
 	sta sa
 	ldx r0L
 	ldy r0H
-	lda #0
+	lda verck
 	jsr nload
 	stx r0L
 	sty r0H
