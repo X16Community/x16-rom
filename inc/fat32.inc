@@ -46,3 +46,6 @@ sdcard_check_alive      = $C06C
 sdcard_set_fast_mode    = $C06F
 
 fat32_get_size          = $C072
+
+fat32_read_long         = $C075
+fat32_write_long        = $C078

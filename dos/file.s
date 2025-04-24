@@ -6,6 +6,7 @@
 .include "macros.inc"
 .include "../fat32/regs.inc"
 .include "file.inc"
+.include "regs.inc"
 
 ; cmdch.s
 .import set_status, add_decimal
@@ -245,6 +246,139 @@ file_read:
 	sec
 	rts
 
+.pushcpu
+.setcpu "65816"
+;---------------------------------------------------------------
+; file_read_block_long (65C816-only, e=0)
+;
+; Read up to 65536 bytes from the current context. The
+; implementation is free to return any number of bytes,
+;
+; In:   r0-r1L  24-bit pointer to destination
+;       r2      number of bytes to read
+;               =0: 65536 bytes
+;       c       =0: regular load into memory
+;               =1: stream load into single address (e.g. VERA_data0)
+;                   (only has this effect if the bank byte (r1L) is 0)
+; Out:  r2      number of bytes read
+;       c       =1: error or EOF (no bytes received)
+;---------------------------------------------------------------
+file_read_block_long:
+	rep #$30 ; 16-bit mem/idx
+.A16
+.I16
+	lda r0
+	sta fat32_ptr
+
+	lda r2
+	sta fat32_size
+
+	sep #$30 ; 8-bit mem/idx
+.A8
+.I8
+	lda r1L
+	; Read
+	fat32_call fat32_read_long
+	bcc @eoi_or_error
+
+	clc
+@end:
+	php
+	rep #$30 ; 16-bit mem/idx
+.A16
+.I16
+	lda fat32_size
+	sta r2
+	plp
+.A8
+.I8
+	rts
+
+@eoi_or_error:
+	lda fat32_errno
+	beq @eoi
+
+; EOF or error, no data received
+	jsr set_errno_status
+	stz r2L
+	stz r2H
+	sec
+	rts
+
+@eoi:	sec
+	bra @end
+
+
+;---------------------------------------------------------------
+; file_write_block_long (65C816-only, e=0)
+;
+; Write up to 65536 bytes to the current context. The
+; implementation is free to write any number of bytes,
+; optimizing for speed and simplicity.
+;
+; In:   r0L-r1L   24-bit pointer to data
+;       r2        number of bytes to write
+;                 =0: up to 65536
+;       c         =0: regular save from memory
+;                 =1: stream from single address (e.g. VERA_data0)
+;                     (only has an effect if the bank byte (r1L) 0)
+; Out:  r2        number of bytes written
+;       c         =1: error
+;---------------------------------------------------------------
+file_write_block_long:
+.A8
+.I8
+	lda r0L
+	sta fat32_ptr
+	lda r0H
+	sta fat32_ptr + 1
+
+	bit cur_mode
+	bpl @not_present
+
+	lda r2L
+	sta fat32_size
+	lda r2H
+	sta fat32_size+1
+
+	lda r1L
+	; Write
+	fat32_call fat32_write_long
+
+	bcc @error
+
+	clc
+@end:
+	; restore preserved requested size
+	; and calculate how much was written
+	; so that it can be returned to the caller
+	php
+	rep #$30 ; 16 bit acc/idx
+.A16
+.I16
+	sec
+	lda r2
+	sbc fat32_size
+	sta r2
+	plp ; return to 8 bit acc/idx, and propagate prior carry status
+.A8
+.I8
+	rts
+
+@error:
+	sec
+	lda fat32_errno
+	beq @end
+
+	jsr set_errno_status
+@not_present:
+	sec
+	bra @end
+
+.A8
+.I8
+.popcpu
+
 ;---------------------------------------------------------------
 ; file_read_block
 ;
@@ -347,7 +481,7 @@ file_write_block:
 @1:	sta fat32_size + 0
 	stz fat32_size + 1
 
-	
+
 @2:	; preserve requested size
 	lda fat32_size + 1
 	pha

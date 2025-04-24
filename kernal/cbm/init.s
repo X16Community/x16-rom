@@ -8,7 +8,7 @@
 
 .feature labels_without_colons
 
-.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init, detect_65c816
+.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init, detect_machine_type
 .include "65c816.inc"
 
 .export start
@@ -29,16 +29,17 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 	sei
 	txs
 
-	jsr ioinit           ;go initilize i/o devices
-	jsr ramtas           ;go ram test and set
-	jsr restor           ;go set up os vectors
-	jsr i2c_restore      ;release I2C pins and clear mutex flag
+	jsr ioinit               ;go initilize i/o devices
+	jsr ramtas               ;go ram test and set
+	jsr restor               ;go set up os vectors
+	jsr i2c_restore          ;release I2C pins and clear mutex flag
 	jsr ps2data_init
 ;
-	jsr cint             ;go initilize screen
-	jsr call_audio_init  ;initialize audio API and HW.
-	jsr boot_cartridge   ;if a cart ROM in bank 32, jump into its start location
-	cli                  ;interrupts okay now
+	jsr cint                 ;go initilize screen
+	jsr call_audio_init      ;initialize audio API and HW.
+	jsr detect_machine_type  ;populate machine type byte
+	jsr boot_cartridge       ;if a cart ROM in bank 32, jump into its start location
+	cli                      ;interrupts okay now
 
 	sec
 	jmp enter_basic

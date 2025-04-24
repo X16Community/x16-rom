@@ -33,6 +33,10 @@ talk  = $ffb4
 tksa  = $ff96
 unlsn = $ffae
 untlk = $ffab
+
+; for xmacptr, etc
+extapi16 = $fea8
+
 .import scatn
 .import tkatn
 
@@ -91,6 +95,7 @@ untlk = $ffab
 ; misc x16 additions
 .export clear_status
 .export extapi_getlfs
+.export hbload
 
 
 .segment "ZPCHANNEL" : zeropage
