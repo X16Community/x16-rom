@@ -9,6 +9,7 @@
 .include "banks.inc"
 .include "audio.inc"
 .include "65c816.inc"
+.include "machine.inc"
 
 .export ioinit
 .export iokeys
@@ -18,6 +19,7 @@
 .export boot_cartridge
 .export has_machine_prop
 .export detect_machine_props
+.export get_last_816_bank
 
 .import ps2_init
 .import serial_init
@@ -35,6 +37,8 @@ MODIFIER_SHIFT = 1
 .segment "KVARSB0"
 machine_props:
 	.res 2 ; only using one for now, but reserving a byte for the future
+last_816_bank:
+	.res 1
 
 .segment "MACHINE"
 
@@ -215,8 +219,11 @@ has_machine_prop:
 
 detect_machine_props:
 	KVARS_START_TRASH_X_NZ
+	php
+	sei
 	stz machine_props
 	stz machine_props+1
+	stz last_816_bank
 	set_carry_if_65c816
 	bcc @c02
 	ror machine_props ; 65C816 CPU
@@ -244,7 +251,6 @@ detect_machine_props:
 
 	lsr machine_props ; GS I/O detection NYI
 	lsr machine_props ; Shared bank detection NYI
-.popcpu
 @c02:
 
 	ldx #1
@@ -277,6 +283,46 @@ detect_machine_props:
 	lsr machine_props
 	lsr machine_props
 
+	; Count the number of usable 816 24-bit banks.
+	; For now, we assume none of them has a mirror
+	; in another data bank, but this may change
+	ldx #MACHINE_PROP_24BIT
+	jsr has_machine_prop
+	bcc @end
+
+	ldx #1 ; First databank
+	phb
+@4:
+	phx
+	plb
+	lda a:$0002
+	eor #$ff
+	sta a:$0002
+	cmp a:$0002
+	bne @5
+	eor #$ff
+	sta a:$0002
+	inx
+	bne @4
+@5:
+	plb
+	dex
+	stx last_816_bank
+
 @end:
+	plp
 	KVARS_END_TRASH_X_NZ
 	rts
+
+get_last_816_bank:
+	sep #$30
+.A8
+.I8
+	KVARS_START_TRASH_X_NZ
+	lda #0
+	xba
+	lda last_816_bank
+	KVARS_END_TRASH_X_NZ
+	rep #$30
+	rts
+.popcpu
