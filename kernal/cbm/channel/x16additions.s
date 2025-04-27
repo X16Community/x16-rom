@@ -2,7 +2,7 @@
 .include "regs.inc"
 .include "machine.inc"
 
-.import get_machine_type
+.import has_machine_prop
 
 clear_status:
 	stz status
@@ -16,9 +16,6 @@ extapi_getlfs:
 
 .pushcpu
 .setcpu "65816"
-
-; XLOAD
-
 
 ; HBLOAD
 ; inputs
@@ -36,10 +33,10 @@ hbload:
 .A8
 .I8
 	stx verck
-	jsr get_machine_type
-	bit #MACHINE_TYPE_24BIT
-	bne @1
-	lda #ERROR_MACHINE_TYPE
+	ldx #MACHINE_PROP_24BIT
+	jsr has_machine_prop
+	bcs @1
+	lda #ERROR_MACHINE_PROP
 	sec
 	rep #$30 ; affects only the return
 	rts

@@ -1,19 +1,18 @@
 ; Error return value for kernal calls which indicate
-; the machine does not have the necessary capabilities
-ERROR_MACHINE_TYPE = 40
+; the machine does not have the necessary capability
+ERROR_MACHINE_PROP = 40
 
-; Machine has detected a 65C816 processor
-MACHINE_TYPE_C816       = %10000000
-; Machine has 24-bit memory model and separate memory at >= $010000
-MACHINE_TYPE_24BIT      = %01000000
-; Machine has GS I/O semantics in $9F5x
-MACHINE_TYPE_GSIO       = %00100000
+; 65C816 processor detected
+MACHINE_PROP_C816       = 0
+; 24-bit memory model and separate memory at >= $010000
+MACHINE_PROP_24BIT      = 1
+; GS I/O semantics in $9F5x
+MACHINE_PROP_GSIO       = 2
 
-; Machine has 24-bit memory shared with banked
-; memory
-MACHINE_TYPE_SHAREDBANK = %00010000
+; 24-bit memory shared with banked memory
+MACHINE_PROP_SHAREDBANK = 3
 
-; Machine has looping X16 bank semantics
+; Looping X16 bank semantics
 ; after the first 512K such that
 ; RAM bank $40 = RAM bank $00
-MACHINE_TYPE_BANKMIRROR = %00001000
+MACHINE_PROP_BANKMIRROR = 4

@@ -16,8 +16,8 @@
 .export vera_wait_ready
 .export call_audio_init
 .export boot_cartridge
-.export get_machine_type
-.export detect_machine_type
+.export has_machine_prop
+.export detect_machine_props
 
 .import ps2_init
 .import serial_init
@@ -33,8 +33,8 @@
 MODIFIER_SHIFT = 1
 
 .segment "KVARSB0"
-machine_type:
-	.res 1
+machine_props:
+	.res 2 ; only using one for now, but reserving a byte for the future
 
 .segment "MACHINE"
 
@@ -198,19 +198,28 @@ boot_cartridge:
 @signature:
 	.byte "CX16"
 
+; Inputs: .X = machine capability query
+; .X = any of the values from machine.inc that begin with MACHINE_PROP_
+; Outputs: carry set if capability exists
+has_machine_prop:
+	KVARS_START_TRASH_A_NZ
+	lda machine_props
+	; while the capabilities fit in 8 bits, this routine is simple
+@1:
+	lsr
+	dex
+	bpl @1
 
-get_machine_type:
-	KVARS_START_TRASH_X_NZ
-	lda machine_type
-	KVARS_END_TRASH_X_NZ
+	KVARS_END_TRASH_A_NZ
 	rts
 
-detect_machine_type:
+detect_machine_props:
 	KVARS_START_TRASH_X_NZ
-	stz machine_type
+	stz machine_props
+	stz machine_props+1
 	set_carry_if_65c816
 	bcc @c02
-	rol machine_type ; 65C816 CPU
+	ror machine_props ; 65C816 CPU
 .pushcpu
 .setcpu "65816"
 .A8
@@ -227,15 +236,16 @@ detect_machine_type:
 	bne @1
 	clc
 @1:
-	rol machine_type ; 24 bit memory model
+	ror machine_props ; 24 bit memory model
 	pla
 	sta $000002
 	pla
 	sta $010002
 
-	asl machine_type ; GS I/O detection NYI
+	lsr machine_props ; GS I/O detection NYI
+	lsr machine_props ; Shared bank detection NYI
+.popcpu
 @c02:
-	asl machine_type ; Shared bank detection NYI
 
 	ldx #1
 	sta ram_bank
@@ -261,14 +271,12 @@ detect_machine_type:
 	pla
 	sta $A000
 	stz ram_bank
-	rol machine_type ; if set, banked RAM is mirrored at bank 64
+	ror machine_props ; if set, banked RAM is mirrored at bank 64
 
-	asl machine_type
-	asl machine_type
-	asl machine_type ; 3 reserved feature bits
+	lsr machine_props ; 3 reserved bits
+	lsr machine_props
+	lsr machine_props
 
-.popcpu
 @end:
-	lda machine_type
 	KVARS_END_TRASH_X_NZ
 	rts

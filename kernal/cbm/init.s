@@ -8,7 +8,7 @@
 
 .feature labels_without_colons
 
-.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init, detect_machine_type
+.import cint, ramtas, ioinit, enter_basic, restor, vera_wait_ready, call_audio_init, boot_cartridge, i2c_restore, ps2data_init, detect_machine_props
 .include "65c816.inc"
 
 .export start
@@ -37,7 +37,7 @@ start	; Let diagnostic bank handle diagnostic boot if needed
 ;
 	jsr cint                 ;go initilize screen
 	jsr call_audio_init      ;initialize audio API and HW.
-	jsr detect_machine_type  ;populate machine type byte
+	jsr detect_machine_props ;detect machine capabilities/properties and store result internally
 	jsr boot_cartridge       ;if a cart ROM in bank 32, jump into its start location
 	cli                      ;interrupts okay now
 
