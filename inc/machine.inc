@@ -5,7 +5,7 @@ ERROR_MACHINE_PROP = 40
 ; 65C816 processor detected
 MACHINE_PROP_C816       = 0
 ; 24-bit memory model and separate memory at >= $010000
-MACHINE_PROP_24BIT      = 1
+MACHINE_PROP_FAR        = 1
 ; GS I/O semantics in $9F5x
 MACHINE_PROP_GSIO       = 2
 

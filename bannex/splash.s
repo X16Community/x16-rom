@@ -188,7 +188,7 @@ iniend:
 	stz VERA_CTRL
 	plp
 
-	ldx #MACHINE_PROP_24BIT
+	ldx #MACHINE_PROP_FAR
 	lda #18
 	jsr extapi
 	bcc no816
@@ -369,7 +369,11 @@ badvera:
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
 
 msg816banks:
-	.byte "K 65C816 FAR RAM",0
+	.byte "K RAM IN FAR BANKS",0
 
+; This will overwrite the git commit hash
+; on small screens, but it's arguably more relevant.
+;
+; The user can still run HELP to show the commit hash
 small_msg816banks:
 	.byte "K FAR  ",0

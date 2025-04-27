@@ -33,7 +33,7 @@ hbload:
 .A8
 .I8
 	stx verck
-	ldx #MACHINE_PROP_24BIT
+	ldx #MACHINE_PROP_FAR
 	jsr has_machine_prop
 	bcs @1
 	lda #ERROR_MACHINE_PROP
