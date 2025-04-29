@@ -2,7 +2,7 @@
 .include "regs.inc"
 .include "machine.inc"
 
-.import has_machine_prop
+.import has_machine_property
 
 clear_status:
 	stz status
@@ -33,10 +33,10 @@ hbload:
 .A8
 .I8
 	stx verck
-	ldx #MACHINE_PROP_FAR
-	jsr has_machine_prop
+	ldx #MACHINE_PROPERTY_FAR
+	jsr has_machine_property
 	bcs @1
-	lda #ERROR_MACHINE_PROP
+	lda #ERROR_MACHINE_PROPERTY
 	sec
 	rep #$30 ; affects only the return
 	rts

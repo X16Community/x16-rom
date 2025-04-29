@@ -188,8 +188,8 @@ iniend:
 	stz VERA_CTRL
 	plp
 
-	ldx #MACHINE_PROP_FAR
-	lda #18
+	ldx #MACHINE_PROPERTY_FAR
+	lda #17
 	jsr extapi
 	bcc no816
 

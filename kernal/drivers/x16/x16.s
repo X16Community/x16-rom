@@ -17,8 +17,8 @@
 .export vera_wait_ready
 .export call_audio_init
 .export boot_cartridge
-.export has_machine_prop
-.export detect_machine_props
+.export has_machine_property
+.export detect_machine_properties
 .export get_last_far_bank
 
 .import ps2_init
@@ -35,7 +35,7 @@
 MODIFIER_SHIFT = 1
 
 .segment "KVARSB0"
-machine_props:
+machine_properties:
 	.res 2 ; only using one for now, but reserving a byte for the future
 last_far_bank:
 	.res 1
@@ -203,11 +203,11 @@ boot_cartridge:
 	.byte "CX16"
 
 ; Inputs: .X = machine capability query
-; .X = any of the values from machine.inc that begin with MACHINE_PROP_
+; .X = any of the values from machine.inc that begin with MACHINE_PROPERTY_
 ; Outputs: carry set if capability exists
-has_machine_prop:
+has_machine_property:
 	KVARS_START_TRASH_A_NZ
-	lda machine_props
+	lda machine_properties
 	; while the capabilities fit in 8 bits, this routine is simple
 @1:
 	lsr
@@ -217,16 +217,16 @@ has_machine_prop:
 	KVARS_END_TRASH_A_NZ
 	rts
 
-detect_machine_props:
+detect_machine_properties:
 	KVARS_START_TRASH_X_NZ
 	php
 	sei
-	stz machine_props
-	stz machine_props+1
+	stz machine_properties
+	stz machine_properties+1
 	stz last_far_bank
 	set_carry_if_65c816
 	bcc @c02
-	ror machine_props ; 65C816 CPU
+	ror machine_properties ; 65C816 CPU
 .pushcpu
 .setcpu "65816"
 .A8
@@ -243,14 +243,14 @@ detect_machine_props:
 	bne @1
 	clc
 @1:
-	ror machine_props ; 24 bit memory model
+	ror machine_properties ; 24 bit memory model
 	pla
 	sta $000002
 	pla
 	sta $010002
 
-	lsr machine_props ; GS I/O detection NYI
-	lsr machine_props ; Shared bank detection NYI
+	lsr machine_properties ; GS I/O detection NYI
+	lsr machine_properties ; Shared bank detection NYI
 @c02:
 
 	ldx #1
@@ -277,17 +277,17 @@ detect_machine_props:
 	pla
 	sta $A000
 	stz ram_bank
-	ror machine_props ; if set, banked RAM is mirrored at bank 64
+	ror machine_properties ; if set, banked RAM is mirrored at bank 64
 
-	lsr machine_props ; 3 reserved bits
-	lsr machine_props
-	lsr machine_props
+	lsr machine_properties ; 3 reserved bits
+	lsr machine_properties
+	lsr machine_properties
 
 	; Count the number of usable C816 far banks.
 	; For now, we assume none of them has a mirror
 	; in another data bank, but this may change
-	ldx #MACHINE_PROP_FAR
-	jsr has_machine_prop
+	ldx #MACHINE_PROPERTY_FAR
+	jsr has_machine_property
 	bcc @end
 
 	ldx #1 ; First databank
