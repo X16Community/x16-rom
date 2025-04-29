@@ -278,7 +278,7 @@ erfrq	=38
 err39	.byt "PA", 'N'+$80
 erpan	=39
 err40	.byt "MACHINE CAPABILIT", 'Y'+$80
-errmt	=40
+errmc	=40
 
 forsiz	=$12
 fndfor	tsx
