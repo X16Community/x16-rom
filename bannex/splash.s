@@ -6,6 +6,7 @@ fbuffr= $0100
 
 .include "kernal.inc"
 .include "io.inc"
+.include "machine.inc"
 
 plot = $fff0
 
@@ -187,7 +188,68 @@ iniend:
 	stz VERA_CTRL
 	plp
 
+	ldx #MACHINE_PROPERTY_FAR
+	lda #17
+	jsr extapi
+	bcc no816
 
+.pushcpu
+.setcpu "65816"
+	sec
+	jsr plot
+	phx
+	phy
+
+	ldy #8
+	ldx #4
+	clc
+	jsr plot
+
+	php
+	sei
+	clc
+	xce
+	php
+
+	rep #$30
+.A16
+.I16
+	lda #8
+	jsr extapi16
+
+	plp
+.A8
+.I8
+	xce
+	plp
+
+.popcpu
+	stz facho
+	lsr
+	ror facho
+	lsr
+	ror facho
+	ldx facho
+	jsr numout
+
+	jsr screen
+	cpx #40
+	bcc small816msg
+
+	lda #<msg816banks
+	ldy #>msg816banks
+	bra do_816_msg
+small816msg:
+	lda #<small_msg816banks
+	ldy #>small_msg816banks
+do_816_msg:
+	jsr strout
+
+	ply
+	plx
+	clc
+	jsr plot
+no816:
 	rts
 .endproc
 
@@ -305,3 +367,13 @@ badvera:
 	.byte "VERSION 0.3.2.",13
 	.byte "RELEASES: HTTPS://GITHUB.COM/X16COMMUNITY/VERA-MODULE/RELEASES/",13
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
+
+msg816banks:
+	.byte "K RAM IN FAR BANKS",0
+
+; This will overwrite the git commit hash
+; on small screens, but it's arguably more relevant.
+;
+; The user can still run HELP to show the commit hash
+small_msg816banks:
+	.byte "K FAR  ",0

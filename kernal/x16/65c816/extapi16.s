@@ -5,6 +5,7 @@
 .import stack_push, stack_pop
 .import stack_enter_kernal_stack, stack_leave_kernal_stack
 .import xmacptr, xmciout, hbload
+.import get_last_far_bank
 
 .export extapi16
 
@@ -48,6 +49,7 @@ apitbl:
 	.word xmacptr-1                    ; API 5 (x=0 or x=1, returns with m=0,x=0)
 	.word xmciout-1                    ; API 6 (x=0 or x=1, returns with m=0,x=0)
 	.word hbload-1                     ; API 7 (x=0 or x=1, returns with m=0,x=0)
+	.word get_last_far_bank-1          ; API 8 (x=0 or x=1, returns with m=0,x=0)
 
 
 addition_test: ; add .X to .Y, no carry, return in .C, used in the jsrfar unit tests

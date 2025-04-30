@@ -28,10 +28,10 @@
 .export error
 .export fcerr
 .export snerr
-.export mterr
+.export mcerr
 errsn=11
 errfc=14
-errmt=40
+errmc=40
 
 .import basic_frefac
 .export frefac
@@ -157,8 +157,8 @@ linprt:
 	.byte BANK_BASIC
 	rts
 
-mterr:
-	ldx #errmt
+mcerr:
+	ldx #errmc
 	jmp error
 
 nsnerr6:

@@ -6,7 +6,7 @@
 .import bajsrfar
 
 .import snerr
-.import mterr
+.import mcerr
 .import plsvbin
 .import erexit
 .importzp poker, andmsk
@@ -23,7 +23,7 @@
     jsr plsvbin
     bcs gosnerr ; HBLOAD "FN",8 or HBLOAD "FN",8,1 is not valid
     set_carry_if_65c816
-    bcc gomterr
+    bcc gomcerr
     lda poker
     sta r0L
     lda poker+1
@@ -55,8 +55,8 @@ loadok:
     rts
 gosnerr:
     jmp snerr
-gomterr:
-    jmp mterr
+gomcerr:
+    jmp mcerr
 .endproc
 
 .popcpu

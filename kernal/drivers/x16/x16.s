@@ -9,6 +9,7 @@
 .include "banks.inc"
 .include "audio.inc"
 .include "65c816.inc"
+.include "machine.inc"
 
 .export ioinit
 .export iokeys
@@ -16,8 +17,9 @@
 .export vera_wait_ready
 .export call_audio_init
 .export boot_cartridge
-.export get_machine_type
-.export detect_machine_type
+.export has_machine_property
+.export detect_machine_properties
+.export get_last_far_bank
 
 .import ps2_init
 .import serial_init
@@ -33,7 +35,9 @@
 MODIFIER_SHIFT = 1
 
 .segment "KVARSB0"
-machine_type:
+machine_properties:
+	.res 2 ; only using one for now, but reserving a byte for the future
+last_far_bank:
 	.res 1
 
 .segment "MACHINE"
@@ -198,19 +202,26 @@ boot_cartridge:
 @signature:
 	.byte "CX16"
 
+; Inputs: .X = machine capability query
+; .X = any of the values from machine.inc that begin with MACHINE_PROPERTY_
+; Outputs: carry set if capability exists
+has_machine_property:
+	KVARS_START_TRASH_A_NZ
+	lda machine_properties
+	; while the capabilities fit in 8 bits, this routine is simple
+@1:
+	lsr
+	dex
+	bpl @1
 
-get_machine_type:
-	KVARS_START_TRASH_X_NZ
-	lda machine_type
-	KVARS_END_TRASH_X_NZ
+	KVARS_END_TRASH_A_NZ
 	rts
 
-detect_machine_type:
+detect_machine_properties:
 	KVARS_START_TRASH_X_NZ
-	stz machine_type
 	set_carry_if_65c816
 	bcc @c02
-	rol machine_type ; 65C816 CPU
+	ror machine_properties ; 65C816 CPU
 .pushcpu
 .setcpu "65816"
 .A8
@@ -227,15 +238,15 @@ detect_machine_type:
 	bne @1
 	clc
 @1:
-	rol machine_type ; 24 bit memory model
+	ror machine_properties ; 24 bit memory model
 	pla
 	sta $000002
 	pla
 	sta $010002
 
-	asl machine_type ; GS I/O detection NYI
+	lsr machine_properties ; GS I/O detection NYI
+	lsr machine_properties ; Shared bank detection NYI
 @c02:
-	asl machine_type ; Shared bank detection NYI
 
 	ldx #1
 	sta ram_bank
@@ -261,14 +272,51 @@ detect_machine_type:
 	pla
 	sta $A000
 	stz ram_bank
-	rol machine_type ; if set, banked RAM is mirrored at bank 64
+	ror machine_properties ; if set, banked RAM is mirrored at bank 64
 
-	asl machine_type
-	asl machine_type
-	asl machine_type ; 3 reserved feature bits
+	lsr machine_properties ; 3 reserved bits
+	lsr machine_properties
+	lsr machine_properties
 
-.popcpu
+	; Count the number of usable C816 far banks.
+	; For now, we assume none of them has a mirror
+	; in another data bank, but this may change
+	ldx #MACHINE_PROPERTY_FAR
+	jsr has_machine_property
+	bcc @end
+
+	ldx #1 ; First databank
+	phb
+@4:
+	phx
+	plb
+	lda a:$0002
+	eor #$ff
+	sta a:$0002
+	cmp a:$0002
+	bne @5
+	eor #$ff
+	sta a:$0002
+	inx
+	bne @4
+@5:
+	plb
+	dex
+	stx last_far_bank
+
 @end:
-	lda machine_type
 	KVARS_END_TRASH_X_NZ
 	rts
+
+get_last_far_bank:
+	sep #$30
+.A8
+.I8
+	KVARS_START_TRASH_X_NZ
+	lda #0
+	xba
+	lda last_far_bank
+	KVARS_END_TRASH_X_NZ
+	rep #$30
+	rts
+.popcpu

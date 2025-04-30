@@ -14,6 +14,7 @@
 .import kbd_leds
 .import memory_decompress_internal
 .import default_palette
+.import has_machine_property
 
 .export extapi
 
@@ -61,3 +62,4 @@ apitbl:
 	.word kbd_leds-1                   ; API 14
 	.word memory_decompress_internal-1 ; API 15
 	.word default_palette-1            ; API 16
+	.word has_machine_property-1       ; API 17
