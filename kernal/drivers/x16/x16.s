@@ -219,11 +219,6 @@ has_machine_property:
 
 detect_machine_properties:
 	KVARS_START_TRASH_X_NZ
-	php
-	sei
-	stz machine_properties
-	stz machine_properties+1
-	stz last_far_bank
 	set_carry_if_65c816
 	bcc @c02
 	ror machine_properties ; 65C816 CPU
@@ -310,7 +305,6 @@ detect_machine_properties:
 	stx last_far_bank
 
 @end:
-	plp
 	KVARS_END_TRASH_X_NZ
 	rts
 
