@@ -2125,6 +2125,10 @@ create_lfn:
 	jsr encode_lfn_chars
 	bcc @name_done
 
+	; Is the next character zero-termination? If yes, stop here (length 13/26/39/...)
+	lda (fat32_ptr), y
+	beq @name_done
+
 	add16_val fat32_lfn_bufptr, fat32_lfn_bufptr, 32
 
 	inc lfn_index
