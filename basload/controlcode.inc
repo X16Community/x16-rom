@@ -62,7 +62,7 @@ loop:
     ; Get control code name length, 0 = end of list
     lda (TEMP1)
     beq exit
-    
+
     ; Get value
     tay
     iny
@@ -99,73 +99,73 @@ exit:
 
 codes:
     ; Length, name, value
-    .byt $0D, $7B, "swap colors", $7D, $01
-    .byt $0B, $7B, "page down", $7D, $02
-    .byt $06, $7B, "stop", $7D, $03
-    .byt $05, $7B, "end", $7D, $04
-    .byt $07, $7B, "white", $7D, $05
-    .byt $05, $7B, "wht", $7D, $05
-    .byt $06, $7B, "menu", $7D, $06
-    .byt $06, $7B, "bell", $7D, $07
-    .byt $14, $7B, "charset switch off", $7D, $08
-    .byt $05, $7B, "tab", $7D, $09
-    .byt $13, $7B, "charset switch on", $7D, $09
-    .byt $04, $7B, "lf", $7D, $0A
-    .byt $04, $7B, "cr", $7D, $0D
-    .byt $07, $7B, "lower", $7D, $0E
-    .byt $08, $7B, "iso on", $7D, $0F
-    .byt $04, $7B, "f9", $7D, $10
-    .byt $06, $7B, "down", $7D, $11
-    .byt $08, $7B, "rvs on", $7D, $12
-    .byt $06, $7B, "home", $7D, $13
-    .byt $0B, $7B, "backspace", $7D, $14
-    .byt $05, $7B, "f10", $7D, $15
-    .byt $05, $7B, "f11", $7D, $16
-    .byt $05, $7B, "f12", $7D, $17
-    .byt $0B, $7B, "shift tab", $7D, $18
-    .byt $05, $7B, "del", $7D, $19
-    .byt $05, $7B, "esc", $7D, $1B
-    .byt $05, $7B, "red", $7D, $1C
-    .byt $07, $7B, "right", $7D, $1D
-    .byt $07, $7B, "green", $7D, $1E
-    .byt $05, $7B, "grn", $7D, $1E
-    .byt $06, $7B, "blue", $7D, $1F
-    .byt $05, $7B, "blu", $7D, $1F
-    .byt $0A, $7B, "verbatim", $7D, $80
-    .byt $08, $7B, "orange", $7D, $81
-    .byt $05, $7B, "org", $7D, $81
-    .byt $09, $7B, "page up", $7D, $82
-    .byt $04, $7B, "f1", $7D, $85
-    .byt $04, $7B, "f3", $7D, $86
-    .byt $04, $7B, "f5", $7D, $87
-    .byt $04, $7B, "f7", $7D, $88
-    .byt $04, $7B, "f2", $7D, $89
-    .byt $04, $7B, "f4", $7D, $8A
-    .byt $04, $7B, "f6", $7D, $8B
-    .byt $04, $7B, "f8", $7D, $8C
-    .byt $0A, $7B, "shift cr", $7D, $8D
-    .byt $07, $7B, "upper", $7D, $8E
-    .byt $09, $7B, "iso off", $7D, $8F
-    .byt $07, $7B, "black", $7D, $90
-    .byt $05, $7B, "blk", $7D, $90
-    .byt $04, $7B, "up", $7D, $91
-    .byt $09, $7B, "rvs off", $7D, $92
-    .byt $07, $7B, "clear", $7D, $93
-    .byt $05, $7B, "clr", $7D, $93
-    .byt $08, $7B, "insert", $7D, $94
-    .byt $07, $7B, "brown", $7D, $95
-    .byt $0B, $7B, "light red", $7D, $96
-    .byt $08, $7B, "grey 3", $7D, $97
-    .byt $08, $7B, "grey 2", $7D, $98
-    .byt $0D, $7B, "light green", $7D, $99
-    .byt $0C, $7B, "light blue", $7D, $9A
-    .byt $08, $7B, "grey 1", $7D, $9B
-    .byt $08, $7B, "purple", $7D, $9C
-    .byt $05, $7B, "pur", $7D, $9C
-    .byt $06, $7B, "left", $7D, $9D
-    .byt $08, $7B, "yellow", $7D, $9E
-    .byt $05, $7B, "yel", $7D, $9E
-    .byt $06, $7B, "cyan", $7D, $9F
-    .byt $05, $7B, "cyn", $7D, $9F
+    .byt $0D, $7B, "SWAP COLORS", $7D, $01
+    .byt $0B, $7B, "PAGE DOWN", $7D, $02
+    .byt $06, $7B, "STOP", $7D, $03
+    .byt $05, $7B, "END", $7D, $04
+    .byt $07, $7B, "WHITE", $7D, $05
+    .byt $05, $7B, "WHT", $7D, $05
+    .byt $06, $7B, "MENU", $7D, $06
+    .byt $06, $7B, "BELL", $7D, $07
+    .byt $14, $7B, "CHARSET SWITCH OFF", $7D, $08
+    .byt $05, $7B, "TAB", $7D, $09
+    .byt $13, $7B, "CHARSET SWITCH ON", $7D, $09
+    .byt $04, $7B, "LF", $7D, $0A
+    .byt $04, $7B, "CR", $7D, $0D
+    .byt $07, $7B, "LOWER", $7D, $0E
+    .byt $08, $7B, "ISO ON", $7D, $0F
+    .byt $04, $7B, "F9", $7D, $10
+    .byt $06, $7B, "DOWN", $7D, $11
+    .byt $08, $7B, "RVS ON", $7D, $12
+    .byt $06, $7B, "HOME", $7D, $13
+    .byt $0B, $7B, "BACKSPACE", $7D, $14
+    .byt $05, $7B, "F10", $7D, $15
+    .byt $05, $7B, "F11", $7D, $16
+    .byt $05, $7B, "F12", $7D, $17
+    .byt $0B, $7B, "SHIFT TAB", $7D, $18
+    .byt $05, $7B, "DEL", $7D, $19
+    .byt $05, $7B, "ESC", $7D, $1B
+    .byt $05, $7B, "RED", $7D, $1C
+    .byt $07, $7B, "RIGHT", $7D, $1D
+    .byt $07, $7B, "GREEN", $7D, $1E
+    .byt $05, $7B, "GRN", $7D, $1E
+    .byt $06, $7B, "BLUE", $7D, $1F
+    .byt $05, $7B, "BLU", $7D, $1F
+    .byt $0A, $7B, "VERBATIM", $7D, $80
+    .byt $08, $7B, "ORANGE", $7D, $81
+    .byt $05, $7B, "ORG", $7D, $81
+    .byt $09, $7B, "PAGE UP", $7D, $82
+    .byt $04, $7B, "F1", $7D, $85
+    .byt $04, $7B, "F3", $7D, $86
+    .byt $04, $7B, "F5", $7D, $87
+    .byt $04, $7B, "F7", $7D, $88
+    .byt $04, $7B, "F2", $7D, $89
+    .byt $04, $7B, "F4", $7D, $8A
+    .byt $04, $7B, "F6", $7D, $8B
+    .byt $04, $7B, "F8", $7D, $8C
+    .byt $0A, $7B, "SHIFT CR", $7D, $8D
+    .byt $07, $7B, "UPPER", $7D, $8E
+    .byt $09, $7B, "ISO OFF", $7D, $8F
+    .byt $07, $7B, "BLACK", $7D, $90
+    .byt $05, $7B, "BLK", $7D, $90
+    .byt $04, $7B, "UP", $7D, $91
+    .byt $09, $7B, "RVS OFF", $7D, $92
+    .byt $07, $7B, "CLEAR", $7D, $93
+    .byt $05, $7B, "CLR", $7D, $93
+    .byt $08, $7B, "INSERT", $7D, $94
+    .byt $07, $7B, "BROWN", $7D, $95
+    .byt $0B, $7B, "LIGHT RED", $7D, $96
+    .byt $08, $7B, "GREY 3", $7D, $97
+    .byt $08, $7B, "GREY 2", $7D, $98
+    .byt $0D, $7B, "LIGHT GREEN", $7D, $99
+    .byt $0C, $7B, "LIGHT BLUE", $7D, $9A
+    .byt $08, $7B, "GREY 1", $7D, $9B
+    .byt $08, $7B, "PURPLE", $7D, $9C
+    .byt $05, $7B, "PUR", $7D, $9C
+    .byt $06, $7B, "LEFT", $7D, $9D
+    .byt $08, $7B, "YELLOW", $7D, $9E
+    .byt $05, $7B, "YEL", $7D, $9E
+    .byt $06, $7B, "CYAN", $7D, $9F
+    .byt $05, $7B, "CYN", $7D, $9F
     .byt 0
 .endproc

@@ -42,24 +42,32 @@ RESPONSE_INVALID_CONTROLCODE    = 12
 RESPONSE_INVALID_SYMFILE        = 13
 RESPONSE_SYMFILE_IO_ERR         = 14
 RESPONSE_NO_FILENAME            = 15
+RESPONSE_BASIC_RAM_FULL         = 16
+RESPONSE_SYMBOL_NOT_IN_SCOPE    = 17
+RESPONSE_TOO_MANY_NESTED_IFS    = 18
+RESPONSE_ENDIF_WITHOUT_IF       = 19
 
 ; Response messages
-msg_ok: .byt "success", 0
-msg_line_too_long: .byt "line too long in ", 0
-msg_symbol_too_long: .byt "symbol too long in ", 0
-msg_duplicate_symbol: .byt "duplicate symbol in ", 0
-msg_symtbl_full: .byt "symbol table full", 0
-msg_out_of_var_names: .byt "out of variable names", 0
-msg_missing_label: .byt "label not found in ", 0
-msg_label_not_allowed: .byt "unexpected label in ", 0
-msg_line_num_overflow: .byt "line number overflow in ",0
-msg_option_unknown: .byt "unknown option in ", 0
-msg_file_error: .byt "file error in ",0
-msg_invalid_param: .byt "invalid parameter in ", 0
-msg_invalid_controlcode: .byt "invalid control code in ",0
-msg_invalid_symfile: .byt "symfile not allowed in ", 0
-msg_symfile_io_err: .byt "couldn not open symfile in ", 0
-msg_no_filename: .byt "filename not specified ", 0
+msg_ok: .byt "SUCCESS", 0
+msg_line_too_long: .byt "LINE TOO LONG IN ", 0
+msg_symbol_too_long: .byt "SYMBOL TOO LONG IN ", 0
+msg_duplicate_symbol: .byt "DUPLICATE SYMBOL IN ", 0
+msg_symtbl_full: .byt "SYMBOL TABLE FULL", 0
+msg_out_of_var_names: .byt "OUT OF VARIABLE NAMES", 0
+msg_missing_label: .byt "LABEL NOT FOUND IN ", 0
+msg_label_not_allowed: .byt "UNEXPECTED LABEL IN ", 0
+msg_line_num_overflow: .byt "LINE NUMBER OVERFLOW IN ",0
+msg_option_unknown: .byt "UNKNOWN OPTION IN ", 0
+msg_file_error: .byt "FILE ERROR IN ",0
+msg_invalid_param: .byt "INVALID PARAMETER IN ", 0
+msg_invalid_controlcode: .byt "INVALID CONTROL CODE IN ",0
+msg_invalid_symfile: .byt "SYMFILE NOT ALLOWED IN ", 0
+msg_symfile_io_err: .byt "COULD NOT OPEN SYMFILE IN ", 0
+msg_no_filename: .byt "FILENAME NOT SPECIFIED ", 0
+msg_basic_ram_full: .byt "BASIC RAM FULL", 0
+msg_symbol_not_in_scope: .byt "SYMBOL NOT IN SCOPE IN ", 0
+msg_too_many_nested_ifs: .byt "TOO MANY NESTED IFS IN ", 0
+msg_endif_without_if: .byt "ENDIF WITHOUT IF IN ", 0
 
 ; Response message pointers
 msg_pointers:
@@ -78,6 +86,11 @@ msg_pointers:
     .word msg_invalid_controlcode
     .word msg_invalid_symfile
     .word msg_symfile_io_err
+    .word msg_symfile_io_err
+    .word msg_basic_ram_full
+    .word msg_symbol_not_in_scope
+    .word msg_too_many_nested_ifs
+    .word msg_endif_without_if
 
 ;******************************************************************************
 ;Function name: response_set

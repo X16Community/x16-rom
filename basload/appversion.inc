@@ -3,5 +3,5 @@
 .define appversion_patch  1
 
 .segment "SIGNATURE"
-    .byt "basload", appversion_major, appversion_minor, appversion_patch
+    .byt "BASLOAD", appversion_major, appversion_minor, appversion_patch
 .CODE

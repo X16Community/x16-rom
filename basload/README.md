@@ -42,7 +42,7 @@ instructions.
 
 All identifiers must begin with a letter, any of A to Z.
 
-The subsequent characters may be letters (A to Z), digits (0 to 9) or decimal points.
+The subsequent characters may be letters (A to Z), digits (0 to 9), underscores, or decimal points.
 
 An identifier may be at most 64 characters long.
 
@@ -126,6 +126,12 @@ The following options are supported:
 - \#CONTROLCODES 0|1 turns off (0) or on (1) support for named PETSCII control characters, for instance {WHITE} or {CLEAR}.
 - \#SYMFILE "filename" writes a symbol table for debugging purposes to the specified file name. Add @: before the file name if you want to overwrite an existing file. This option may only occur once in the source code, before any BASIC code has been outputted.
 
-## Running BASLOAD
+# Changelog
 
-TODO
+## Kernal R48 (September 6, 2024)
+- Underscore accepted in symbol names
+- SAVEAS option included, automatically saves the tokenized program to disk
+- BASLOAD emits trace headers used by the emulator for debugging
+
+## Kernal R47 (March 30, 2024)
+- BASLOAD included in the official ROM image for the first time

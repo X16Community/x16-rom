@@ -81,6 +81,8 @@ SYMBOLTYPE_VARIABLE     = 1
 SYMBOLTYPE_TOKEN        = 2
 SYMBOLTYPE_RESERVED_VAR = 3
 SYMBOLTYPE_CONTROL_CHAR = 4
+SYMBOLTYPE_LITERAL_PASS1 = 5
+SYMBOLTYPE_LITERAL_PASS2 = 6
 
 ; Variables
 .ZEROPAGE
@@ -124,7 +126,7 @@ SYMBOLTYPE_CONTROL_CHAR = 4
     sta symbol_next_addr+1
 
     ; Set next available variable name to "A"
-    lda #'a'
+    lda #'A'
     sta symbol_next_var
     lda #0
     sta symbol_next_var+1
@@ -146,27 +148,27 @@ SYMBOLTYPE_CONTROL_CHAR = 4
     jsr symbol_add
 
     ; Add reserved variables to the symbol table
-    lda #'s'
+    lda #'S'
     sta file_buf
-    lda #'t'
+    lda #'T'
     sta file_buf+1
     ldx #0
     ldy #1
     lda #SYMBOLTYPE_RESERVED_VAR
     jsr symbol_add
 
-    lda #'t'
+    lda #'T'
     sta file_buf
-    lda #'i'
+    lda #'I'
     sta file_buf+1
     ldx #0
     ldy #1
     lda #SYMBOLTYPE_RESERVED_VAR
     jsr symbol_add
     
-    lda #'d'
+    lda #'D'
     sta file_buf
-    lda #'a'
+    lda #'A'
     sta file_buf+1
     ldx #0
     ldy #1
@@ -190,6 +192,8 @@ PRINT_TOKEN:
 ;                   2: BASIC command/token
 ;                   3: Reserved variable, stored as type 1=variable
 ;                   4: PETSCII control char
+;                   5: Defined literal (pass 1)
+;                   6: Defined literal (pass 2)
 ;               C   1: Skip duplicate check
 ;Output.......: X/Y Symbol value (low/high byte)
 ;               A   0: OK
@@ -246,7 +250,7 @@ PRINT_TOKEN:
     cmp #SYMBOLTYPE_LABEL
     bne :+
     lda symbol_next_var
-    cmp #'z'+1
+    cmp #'Z'+1
     bcc :+
     lda #3
     rts
@@ -406,7 +410,7 @@ inc_var:
     beq :++
     
     ; The current variable name ends with a 'Z' => The next variable is a single char
-    cmp #'z'+1
+    cmp #'Z'+1
     bne chk_var
 
     inc symbol_next_var
@@ -417,7 +421,7 @@ inc_var:
     sta symbol_next_var+1
     bra chk_var
 
-:   lda #'a'
+:   lda #'A'
     sta symbol_next_var+1
 
 chk_var:
@@ -537,7 +541,9 @@ exit:
 ;                   2: BASIC token
 ;                   3: Reserved variable, stored as type 1=variable
 ;                   4: PETSCII control char
-;Error........: C=1 if label not found
+;                   5: Defined literal (pass 1)
+;                   6: Defined literal (pass 2)
+;Error........: C=1 if symbol not found
 .proc symbol_find
     ; Store input params
     stx index1
@@ -642,17 +648,48 @@ not_found:
 
 .endproc
 
+;******************************************************************************
+;Function name: symbol_update
+;Purpose......: Searches symbol table for a given symbol name
+;Input........: X   Index in file_buf where symbol starts
+;               Y   Index in file_buf where symbol ends
+;               A   New symbol type
+;               token_next_id new value
+.proc symbol_update
+    pha
+    jsr symbol_find
+    pla
+    bcs not_found
+
+found:
+    ldy #SYMBOL_TYPE
+    sta (symbol_pointer),y
+    ldy #SYMBOL_VALUE
+    lda token_next_id
+    sta (symbol_pointer),y
+    iny
+    lda token_next_id+1
+    sta (symbol_pointer),y
+
+    clc
+    rts
+
+not_found:
+    sec
+    rts
+.endproc
+
 SYMBOLTYPE_RESERVED_VARs:
-    .byt "da"
-    .byt "if"
-    .byt "fn"
-    .byt "go"
-    .byt "mx"
-    .byt "my"
-    .byt "mb"
-    .byt "on"
-    .byt "or"
-    .byt "st"
-    .byt "ti"
-    .byt "to"
+    .byt "DA"
+    .byt "IF"
+    .byt "FN"
+    .byt "GO"
+    .byt "MX"
+    .byt "MY"
+    .byt "MB"
+    .byt "ON"
+    .byt "OR"
+    .byt "ST"
+    .byt "TI"
+    .byt "TO"
 SYMBOLTYPE_RESERVED_VARs_end:

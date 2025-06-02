@@ -38,6 +38,7 @@
     file_srclin_L: .res 10      ;Source line counter bits 0..7 for file numbers 2-11
     file_srclin_M: .res 10      ;Source line counter bits 8..15 for file numbers 2-11
     file_srclin_H: .res 10      ;Source line counter bits 16..23 for file numbers 2-11
+    file_maxcol: .res 1         ;Max column count
 
 .segment "RAM1"
     file_name_tbl: .res 640    ;Array of open files names (first 63 characters of each file name, NULL terminated)
@@ -51,6 +52,10 @@
 ;Output.......: Nothing
 ;Errors.......: Nothing
 .proc file_init
+    ; Set max column count
+    lda #250
+    sta file_maxcol
+
     ; Set current file number = 1, i.e. one below the first file number we are using
     lda #1
     sta file_cur_num
@@ -145,6 +150,7 @@ loop:
     bridge_setaddr KERNAL_CHKIN
     ldx file_cur_num
     bridge_call
+    bcs err
 
     ; Return value, 0 = OK
     jsr file_set_status_as_response
@@ -279,7 +285,7 @@ loop:
 
     ;Check line length
 :   ldx index
-    cpx #250
+    cpx file_maxcol
     bcc :+
 
     lda #3
@@ -526,9 +532,9 @@ err:
 
     ldx file_err
     dex
-    lda file_ioerr_H,x
-    sta TEMP1
     lda file_ioerr_L,x
+    sta TEMP1
+    lda file_ioerr_H,x
     sta TEMP1+1
 
     stz RAM_SEL
@@ -577,20 +583,20 @@ file_ioerr_L:
 file_ioerr_H:
     .byt >file_ioerr_1, >file_ioerr_2, >file_ioerr_3, >file_ioerr_4, >file_ioerr_5, >file_ioerr_6, >file_ioerr_7, >file_ioerr_8, >file_ioerr_9
 file_ioerr_1:
-    .byt "too many open files", 0
+    .byt "TOO MANY OPEN FILES", 0
 file_ioerr_2:
-    .byt "file already open", 0
+    .byt "FILE ALREADY OPEN", 0
 file_ioerr_3:
-    .byt "file not open", 0
+    .byt "FILE NOT OPEN", 0
 file_ioerr_4:
-    .byt "file not found", 0
+    .byt "FILE NOT FOUND", 0
 file_ioerr_5:
-    .byt "device not present", 0
+    .byt "DEVICE NOT PRESENT", 0
 file_ioerr_6:
-    .byt "file is not an input file", 0
+    .byt "FILE IS NOT AN INPUT FILE", 0
 file_ioerr_7:
-    .byt "file is not an output file", 0
+    .byt "FILE IS NOT AN OUTPUT FILE", 0
 file_ioerr_8:
-    .byt "file name is missing", 0
+    .byt "FILE NAME IS MISSING", 0
 file_ioerr_9:
-    .byt "illegal device number", 0
+    .byt "ILLEGAL DEVICE NUMBER", 0
