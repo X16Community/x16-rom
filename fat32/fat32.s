@@ -3143,7 +3143,7 @@ fat32_read_long_again:
 	bpl @5
 	; Handle the edge case of the remaining bytes in the file being >= 2GiB
 	; Quick check, and if so, we're in no danger of the bytecnt exceeding
-	; the file's length.
+	; the remainder of the file's length.
 	lda tmp_buf + 2
 	bmi @5
 	set16 bytecnt, tmp_buf
@@ -3409,7 +3409,7 @@ fat32_read_again:
 	bpl @5
 	; Handle the edge case of the remaining bytes in the file being >= 2GiB
 	; Quick check, and if so, we're in no danger of the bytecnt exceeding
-	; the file's length.
+	; the remainder of the file's length.
 	lda tmp_buf + 3
 	bmi @5
 	set16 bytecnt, tmp_buf
