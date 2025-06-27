@@ -3142,7 +3142,7 @@ fat32_read_long_again:
 	sbc #0
 	bpl @5
 	lda tmp_buf + 2
-	bpl @5
+	bmi @5
 	set16 bytecnt, tmp_buf
 @5:
 	lda bytecnt
