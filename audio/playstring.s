@@ -3,7 +3,7 @@
 ; This file is for code dealing with the blocking note playback via
 ; string
 
-.setcpu "65c02"
+.setcpu "w65c02"
 
 .include "io.inc" ; for YM2151 addresses
 .include "kernal.inc" ; for checking the STOP key

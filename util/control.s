@@ -6,7 +6,7 @@
 ;by MooingLemur 2023
 ;x16e546@oomox.com
 
-.pc02
+.setcpu "w65c02"
 
 .macpack cbm
 
