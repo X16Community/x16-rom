@@ -131,21 +131,15 @@ tree_state:          .byte 0             ; Used by fat32_walk_tree /fat32_open_t
 context_idx:         .byte 0       ; Index of current context
 cur_context:         .tag context  ; Current file descriptor state
 contexts_inuse:      .res FAT32_CONTEXTS
-.if ::FAT32_VOLUMES > 1
 volume_for_context:  .res FAT32_CONTEXTS
-.endif
 
 ; Volumes
 volume_idx:          .byte 0       ; Index of current filesystem
 cur_volume:          .tag fs       ; Current file descriptor state
 
-.if FAT32_CONTEXTS > 1
 contexts:            .res CONTEXT_SIZE * FAT32_CONTEXTS
-.endif
 
-.if FAT32_VOLUMES > 1
 volumes:             .res FS_SIZE * FAT32_VOLUMES
-.endif
 
 ; self mod trampoline to support dynamic block copy ops
 fat32_mvn:
@@ -647,9 +641,7 @@ find_free_cluster:
 fat32_alloc_context:
 	stz fat32_errno
 
-.if FAT32_VOLUMES > 1
 	tay ; volume
-.endif
 	ldx #0
 @1:	lda contexts_inuse, x
 	beq @found_free
@@ -664,7 +656,6 @@ fat32_alloc_context:
 	lda #1
 	sta contexts_inuse, x
 
-.if FAT32_VOLUMES > 1
 	tya
 	sta volume_for_context, x
 	phx
@@ -678,10 +669,6 @@ fat32_alloc_context:
 	jsr fat32_free_context
 	clc
 	rts
-.else
-	txa
-	sec
-.endif
 @rts:
 	rts
 
@@ -1423,7 +1410,6 @@ fat32_set_context:
 	cmp #FAT32_CONTEXTS
 	bcs @error
 
-.if ::FAT32_CONTEXTS > 1
 	; Save new context index
 	pha
 
@@ -1489,7 +1475,6 @@ fat32_set_context:
 	jsr load_sector_buffer
 	bcc @error
 @reload_done:
-.endif
 
 @done:	sec
 	rts
@@ -3156,6 +3141,11 @@ fat32_read_long_again:
 	lda tmp_buf + 2
 	sbc #0
 	bpl @5
+	; Handle the edge case of the remaining bytes in the file being >= 2GiB
+	; Quick check, and if so, we're in no danger of the bytecnt exceeding
+	; the remainder of the file's length.
+	lda tmp_buf + 2
+	bmi @5
 	set16 bytecnt, tmp_buf
 @5:
 	lda bytecnt
@@ -3417,6 +3407,11 @@ fat32_read_again:
 	lda tmp_buf + 3
 	sbc #0
 	bpl @5
+	; Handle the edge case of the remaining bytes in the file being >= 2GiB
+	; Quick check, and if so, we're in no danger of the bytecnt exceeding
+	; the remainder of the file's length.
+	lda tmp_buf + 3
+	bmi @5
 	set16 bytecnt, tmp_buf
 @5:
 	; Copy bytecnt bytes from buffer
