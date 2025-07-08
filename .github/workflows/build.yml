@@ -22,8 +22,8 @@ jobs:
           sudo apt-get install -y make build-essential libsdl2-dev
           git clone https://github.com/cc65/cc65.git
           cd cc65
-          make -j4 -DPREFIX=/usr/local
-          sudo make install -DPREFIX=/usr/local
+          PREFIX=/usr/local make -j4
+          PREFIX=/usr/local sudo make install
           cd ..
           git clone https://github.com/emmanuel-marty/lzsa
           cd lzsa
