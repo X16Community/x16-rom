@@ -2125,7 +2125,7 @@ tdm8:	cmp #13	;return
 	jmp td_execute
 tdm9:	cmp #27 ;esc
 	beq tde0
-tdma:	wai
+tdma:	.byte $cb ;wai
 	bra tdm3
 
 td_execute:
