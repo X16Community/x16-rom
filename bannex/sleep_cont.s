@@ -6,7 +6,7 @@
 
 .proc sleep_cont: near
 @slp:
-	.byte $cb ; wai
+	.byte $cb ; wai (bare opcode here due to varying CPU types across ca65 versions)
 	phx
 	phy
 	jsr stop
