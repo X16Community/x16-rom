@@ -23,7 +23,7 @@ jobs:
           git clone https://github.com/cc65/cc65.git
           cd cc65
           PREFIX=/usr/local make -j4
-          PREFIX=/usr/local sudo make install
+          sudo bash -c 'PREFIX=/usr/local make install'
           cd ..
           git clone https://github.com/emmanuel-marty/lzsa
           cd lzsa
