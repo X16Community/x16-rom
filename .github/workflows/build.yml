@@ -28,7 +28,7 @@ jobs:
           git clone https://github.com/emmanuel-marty/lzsa
           cd lzsa
           make
-          cp -av lzsa /usr/local/bin
+          sudo cp -av lzsa /usr/local/bin
       - name: Build ROM
         if: startsWith(github.ref, 'refs/tags/r') != true
         run: |
