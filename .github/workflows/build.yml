@@ -22,13 +22,13 @@ jobs:
           sudo apt-get install -y make build-essential libsdl2-dev
           git clone https://github.com/cc65/cc65.git
           cd cc65
-          make -j4
-          sudo make install
+          PREFIX=/usr/local make -j4
+          sudo bash -c 'PREFIX=/usr/local make install'
           cd ..
           git clone https://github.com/emmanuel-marty/lzsa
           cd lzsa
           make
-          cp -av lzsa /usr/local/bin
+          sudo cp -av lzsa /usr/local/bin
       - name: Build ROM
         if: startsWith(github.ref, 'refs/tags/r') != true
         run: |
@@ -41,7 +41,6 @@ jobs:
         run: |
           git clone https://github.com/X16Community/x16-emulator.git
           cd x16-emulator
-          git checkout 65c816
           make all
       - name: Run Unit Tests
         run: |

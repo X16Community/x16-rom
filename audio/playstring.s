@@ -546,7 +546,7 @@ waitloop:
 	jsr stop
 	beq stopped
 	ply
-	wai
+	.byte $cb ; wai
 	dey
 	bne waitloop
 endwait:
