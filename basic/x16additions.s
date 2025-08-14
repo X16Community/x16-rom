@@ -314,12 +314,23 @@ vld1	lda andmsk      ;bank number
 	jmp cld10       ;jump to load command
 
 ;***************
-old	beq old1
+old:
+	beq old1
 	jmp snerr
-old1	lda txttab+1
+old1:
+	; After NEW, the first line's pointer to next-line is set to $0000,
+	; which indicates an empty program. Here, we grab the high byte of
+	; txttab, which is likely $08, from $0801, and we store it to the,
+	; first line's next-line pointer to indicate it's _not_ the end.
+	lda txttab+1
 	ldy #1
 	sta (txttab),y
+	; `lnkprg` updates the line pointers by scanning the BASIC program
+	; space and rewriting them to what they actually are.
 	jsr lnkprg
+	; Coming out of `lnkprg`, `index` points to the low byte of the
+	; $0000 program terminator, so variable space should begin two bytes
+	; later.
 	clc
 	lda index
 	adc #2
@@ -327,9 +338,9 @@ old1	lda txttab+1
 	lda index+1
 	adc #0
 	sta vartab+1
-	ldx #stkend-256 ;set up end of stack
-	txs
-	jmp ready
+	; We jump to the routine that the basic `CLR` command runs, which
+	; reinitializes the rest of the variable tables.
+	jmp cleart
 
 chkdosw:
 	bannex_call bannex_dos_chkdosw
