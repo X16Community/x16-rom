@@ -822,6 +822,7 @@ nc23	iny
 	stx tblx        ;row
 	cpy lnmx
 	bcc nc24
+	beq nc24
 	stz pntr
 	cpx nlines
 	bcs nc24
