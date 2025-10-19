@@ -820,7 +820,13 @@ nc23	iny
 	sty pntr        ;column
 	jsr screen_get_position
 	stx tblx        ;row
-	jsr stupt       ;move cursor to tblx,pntr
+	cpy lnmx
+	bcc nc24
+	stz pntr
+	cpx nlines
+	bcs nc24
+	inc tblx
+nc24	jsr stupt       ;move cursor to tblx,pntr
 	jmp loop2
 nc25	cmp #$1d        ;CSR RIGHT
 	bne ncx2
