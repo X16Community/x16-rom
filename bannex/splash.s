@@ -156,7 +156,15 @@ iniend:
 	clc
 	jsr plot
 
+	; check rom write-protected
+	jsr rom_check_writeprotected
+	bcs @checkvera ; yes, continue
+	lda #<romwriteenabled
+	ldy #>romwriteenabled
+	jsr strout
+
 	; check vera version
+@checkvera:
 	php
 	sei
 	lda #%01111110
@@ -368,6 +376,11 @@ badvera:
 	.byte "RELEASES: HTTPS://GITHUB.COM/X16COMMUNITY/VERA-MODULE/RELEASES/",13
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
 
+romwriteenabled:
+	.byte 13,"IMPORTANT! YOUR ROM IS NOT WRITE-PROTECTED.", 13
+	.byte "REMOVE JUMPER J1 TO PROTECT THE ROM FROM", 13
+	.byte "UNINTENTIONAL CHANGE.",13,0
+
 msg816banks:
 	.byte "K RAM IN FAR BANKS",0
 
@@ -377,3 +390,97 @@ msg816banks:
 ; The user can still run HELP to show the commit hash
 small_msg816banks:
 	.byte "K FAR  ",0
+
+.proc rom_check_writeprotected
+    ; Theory of operation: The function attempts to write the value $ff to 
+    ; address $01:$ffff. The ROM write operation can only change a bit from 
+    ; 1 to 0, and not the other way. Writing $ff will therefore not change 
+    ; the value at the ROM address, even if the ROM chip is write-enabled. 
+    ; If the chip is write-protected, the write operation finishes
+    ; immediately, while it takes some duration to finish if the chip is
+    ; write-enabled. That way we can tell if the chip is write-enabled.
+    
+	; Disable IRQ
+    php
+    sei
+
+	; Backup current RAM bank
+	lda ram_bank
+	pha
+
+	; Copy RAM code
+	stz ram_bank
+	ldy #0
+:	lda program_rom,y
+	sta $bf00,y
+	iny
+	cpy #program_rom_end-program_rom
+	bcc :-
+
+	; Run test
+    jsr $bf00
+	bcs protected
+
+unprotected:
+	pla
+	sta ram_bank
+    plp
+	sec
+	rts
+
+protected:
+	pla
+	sta ram_bank
+    plp
+	clc
+	rts
+.endproc
+
+.proc program_rom
+	; Backup ROM bank
+	lda rom_bank
+	pha
+
+	; Enter programming mode
+    lda #$01
+    sta rom_bank
+    lda #$aa
+    sta $d555
+
+    dec rom_bank
+    lda #$55
+    sta $eaaa
+
+    inc rom_bank
+    lda #$a0
+    sta $d555
+
+	; Attempt to write $ff to $ffff
+	lda #$ff
+    sta $ffff
+
+	; Alternating values means that it entered programming mode
+	lda $ffff
+	cmp $ffff
+	beq protected
+
+unprotected:
+	; Wait until programming mode has finished
+	lda $ffff
+	cmp $ffff
+	bne unprotected
+
+	; Restore ROM bank and return
+	pla
+	sta rom_bank
+	sec
+	rts
+
+protected:
+	; Restore ROM bank and return
+	pla
+	sta rom_bank
+	clc
+	rts
+.endproc
+program_rom_end:
