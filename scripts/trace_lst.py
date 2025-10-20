@@ -22,7 +22,7 @@ print('char *lst_bank' + bank + '[] = {')
 for addr in range(0xc000, 0x10000):
 	prefix = "/* ${:X} */ ".format(addr)
 	if addr in map:
-		print(prefix + '\"' + map[addr].encode("utf-8") + '\",')
+		print(prefix.encode("utf-8") + b'\"' + map[addr].encode("utf-8") + b'\",')
 	else:
 		print(prefix + 'NULL,')
 print('};')
