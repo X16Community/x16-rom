@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
+sys.stdout.reconfigure(encoding="utf-8")
+
 map = {}
 
 bank = sys.argv[1]
@@ -22,7 +24,7 @@ print('char *lst_bank' + bank + '[] = {')
 for addr in range(0xc000, 0x10000):
 	prefix = "/* ${:X} */ ".format(addr)
 	if addr in map:
-		print(prefix.encode("utf-8") + b'\"' + map[addr].encode("utf-8") + b'\",')
+		print(prefix + '\"' + map[addr] + '\",')
 	else:
 		print(prefix + 'NULL,')
 print('};')
