@@ -823,14 +823,14 @@ nc23	iny
 	bcc nc24b
 	beq nc24b
 	stz pntr
-nc23b	inx
+nc24a	inx
 	ldy ldtbl_byte,x
 	lda ldtbl_bit,x
 	and ldtb1,y     ;continued line?
-	beq nc23b       ;yes, increment again
+	beq nc24a       ;yes, increment again
 	cpx nlines
 	bcc nc24b
-nc24a	ldx nlinesm1
+	ldx nlinesm1
 	ldy llen
 	dey
 	sty pntr
