@@ -6,7 +6,7 @@ map = {}
 bank = sys.argv[1]
 filenames = sys.argv[2:]
 for filename in filenames:
-	for line in open(filename).readlines():
+	for line in open(filename, encoding="utf-8").readlines():
 		if line[2] >= 'C':
 			addr = int(line[2:6], 16)
 			asm = line[24:].rstrip()
