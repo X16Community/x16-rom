@@ -819,19 +819,23 @@ nc21	jsr screen_get_char
 nc23	iny
 	sty pntr        ;column
 	jsr screen_get_position
-	stx tblx        ;row
 	cpy lnmx
 	bcc nc24b
 	beq nc24b
 	stz pntr
-	inx
+nc23b	inx
+	ldy ldtbl_byte,x
+	lda ldtbl_bit,x
+	and ldtb1,y     ;continued line?
+	beq nc23b       ;yes, increment again
 	cpx nlines
-	bcs nc24a
-	stx tblx
-	bra nc24b
-nc24a	ldy lnmx
+	bcc nc24b
+nc24a	ldx nlinesm1
+	ldy llen
+	dey
 	sty pntr
-nc24b	jsr stupt       ;move cursor to tblx,pntr
+nc24b	stx tblx        ;row
+	jsr stupt       ;move cursor to tblx,pntr
 	jmp loop2
 nc25	cmp #$1d        ;CSR RIGHT
 	bne ncx2
