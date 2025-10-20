@@ -50,7 +50,7 @@ def parseNum(str):
 # and memory segments
 def parseConfig(config_path):
     # Read whole config file
-    f = open(config_path, "r")
+    f = open(config_path, "r", encoding="utf-8")
     conf = ""
     l = f.readline().upper()
     while l:
@@ -125,8 +125,8 @@ def getLabel(str):
 # Main worker, parses the original listings file, and outputs
 # both a relist file and a symbols file
 def parseCodeListing(listing_path, relist_path, symbols_path):
-    f_in = open(listing_path, "r")
-    f_relist = open(relist_path, "w")
+    f_in = open(listing_path, "r", encoding="utf-8")
+    f_relist = open(relist_path, "w", encoding="utf-8")
 
     symbol_addresses = []
     symbol_names = []
@@ -188,7 +188,7 @@ def parseCodeListing(listing_path, relist_path, symbols_path):
     f_relist.close()
 
     # Write symbols to file
-    f_symbols = open(symbols_path, "w")
+    f_symbols = open(symbols_path, "w", encoding="utf-8")
     
     f_symbols.write("uint16_t addresses_bank" + hex(bank).upper()[2:] + "[] = {")
     for a in symbol_addresses:
