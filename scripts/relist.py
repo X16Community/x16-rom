@@ -44,7 +44,7 @@ def scan_map(map_filename: str, lst_filename:str, segment_map:Dict[str,Segment],
 
     # print(f"Looking for {os.path.basename(os.path.splitext(lst_filename)[0])}.o")
 
-    with open(map_filename) as f:
+    with open(map_filename, encoding="utf-8") as f:
         line_num = 0
         reading_segments = False
         reading_module_segments = False
@@ -105,7 +105,7 @@ def scan_lst(lst_filename) -> str:
     # I really hope these regex's continue working in the future.
     base_lst_filename = os.path.basename(os.path.splitext(lst_filename)[0])
     module = Module(base_lst_filename)
-    with open(lst_filename) as f:
+    with open(lst_filename, encoding="utf-8") as f:
         line_num = 0
         cur_segment = None
         cur_size = 0
@@ -143,7 +143,7 @@ def scan_lst(lst_filename) -> str:
 def relst(lst_filename: str, module: Module, rlst_file: FileIO) -> None:
     # for k,v in module.segments.items():
     #     print(f"key = {k}, value = {v}")
-    with open(lst_filename) as f:
+    with open(lst_filename, encoding="utf-8") as f:
         line_num = 0
         cur_segment:Segment = None
         for line in f:
@@ -217,7 +217,7 @@ def process(map_filename, lst_filename):
         segment.offset += map_segments[name].offset
 
     rlst_filename = os.path.splitext(lst_filename)[0]+".rlst"
-    with open(rlst_filename, "w") as rlst_file:
+    with open(rlst_filename, "w", encoding="utf-8") as rlst_file:
         # print(f"Writing relisting to {rlst_filename}")
         relst(lst_filename, module, rlst_file)
 
