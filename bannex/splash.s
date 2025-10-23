@@ -409,7 +409,7 @@ small_msg816banks:
 
 	; Clear RAM buffer
 	lda #0
-	ldx #rom_id_end-rom_id
+	ldx #.sizeof(rom_id)
 :	sta basic_buf-1,x
 	dex
 	bne :-
