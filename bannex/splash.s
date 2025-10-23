@@ -3,6 +3,7 @@
 .include "../math/math.inc"
 
 fbuffr= $0100
+basic_buf = $0200
 
 .include "kernal.inc"
 .include "io.inc"
@@ -157,8 +158,8 @@ iniend:
 	jsr plot
 
 	; check rom write-protected
-	jsr rom_check_writeprotected
-	bcs @checkvera ; yes, continue
+	jsr check_rom
+	bcc @checkvera ; ROM write-protected, continue
 	lda #<romwriteenabled
 	ldy #>romwriteenabled
 	jsr strout
@@ -377,9 +378,7 @@ badvera:
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
 
 romwriteenabled:
-	.byte 13,"IMPORTANT! YOUR ROM IS NOT WRITE-PROTECTED.", 13
-	.byte "REMOVE JUMPER J1 TO PROTECT THE ROM FROM", 13
-	.byte "UNINTENTIONAL CHANGE.",13,0
+	.byte 13,"REMOVE JUMPER J1 TO WRITE-PROTECT ROM!",13,0
 
 msg816banks:
 	.byte "K RAM IN FAR BANKS",0
@@ -391,96 +390,74 @@ msg816banks:
 small_msg816banks:
 	.byte "K FAR  ",0
 
-.proc rom_check_writeprotected
-    ; Theory of operation: The function attempts to write the value $ff to 
-    ; address $01:$ffff. The ROM write operation can only change a bit from 
-    ; 1 to 0, and not the other way. Writing $ff will therefore not change 
-    ; the value at the ROM address, even if the ROM chip is write-enabled. 
-    ; If the chip is write-protected, the write operation finishes
-    ; immediately, while it takes some duration to finish if the chip is
-    ; write-enabled. That way we can tell if the chip is write-enabled.
-    
+; Returns C=1 if ROM is write-enabled
+.proc check_rom
 	; Disable IRQ
     php
     sei
 
-	; Backup current RAM bank
-	lda ram_bank
-	pha
-
-	; Copy RAM code
-	stz ram_bank
+	; Copy code to RAM
 	ldy #0
-:	lda program_rom,y
-	sta $bf00,y
+:	lda rom_id,y
+	sta basic_buf,y
 	iny
-	cpy #program_rom_end-program_rom
+	cpy #rom_id_end-rom_id
 	bcc :-
 
 	; Run test
-    jsr $bf00
-	bcs protected
+    jsr basic_buf
+
+	; Clear RAM buffer
+	lda #0
+	ldx #rom_id_end-rom_id
+:	sta basic_buf-1,x
+	dex
+	bne :-
+
+	; Compare SST39SF040 manufacturer ID
+	cpy #$bf
+	bne protected
 
 unprotected:
-	pla
-	sta ram_bank
-    plp
+    plp ; Restore IRQ flag
 	sec
 	rts
 
 protected:
-	pla
-	sta ram_bank
-    plp
+    plp ; Restore IRQ flag
 	clc
 	rts
 .endproc
 
-.proc program_rom
+; Reads ROM manufacturer ID, returned in Y register
+.proc rom_id
 	; Backup ROM bank
 	lda rom_bank
 	pha
 
-	; Enter programming mode
-    lda #$01
+	; Read ROM chip ID
+    lda #$01		; $5555 = $aa 
     sta rom_bank
     lda #$aa
     sta $d555
 
-    dec rom_bank
+    dec rom_bank	; $2aaa = $55
     lda #$55
     sta $eaaa
 
-    inc rom_bank
-    lda #$a0
+    inc rom_bank	; $5555 = $90
+    lda #$90
     sta $d555
 
-	; Attempt to write $ff to $ffff
-	lda #$ff
-    sta $ffff
+	dec rom_bank	; Get Manufacturer ID
+	ldy $c000
 
-	; Alternating values means that it entered programming mode
-	lda $ffff
-	cmp $ffff
-	beq protected
+	lda #$f0		; Exit
+	sta $c000
 
-unprotected:
-	; Wait until programming mode has finished
-	lda $ffff
-	cmp $ffff
-	bne unprotected
-
-	; Restore ROM bank and return
+	; Restore ROM bank
 	pla
 	sta rom_bank
-	sec
-	rts
-
-protected:
-	; Restore ROM bank and return
-	pla
-	sta rom_bank
-	clc
 	rts
 .endproc
-program_rom_end:
+rom_id_end:
