@@ -393,8 +393,8 @@ small_msg816banks:
 ; Returns C=1 if ROM is write-enabled
 .proc check_rom
 	; Disable IRQ
-    php
-    sei
+	php
+	sei
 
 	; Copy code to RAM
 	ldy #0
@@ -405,7 +405,7 @@ small_msg816banks:
 	bcc :-
 
 	; Run test
-    jsr basic_buf
+	jsr basic_buf
 
 	; Clear RAM buffer
 	lda #0
@@ -419,12 +419,12 @@ small_msg816banks:
 	bne protected
 
 unprotected:
-    plp ; Restore IRQ flag
+	plp ; Restore IRQ flag
 	sec
 	rts
 
 protected:
-    plp ; Restore IRQ flag
+	plp ; Restore IRQ flag
 	clc
 	rts
 .endproc
@@ -436,18 +436,18 @@ protected:
 	pha
 
 	; Read ROM chip ID
-    lda #$01		; $5555 = $aa 
-    sta rom_bank
-    lda #$aa
-    sta $d555
+	lda #$01		; $5555 = $aa 
+	sta rom_bank
+	lda #$aa
+	sta $d555
 
-    dec rom_bank	; $2aaa = $55
-    lda #$55
-    sta $eaaa
+	dec rom_bank	; $2aaa = $55
+	lda #$55
+	sta $eaaa
 
-    inc rom_bank	; $5555 = $90
-    lda #$90
-    sta $d555
+	inc rom_bank	; $5555 = $90
+	lda #$90
+	sta $d555
 
 	dec rom_bank	; Get Manufacturer ID
 	ldy $c000
