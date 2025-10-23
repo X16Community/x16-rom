@@ -460,4 +460,3 @@ protected:
 	sta rom_bank
 	rts
 .endproc
-rom_id_end:
