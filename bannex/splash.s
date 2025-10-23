@@ -401,7 +401,7 @@ small_msg816banks:
 :	lda rom_id,y
 	sta basic_buf,y
 	iny
-	cpy #rom_id_end-rom_id
+	cpy #.sizeof(rom_id)
 	bcc :-
 
 	; Run test
