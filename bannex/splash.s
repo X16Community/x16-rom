@@ -390,45 +390,6 @@ msg816banks:
 small_msg816banks:
 	.byte "K FAR  ",0
 
-; Returns C=1 if ROM is write-enabled
-.proc check_rom
-	; Disable IRQ
-	php
-	sei
-
-	; Copy code to RAM
-	ldy #0
-:	lda rom_id,y
-	sta basic_buf,y
-	iny
-	cpy #.sizeof(rom_id)
-	bcc :-
-
-	; Run test
-	jsr basic_buf
-
-	; Clear RAM buffer
-	lda #0
-	ldx #.sizeof(rom_id)
-:	sta basic_buf-1,x
-	dex
-	bne :-
-
-	; Compare SST39SF040 manufacturer ID
-	cpy #$bf
-	bne protected
-
-unprotected:
-	plp ; Restore IRQ flag
-	sec
-	rts
-
-protected:
-	plp ; Restore IRQ flag
-	clc
-	rts
-.endproc
-
 ; Reads ROM manufacturer ID, returned in Y register
 .proc rom_id
 	; Backup ROM bank
@@ -458,5 +419,43 @@ protected:
 	; Restore ROM bank
 	pla
 	sta rom_bank
+	rts
+.endproc
+
+; Returns C=1 if ROM is write-enabled
+.proc check_rom
+	; Disable IRQ
+	php
+	sei
+
+	; Copy code to RAM
+	ldx #.sizeof(rom_id)
+:	lda rom_id-1,x
+	sta basic_buf-1,x
+	dex
+	bne :-
+
+	; Run test
+	jsr basic_buf
+
+	; Clear RAM buffer
+	lda #0
+	ldx #.sizeof(rom_id)
+:	sta basic_buf-1,x
+	dex
+	bne :-
+
+	; Compare SST39SF040 manufacturer ID
+	cpy #$bf
+	bne protected
+
+unprotected:
+	plp ; Restore IRQ flag
+	sec
+	rts
+
+protected:
+	plp ; Restore IRQ flag
+	clc
 	rts
 .endproc
