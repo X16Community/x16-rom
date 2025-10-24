@@ -381,6 +381,7 @@ $(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DI
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARKAT_LOAD__ __CHARISO_LOAD__ __CHARISO2_LOAD__ __CHARCYR_LOAD__` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARCYR2_LOAD__ __CHARANSI_LOAD__`
 	./scripts/relist.py $(BUILD_DIR)/kernal.map $(BUILD_DIR)/kernal
+	./scripts/rom_verify_first_byte.py $@
 
 # Bank 1 : KEYMAP
 $(BUILD_DIR)/keymap.bin: $(KEYMAP_OBJS) $(KEYMAP_DEPS) $(CFG_DIR)/keymap-x16.cfg
