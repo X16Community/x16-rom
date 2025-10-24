@@ -1,18 +1,16 @@
 .include "banks.inc"
-
 .include "../math/math.inc"
-
-fbuffr= $0100
-basic_buf = $0200
 
 .include "kernal.inc"
 .include "io.inc"
 .include "machine.inc"
 
 plot = $fff0
+fbuffr= $0100
 
 .importzp index, facho, txttab
 .import screen_default_color_from_nvram, bajsrfar, memsiz
+.import basic_buf ; BASIC line buffer
 
 .export splash
 
