@@ -1,17 +1,16 @@
 .include "banks.inc"
-
 .include "../math/math.inc"
-
-fbuffr= $0100
 
 .include "kernal.inc"
 .include "io.inc"
 .include "machine.inc"
 
 plot = $fff0
+fbuffr= $0100
 
 .importzp index, facho, txttab
 .import screen_default_color_from_nvram, bajsrfar, memsiz
+.import basic_buf ; BASIC line buffer
 
 .export splash
 
@@ -156,7 +155,15 @@ iniend:
 	clc
 	jsr plot
 
+	; check rom write-protected
+	jsr check_rom
+	bcc @checkvera ; ROM write-protected, continue
+	lda #<romwriteenabled
+	ldy #>romwriteenabled
+	jsr strout
+
 	; check vera version
+@checkvera:
 	php
 	sei
 	lda #%01111110
@@ -368,6 +375,9 @@ badvera:
 	.byte "RELEASES: HTTPS://GITHUB.COM/X16COMMUNITY/VERA-MODULE/RELEASES/",13
 	.byte 13,"USE THE HELP COMMAND FOR FIRMWARE INFO",13,0
 
+romwriteenabled:
+	.byte 13,"REMOVE JUMPER J1 TO WRITE-PROTECT ROM!",13,0
+
 msg816banks:
 	.byte "K RAM IN FAR BANKS",0
 
@@ -377,3 +387,73 @@ msg816banks:
 ; The user can still run HELP to show the commit hash
 small_msg816banks:
 	.byte "K FAR  ",0
+
+; Reads ROM manufacturer ID, returned in Y register
+.proc rom_id
+	; Backup ROM bank
+	lda rom_bank
+	pha
+
+	; Read ROM chip ID
+	lda #$01		; $5555 = $aa 
+	sta rom_bank
+	lda #$aa
+	sta $d555
+
+	dec rom_bank	; $2aaa = $55
+	lda #$55
+	sta $eaaa
+
+	inc rom_bank	; $5555 = $90
+	lda #$90
+	sta $d555
+
+	dec rom_bank	; Get Manufacturer ID
+	ldy $c000
+
+	lda #$f0		; Exit
+	sta $c000
+
+	; Restore ROM bank
+	pla
+	sta rom_bank
+	rts
+.endproc
+
+; Returns C=1 if ROM is write-enabled
+.proc check_rom
+	; Disable IRQ
+	php
+	sei
+
+	; Copy code to RAM
+	ldx #.sizeof(rom_id)
+:	lda rom_id-1,x
+	sta basic_buf-1,x
+	dex
+	bne :-
+
+	; Run test
+	jsr basic_buf
+
+	; Clear RAM buffer
+	lda #0
+	ldx #.sizeof(rom_id)
+:	sta basic_buf-1,x
+	dex
+	bne :-
+
+	; Compare SST39SF040 manufacturer ID
+	cpy #$bf
+	bne protected
+
+unprotected:
+	plp ; Restore IRQ flag
+	sec
+	rts
+
+protected:
+	plp ; Restore IRQ flag
+	clc
+	rts
+.endproc
