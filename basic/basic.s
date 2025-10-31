@@ -14,6 +14,9 @@
 ; for emulator
 .global vartab
 
+; Export BASIC line buffer
+.export buf
+
 ram_bank = 0
 rom_bank = 1
 
