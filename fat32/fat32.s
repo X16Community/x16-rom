@@ -185,6 +185,8 @@ _fat32_bss_end:
 .export fat32_get_size
 .export fat32_read_long
 .export fat32_write_long
+.export fat32_get_lba
+.export fat32_get_cluster
 
 .code
 
@@ -4132,6 +4134,40 @@ fat32_get_size:
 	stz fat32_errno
 
 	set32 fat32_size, cur_context + context::file_size
+
+	sec
+	rts
+
+;-----------------------------------------------------------------------------
+; fat32_get_lba
+;
+; Out:  fat32_size: current LBA of context (loaded sector)
+;
+; * c=0: failure; sets errno
+;-----------------------------------------------------------------------------
+fat32_get_lba:
+	stz fat32_errno
+
+	set32 fat32_size, cur_context + context::lba
+
+	sec
+	rts
+
+;-----------------------------------------------------------------------------
+; fat32_get_cluster
+;
+; Out:  fat32_size: current cluster of context (of loaded sector)
+;       .A = sector index within cluster
+;       .Y = cluster shift, where 2^(9+.Y) is the cluster size
+;
+; * c=0: failure; sets errno
+;-----------------------------------------------------------------------------
+fat32_get_cluster:
+	stz fat32_errno
+
+	set32 fat32_size, cur_context + context::cluster
+	lda cur_context + context::cluster_sector
+	ldy cur_volume + fs::cluster_shift
 
 	sec
 	rts

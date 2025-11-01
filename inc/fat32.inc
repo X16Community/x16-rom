@@ -49,3 +49,6 @@ fat32_get_size          = $C072
 
 fat32_read_long         = $C075
 fat32_write_long        = $C078
+
+fat32_get_lba           = $C07B
+fat32_get_cluster       = $C07E

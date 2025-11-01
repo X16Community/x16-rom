@@ -44,3 +44,4 @@
 .global block_execute
 .global set_position
 .global get_position_and_size
+.global get_current_lba_cluster
