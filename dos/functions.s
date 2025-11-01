@@ -1280,7 +1280,6 @@ get_position_and_size:
 
 get_current_lba_cluster:
 	tax
-	stx $9fba
 	lda context_for_channel,x
 	jsr file_get_current_lba_cluster
 	bcs @error
