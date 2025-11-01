@@ -61,7 +61,10 @@
 
 .import fat32_set_time
 
+; Informational
 .import fat32_get_size
+.import fat32_get_lba
+.import fat32_get_cluster
 
 .segment "API"
 	jmp fat32_init              ; $C000
@@ -114,3 +117,6 @@
 
 	jmp fat32_read_long         ; $C075
 	jmp fat32_write_long        ; $C078
+
+	jmp fat32_get_lba           ; $C07B
+	jmp fat32_get_cluster       ; $C07E

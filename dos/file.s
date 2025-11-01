@@ -29,6 +29,7 @@
 ; functions.s
 .import alloc_context, free_context
 .export file_set_position, file_get_position_and_size
+.export file_get_current_lba_cluster
 
 ; other BSS
 .import fat32_size
@@ -142,7 +143,7 @@ file_open:
 	fat32_call fat32_open
 	bcc @open_file_err2
 
-:	lda #$ff ; seek to end of file
+	lda #$ff ; seek to end of file
 	sta fat32_size + 0
 	sta fat32_size + 1
 	sta fat32_size + 2
@@ -169,7 +170,7 @@ file_open:
 	fat32_call fat32_open
 	bcc @open_file_err2
 
-:	lda #$40 ; read
+	lda #$40 ; read
 @open_set_mode:
 	ldx channel
 	sta mode_for_channel,x
@@ -604,7 +605,7 @@ file_get_position_and_size:
 	bcc @error
 
 	ldx #3
-	jsr @hexdword
+	jsr hexdword
 
 	lda #' '
 	sta statusbuffer,x
@@ -614,7 +615,7 @@ file_get_position_and_size:
 	fat32_call fat32_get_size
 	bcc @error
 
-	jsr @hexdword
+	jsr hexdword
 
 	lda #0
 	jsr add_decimal
@@ -630,7 +631,59 @@ file_get_position_and_size:
 @error:	sec
 	rts
 
-@hexdword:
+;---------------------------------------------------------------
+; file_get_current_lba_cluster
+;
+; In:   a    context
+;---------------------------------------------------------------
+file_get_current_lba_cluster:
+	tax
+	bmi @error ; not a file context
+	fat32_call fat32_set_context
+
+	lda #'0'
+	sta statusbuffer + 0
+	lda #'7'
+	sta statusbuffer + 1
+	lda #','
+	sta statusbuffer + 2
+
+	fat32_call fat32_get_lba
+	bcc @error
+
+	ldx #3
+	jsr hexdword
+
+	lda #' '
+	sta statusbuffer,x
+	inx
+
+	; .X should be preserved by this
+	fat32_call fat32_get_cluster
+	bcc @error
+
+	phy ; cluster shift
+	pha ; sector index
+
+	jsr hexdword
+
+	pla
+	jsr add_decimal
+	pla
+	jsr add_decimal
+
+	stz status_r
+	stx status_w
+
+	clc
+	rts
+
+@error:	sec
+	rts
+
+
+
+hexdword:
 	ldy #3
 @hdloop:
 	lda fat32_size,y
