@@ -64,9 +64,6 @@ op175	clc             ;flag good open
 openi	lda sa
 	bmi op175       ;no sa...done
 ;
-	ldy fnlen
-	beq op175       ;no file name...done
-;
 	lda #0          ;clear the serial status
 	sta status
 ;
