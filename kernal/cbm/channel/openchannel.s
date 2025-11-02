@@ -58,7 +58,11 @@ jx320	sta dfltn       ;all input come from here
 jx330	tax             ;device # for dflto
 	jsr talk        ;tell him to talk
 ;
-	lda sa          ;a second?
+	bit status	;anybody home?
+	bpl jx331
+	jmp error5	;... branch if no response
+;
+jx331	lda sa          ;a second?
 	bpl jx340       ;yes...send it
 	jsr tkatn       ;no...let go
 	jmp jx350
