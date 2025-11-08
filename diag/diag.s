@@ -12,6 +12,10 @@
 .include "macros.inc"
 .include "banks.inc"
 
+FAULT_CRIT_ZP		= $01
+FAULT_CRIT_STACK	= $02
+FAULT_CRIT_VIA		= $03
+
 ONESEC			= $1900
 ZP_START_OFFSET		= $02
 START_OFFSET		= $00
@@ -65,8 +69,65 @@ diag_init:
 continue_original:
 	stz	rom_bank	; Reset ROM bank to 0 to continue loading normal ROM
 
+; Check to see if VIA is present
+	sei
+:
+	ldy ddr
+	ldx #$AA
+	stx ddr
+	lda ddr
+	sty ddr
+	cmp #$AA ; should be $AA
+	beq :+
+
+	; VIA not present, jump to critical fault handler
+	ldy #FAULT_CRIT_VIA
+	jmp diag_fault_critical
+:
+
+; Check to see that we can at least use ZP
+	lda #$55	; A <= $55
+	sta $02		; ($02) <= $55
+	asl		    ; A <= $AA
+	eor $02		; A <= $AA ^ $55 == $FF
+	inc $02	    ; ($02) <= $55 + 1 == $56
+	adc $02	    ; A <= $FF + $56 == $55
+	cmp #$55
+	beq	:+
+
+	ldy #FAULT_CRIT_ZP
+	jmp diag_fault_critical ; No ZP
+
+; Check the top few entries of the stack, without these working
+; we cannot do any jsr/rts operations.
+:
+	ldx #$FF
+	txs
+	lda #$A5
+	ldx #8
+:
+	pha
+	dex
+	bne :-
+
+; Pop the top 8 bytes from the stack and verify the expected value
+	ldx #8
+:
+	pla
+	cmp #$A5
+	bne :+
+	dex
+	bne :-
+	jmp fail_safe_okay
+:
+	ldy #FAULT_CRIT_STACK
+	jmp diag_fault_critical ; No stack
+
+; If we get here, VIA and memory should be working well enough to check
+; if the system was powered on by a long-press of the power button.
+fail_safe_okay:
 	; Ask SMC if system is powered on by a longpress
-:	I2C_READ_BYTE I2C_SMC, 9
+	I2C_READ_BYTE I2C_SMC, 9
 	cpx	#1		; If this byte is set to 1
 	beq	diag_start	; poweron has been done with a long-press
 	jmp	continue_original
@@ -1094,6 +1155,171 @@ loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 .endscope
 	jmp	catastrophic_error
 ;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+; Critical fault handler - used when via, zp, or stack is not usable
+; Fault ID in Y register
+diag_fault_critical:
+	ldx #0
+diag_fault_wait_vera:
+	lda	#42
+	sta	VERA_ADDR_L
+	lda	VERA_ADDR_L
+	cmp	#42
+	beq vera_init_ramless
+
+	; Burn some cycles
+	lda #0
+:
+	nop
+	nop
+	inc
+	bne :-
+
+	inx
+	beq :+
+	jmp diag_fault_wait_vera
+:
+	; Catastrophic error - VERA not responding
+
+	stz $9FA0	; strobe IO5 to indicate were waiting on VERA
+	jmp	diag_fault_critical
+
+; VERA ready
+vera_init_ramless:
+	lda #1
+	sta $9FA0	; Indicate we're initializing VERA
+
+	stz VERA_IEN
+	stz VERA_CTRL
+	lda #$21	; Layer1 enabled, VGA output
+	sta VERA_DC_VIDEO
+
+	; Layer 1 configuration
+	lda	#%01100000		; Map Height = 01b = 64 tiles
+	sta	VERA_L1_CONFIG		; Map Width  = 10b = 128 tiles
+	lda	#(screen_addr>>9)
+	sta	VERA_L1_MAPBASE
+	lda	#((charset_addr>>11)<<2)
+	sta	VERA_L1_TILEBASE
+	stz	VERA_L1_HSCROLL_L
+	stz	VERA_L1_HSCROLL_H
+	stz	VERA_L1_VSCROLL_L
+	stz	VERA_L1_VSCROLL_H
+	; Display composer configuration 64x50
+	lda	#2
+	sta	VERA_CTRL
+	; Set Mode 8 = 64x50
+	lda	#$14
+	sta	VERA_DC_VSTART
+	lda	#$DC
+	sta	VERA_DC_VSTOP
+	lda	#$10
+	sta	VERA_DC_HSTART
+	lda	#$90
+	sta	VERA_DC_HSTOP
+
+	stz	VERA_CTRL
+	lda	#$21			; Layer1 enabled, VGA output
+	sta	VERA_DC_VIDEO
+	lda	#128
+	sta	VERA_DC_HSCALE
+	sta	VERA_DC_VSCALE
+	stz	VERA_DC_BORDER
+
+	lda	#$11			; Increment=1, Bank=1
+	sta	VERA_ADDR_H
+	lda	#$B0			; Address of top left corner
+	sta	VERA_ADDR_M
+	stz	VERA_ADDR_L
+
+	; Clear the screen with black background
+	ldx	#128
+
+veraclr_ramless:
+.repeat 50
+	lda	#' '			; Space character
+	sta	VERA_DATA0
+	lda	#((RED<<4)|WHITE)	; White on BLUE
+	sta	VERA_DATA0
+.endrepeat
+	dex
+	beq	:+
+	jmp	veraclr_ramless
+:
+
+; Copy character set to VERA
+	lda	#<(charset_addr)
+	sta	VERA_ADDR_L
+	lda	#>(charset_addr)
+	sta	VERA_ADDR_M
+	lda	#$10 | ^(charset_addr)	; step 1 byte in negative direction
+	sta	VERA_ADDR_H
+
+	ldx	#0			; 64 charactes * 8 bytes = 512 bytes
+
+:	lda	charset,x
+	sta	VERA_DATA0
+	inx
+	bne	:-
+
+:	lda	charset+256,x
+	sta	VERA_DATA0
+	inx
+	bne	:-
+
+; print fault ID, in hex, at position 1,1
+; fault code in Y register
+	ldx	#((RED<<4)|WHITE)
+	lda	#<(screen_addr)
+	sta	VERA_ADDR_L
+	lda	#>(screen_addr)
+	sta	VERA_ADDR_M
+	lda	#$11			; Increment=1, Bank=1
+	sta	VERA_ADDR_H
+	
+	lda #'H'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'W'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #' '
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'F'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'A'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'U'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'L'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #'T'-'A'+1
+	sta VERA_DATA0
+	stx VERA_DATA0
+	lda #' '
+	sta VERA_DATA0
+	stx VERA_DATA0
+
+	tya
+	lsr
+	lsr
+	lsr
+	lsr
+	adc #'0'
+	sta	VERA_DATA0
+	stx VERA_DATA0
+	tya
+	and #$0F
+	adc #'0'
+	sta	VERA_DATA0
+	stx VERA_DATA0
+
+	jmp catastrophic_error
 
 kbd_bin_tbl:	.byte 0,1,4,5,2,3,6,7
 ; convert ASCII codes to VERA screen codes
