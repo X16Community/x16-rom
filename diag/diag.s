@@ -70,8 +70,8 @@ continue_original:
 	stz	rom_bank	; Reset ROM bank to 0 to continue loading normal ROM
 
 ; Check to see if VIA is present
-	sei
 :
+	sei	; Disable interrupts, we don't have anything handling them
 	ldy ddr
 	ldx #$AA
 	stx ddr
@@ -132,7 +132,6 @@ fail_safe_okay:
 	beq	diag_start	; poweron has been done with a long-press
 	jmp	continue_original
 diag_start:
-	sei	; Disable interrupts, we don't have anything handling them
 	jmp	basemem_test
 basemem_ret:
 	ldx	#$FF		; Set stack pointer
