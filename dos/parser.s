@@ -955,7 +955,10 @@ cmd_f:
 	lda buffer,x
 	cmp #'-'
 	beq @minus
-	lda #$31 ; syntax error: unknown command
+	cmp #'L'
+	bne :+
+	jmp cmd_f_lba
+:	lda #$31 ; syntax error: unknown command
 	clc
 	rts
 @minus:
@@ -1801,6 +1804,16 @@ cmd_p:
 cmd_t:
 	lda buffer+1
 	jsr get_position_and_size
+	clc
+	rts
+
+;---------------------------------------------------------------
+; FLx - get FAT32 current LBA and cluster info (X16)
+;---------------------------------------------------------------
+cmd_f_lba:
+	inx
+	lda buffer,x
+	jsr get_current_lba_cluster
 	clc
 	rts
 

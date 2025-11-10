@@ -38,6 +38,7 @@
 .import context_for_channel
 
 .import file_get_position_and_size
+.import file_get_current_lba_cluster
 
 ; other BSS
 .import fat32_readonly
@@ -1264,6 +1265,23 @@ get_position_and_size:
 	tax
 	lda context_for_channel,x
 	jsr file_get_position_and_size
+	bcs @error
+	lda #$ff ; status already filled
+	rts
+
+@error:	lda #$70 ; no channel
+	rts
+
+;---------------------------------------------------------------
+; get_current_lba_cluster
+;
+; In:   .A channel
+;---------------------------------------------------------------
+
+get_current_lba_cluster:
+	tax
+	lda context_for_channel,x
+	jsr file_get_current_lba_cluster
 	bcs @error
 	lda #$ff ; status already filled
 	rts
