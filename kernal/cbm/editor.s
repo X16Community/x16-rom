@@ -51,6 +51,8 @@ MODIFIER_SHIFT = 1
 
 .export defcb
 
+.export extapi_blink_disable
+
 .import tpmcache, tpmflg
 
 ; screen driver
@@ -1340,8 +1342,12 @@ defcb: ; default basin callback vector
 	sec
 	rts
 
+extapi_blink_disable:
+	txa
+	bra cursor_set_blink
 clear_cursor:
 	lda #$FF
+cursor_set_blink:
 	sta blnsw
 	lda blnon
 	beq @1 ; rts
