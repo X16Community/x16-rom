@@ -212,9 +212,15 @@ check:
 	bne check
 .endscope
 .endmacro
-.endif
 
 .macro POST code
+.local @1
+	lda POST_IO_PORT
+	cmp #>POST_IO_PORT ; open bus read
+	bne @1
 	lda #code
 	sta POST_IO_PORT
+@1:
 .endmacro
+
+.endif
