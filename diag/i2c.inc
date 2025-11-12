@@ -1,8 +1,8 @@
 .ifndef I2C_INC
 I2C_INC=1 
 
-KBD_2BYTE_CMD=$1A	; Send a 2 byte command to the keyboard
-KBD_SET_LEDS_CMD=$ED	; Set LEDs command
+KBD_2BYTE_CMD=$1A       ; Send a 2 byte command to the keyboard
+KBD_SET_LEDS_CMD=$ED    ; Set LEDs command
 
 pr = via1+1
 ddr = via1+3
@@ -22,12 +22,12 @@ SCL = (1 << 1)
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro SCL_HIGH
-	lda	#SCL
-	trb	ddr
+	lda #SCL
+	trb ddr
 :
-	lda	pr
-	and	#SCL
-	beq	:-
+	lda pr
+	and #SCL
+	beq :-
 .endmacro
 
 ;---------------------------------------------------------------
@@ -41,8 +41,8 @@ SCL = (1 << 1)
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro SCL_LOW
-	lda	#SCL
-	tsb	ddr
+	lda #SCL
+	tsb ddr
 .endmacro
 
 ;---------------------------------------------------------------
@@ -57,8 +57,8 @@ SCL = (1 << 1)
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro SDA_HIGH
-	lda	#SDA
-	trb	ddr
+	lda #SDA
+	trb ddr
 .endmacro
 
 ;---------------------------------------------------------------
@@ -72,15 +72,15 @@ SCL = (1 << 1)
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro SDA_LOW
-	lda	#SDA
-	tsb	ddr
+	lda #SDA
+	tsb ddr
 .endmacro
 
 ;---------------------------------------------------------------
 ; send_bit
 ;
 ; Function: Send a single bit over I2C.
-; INPUT:	.C    bit value to send.
+; INPUT:    .C    bit value to send.
 ;
 ; I2C Exit: SDA: Z if C is set;
 ;                0 if C is clear
@@ -90,11 +90,13 @@ SCL = (1 << 1)
 ;---------------------------------------------------------------
 .macro SEND_BIT
 .scope
-	bcs	one
+	bcs one
 	SDA_LOW
-	bra	two
-one:	SDA_HIGH
-two:	SCL_HIGH
+	bra two
+one:
+	SDA_HIGH
+two:
+	SCL_HIGH
 	SCL_LOW
 .endscope
 .endmacro
@@ -114,7 +116,7 @@ two:	SCL_HIGH
 .macro REC_BIT
 	SDA_HIGH
 	SCL_HIGH
-	lda	pr
+	lda pr
 	lsr
 	SCL_LOW
 .endmacro
@@ -130,8 +132,8 @@ two:	SCL_HIGH
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro I2C_INIT
-	lda	#(SDA | SCL)
-	trb	pr
+	lda #(SDA | SCL)
+	trb pr
 	SDA_HIGH
 	SCL_HIGH
 .endmacro
@@ -145,10 +147,10 @@ two:	SCL_HIGH
 ; Uses: .A
 ;---------------------------------------------------------------
 .macro I2C_BRIEF_DELAY
-	lda	#3		; 2 clocks
-:	nop			; 2 clocks
-	dec			; 2 clocks
-	bne	:-		; 3/2 clocks
+	lda #3      ; 2 clocks
+:	nop         ; 2 clocks
+	dec         ; 2 clocks
+	bne :-      ; 3/2 clocks
 .endmacro
 
 ;---------------------------------------------------------------
@@ -207,8 +209,9 @@ two:	SCL_HIGH
 ;---------------------------------------------------------------
 .macro I2C_WRITE
 .scope
-	ldx	#8
-loop:	rol
+	ldx #8
+loop:
+	rol
 	tay
 	SEND_BIT
 	tya
@@ -235,19 +238,20 @@ loop:	rol
 .scope
 	I2C_INIT
 	I2C_START
-	lda	#addr
+	lda #addr
 	asl
 	I2C_WRITE
-	bcc	:+
-	jmp	error
-:	lda	#offs
+	bcc :+
+	jmp error
+:	lda #offs
 	I2C_WRITE
-	lda	#val
+	lda #val
 	I2C_WRITE
 	I2C_STOP
 	clc
-	bra	end
-error:	sec
+	bra end
+error:
+	sec
 end:
 .endscope
 .endmacro
@@ -256,25 +260,26 @@ end:
 .scope
 	I2C_INIT
 	I2C_START
-	lda	#addr
+	lda #addr
 	asl
 	I2C_WRITE
-	bcc	:+
-	jmp	error
-:	lda	#offs
+	bcc :+
+	jmp error
+:	lda #offs
 	I2C_WRITE
-	lda	#val
+	lda #val
 	I2C_WRITE
-	bra	end
-error:	sec
+	bra end
+error:
+	sec
 end:
 .endscope
 .endmacro
 
 .macro KBD_WRITE val
 	I2C_WRITE_FIRST_BYTE I2C_KBD_VAL, I2C_SMC, I2C_KBD_CMD2
-	ldx	#val
-	lda	kbd_bin_tbl,x
+	ldx #val
+	lda kbd_bin_tbl,x
 	I2C_WRITE
 	I2C_STOP
 .endmacro
@@ -287,34 +292,35 @@ end:
 .macro I2C_READ
 .scope
 	ldx #8
-loop:	tay
+loop:
+	tay
 	REC_BIT
 	tya
 	rol
 	dex
-	bne	loop
+	bne loop
 .endscope
 .endmacro
 
 .macro I2C_READ_FIRST_BYTE addr, offs
 .scope
 	I2C_INIT
-	I2C_START		; SDA -> LOW, (wait 5 us), SCL -> LOW, (no wait)
-	lda	#(addr*2)
+	I2C_START          ; SDA -> LOW, (wait 5 us), SCL -> LOW, (no wait)
+	lda #(addr*2)
 	I2C_WRITE
-	bcc	:+
-	jmp	err
-:	lda	#offs
+	bcc :+
+	jmp err
+:	lda #offs
 	I2C_WRITE
 	I2C_STOP
 	I2C_START
-	lda	#(addr*2)+1
+	lda #(addr*2)+1
 	I2C_WRITE
 	I2C_READ
 	; A contains value transfer to X
 	tax
 	clc
-	bra	end
+	bra end
 err:
 	I2C_STOP
 	sec
@@ -325,12 +331,13 @@ end:
 .macro I2C_READ_BYTE addr, offs
 .scope
 	I2C_READ_FIRST_BYTE addr, offs
-	bcs	err
+	bcs err
 	I2C_NACK
 	I2C_STOP
 	clc
-	bra	end
-err:	sec
+	bra end
+err:
+	sec
 end:
 .endscope
 .endmacro
