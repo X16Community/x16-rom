@@ -209,3 +209,8 @@ check:	cmp	(mem_ptr),y
 .endscope
 .endmacro
 .endif
+
+.macro POST code
+	lda	#code
+	sta	POST_IO_PORT
+.endmacro

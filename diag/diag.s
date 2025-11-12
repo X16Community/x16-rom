@@ -12,9 +12,33 @@
 .include "macros.inc"
 .include "banks.inc"
 
-FAULT_CRIT_ZP		= $01
-FAULT_CRIT_STACK	= $02
-FAULT_CRIT_VIA		= $03
+; Power On Self Test (POST) definitions
+; IO port = $9FFF; this is the top of IO space.
+POST_IO_PORT		= $9FFF
+
+; These "POST" codes are written to $9FFF for some
+; future X16 diagnostic hardware to read and display.
+; POST code format: %FSSSCCCC
+; F = 1 for fault (system will not continue booting), 0 for normal operation
+; SSS = subsystem
+; CCCCCCC = code
+POST_FAULT					= $80
+POST_SYS_VERA				= $10
+POST_SYS_VIA				= $20
+POST_SYS_MEM				= $30
+POST_CHECK_VIA				= (POST_SYS_VIA | $00)
+POST_CHECK_ZP				= (POST_SYS_MEM | $00)
+POST_CHECK_STACK			= (POST_SYS_MEM | $01)
+
+; POST codes for critical faults that prevent further operation
+POST_FAULT_CRIT_ZP			= (POST_FAULT | POST_CHECK_ZP)		; = $B0
+POST_FAULT_CRIT_STACK		= (POST_FAULT | POST_CHECK_STACK)	; = $B1
+POST_FAULT_CRIT_VIA			= (POST_FAULT | POST_CHECK_VIA)		; = $A0
+
+POST_FAULT_VERA 			= (POST_FAULT | POST_SYS_VERA)		; = $90
+POST_FAULT_WAIT_VERA 		= (POST_FAULT_VERA | $00)			; = $90
+POST_FAULT_INIT_VERA 		= (POST_FAULT_VERA | $01)			; = $91
+POST_FAULT_VERA_NOT_READY 	= (POST_FAULT_VERA | $02)			; = $92
 
 ONESEC			= $1900
 ZP_START_OFFSET		= $02
@@ -70,22 +94,22 @@ continue_original:
 	stz	rom_bank	; Reset ROM bank to 0 to continue loading normal ROM
 
 ; Check to see if VIA is present
-:
-	sei	; Disable interrupts, we don't have anything handling them
+:	sei	; Disable interrupts, we don't have anything handling them
+	POST POST_CHECK_VIA
 	ldy ddr
 	ldx #$AA
 	stx ddr
 	lda ddr
 	sty ddr
-	cmp #$AA ; should be $AA
+	cmp #$AA
 	beq :+
 
 	; VIA not present, jump to critical fault handler
-	ldy #FAULT_CRIT_VIA
+	ldy #POST_FAULT_CRIT_VIA
 	jmp diag_fault_critical
-:
 
 ; Check to see that we can at least use ZP
+:	POST POST_CHECK_ZP
 	lda #$55	; A <= $55
 	sta $02		; ($02) <= $55
 	asl		    ; A <= $AA
@@ -95,32 +119,30 @@ continue_original:
 	cmp #$55
 	beq	:+
 
-	ldy #FAULT_CRIT_ZP
+	ldy #POST_FAULT_CRIT_ZP
 	jmp diag_fault_critical ; No ZP
 
 ; Check the top few entries of the stack, without these working
 ; we cannot do any jsr/rts operations.
-:
-	ldx #$FF
+	POST POST_CHECK_STACK
+:	ldx #$FF
 	txs
 	lda #$A5
 	ldx #8
-:
-	pha
+:	pha
 	dex
 	bne :-
 
 ; Pop the top 8 bytes from the stack and verify the expected value
 	ldx #8
-:
-	pla
+:	pla
 	cmp #$A5
 	bne :+
 	dex
 	bne :-
 	jmp fail_safe_okay
-:
-	ldy #FAULT_CRIT_STACK
+
+:	ldy #POST_FAULT_CRIT_STACK
 	jmp diag_fault_critical ; No stack
 
 ; If we get here, VIA and memory should be working well enough to check
@@ -1160,6 +1182,7 @@ loop:	I2C_WRITE_BYTE $FF, I2C_SMC, SMC_activity_led
 diag_fault_critical:
 	ldx #0
 diag_fault_wait_vera:
+	POST POST_FAULT_WAIT_VERA
 	lda	#42
 	sta	VERA_ADDR_L
 	lda	VERA_ADDR_L
@@ -1175,18 +1198,15 @@ diag_fault_wait_vera:
 	bne :-
 
 	inx
-	beq :+
-	jmp diag_fault_wait_vera
-:
-	; Catastrophic error - VERA not responding
+	bne diag_fault_wait_vera
 
-	stz $9FA0	; strobe IO5 to indicate were waiting on VERA
+	; Catastrophic error - VERA not responding
+	POST POST_FAULT_VERA_NOT_READY
 	jmp	diag_fault_critical
 
 ; VERA ready
 vera_init_ramless:
-	lda #1
-	sta $9FA0	; Indicate we're initializing VERA
+	POST POST_FAULT_INIT_VERA
 
 	stz VERA_IEN
 	stz VERA_CTRL
@@ -1194,7 +1214,7 @@ vera_init_ramless:
 	sta VERA_DC_VIDEO
 
 	; Layer 1 configuration
-	lda	#%01100000		; Map Height = 01b = 64 tiles
+	lda	#%01100000			; Map Height = 01b = 64 tiles
 	sta	VERA_L1_CONFIG		; Map Width  = 10b = 128 tiles
 	lda	#(screen_addr>>9)
 	sta	VERA_L1_MAPBASE
@@ -1231,27 +1251,28 @@ vera_init_ramless:
 	sta	VERA_ADDR_M
 	stz	VERA_ADDR_L
 
-	; Clear the screen with black background
-	ldx	#128
+	; Clear the screen with red background
+	ldx	#128		; Save a couple bytes by writing 128 instead of 64
 
 veraclr_ramless:
+	; Y contains the error code and RAM is not safe to use,
+	; thus using repeat here for clearing the screen
 .repeat 50
-	lda	#' '			; Space character
+	lda	#' '				; Space character
 	sta	VERA_DATA0
-	lda	#((RED<<4)|WHITE)	; White on BLUE
+	lda	#((RED<<4)|WHITE)	; White on Red
 	sta	VERA_DATA0
 .endrepeat
 	dex
 	beq	:+
 	jmp	veraclr_ramless
-:
 
 ; Copy character set to VERA
-	lda	#<(charset_addr)
+:	lda	#<(charset_addr)
 	sta	VERA_ADDR_L
 	lda	#>(charset_addr)
 	sta	VERA_ADDR_M
-	lda	#$10 | ^(charset_addr)	; step 1 byte in negative direction
+	lda	#$10 | ^(charset_addr)	; address increment mode +1
 	sta	VERA_ADDR_H
 
 	ldx	#0			; 64 charactes * 8 bytes = 512 bytes
@@ -1276,47 +1297,52 @@ veraclr_ramless:
 	lda	#$11			; Increment=1, Bank=1
 	sta	VERA_ADDR_H
 	
-	lda #'H'-'A'+1
+	lda #'H'-'@'		; '@' is the char before 'A' in ASCII and PETSCII
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'W'-'A'+1
+	lda #'W'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
 	lda #' '
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'F'-'A'+1
+	lda #'F'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'A'-'A'+1
+	lda #'A'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'U'-'A'+1
+	lda #'U'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'L'-'A'+1
+	lda #'L'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
-	lda #'T'-'A'+1
+	lda #'T'-'@'
 	sta VERA_DATA0
 	stx VERA_DATA0
 	lda #' '
 	sta VERA_DATA0
 	stx VERA_DATA0
 
+	sty POST_IO_PORT	; Write fault code for external visibility
 	tya
 	lsr
 	lsr
 	lsr
 	lsr
-	adc #'0'
-	sta	VERA_DATA0
-	stx VERA_DATA0
+	tax
+	lda hex_table,x
+	sta VERA_DATA0
+	lda #((RED<<4)|WHITE)
+	sta VERA_DATA0
 	tya
 	and #$0F
-	adc #'0'
-	sta	VERA_DATA0
-	stx VERA_DATA0
+	tay
+	lda hex_table,y
+	sta VERA_DATA0
+	lda #((RED<<4)|WHITE)
+	sta VERA_DATA0
 
 	jmp catastrophic_error
 
