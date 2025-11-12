@@ -1,3 +1,5 @@
+.include "65c816.inc"
+
 .import clear_status
 .import extapi_getlfs
 .import mouse_sprite_offset
@@ -15,13 +17,14 @@
 .import memory_decompress_internal
 .import default_palette
 .import has_machine_property
+.import kbdbuf_get
+.import kbdbuf_clear
 
 .export extapi
 
 .segment "UTIL"
 
-; This API call expects and requires
-; m=1,x=1,sp=$01xx (or e=1)
+; On the 65C816 This API call expects and requires m=1,x=1
 extapi:
 	pha ; reserve two free spots on the stack
 	pha
@@ -32,6 +35,8 @@ extapi:
 	lda apitbl,x   ; low byte of jump table entry
 	pha
 	lda apitbl+1,x ; high byte of jump table entry
+	set_carry_if_65c816
+	bcs @c816
 	tsx
 	sta $105,x     ; store API high byte on stack
 	pla
@@ -39,13 +44,23 @@ extapi:
 	plx            ; restore caller X
 	plp            ; restore caller flags
 	rts            ; jump to api
+@c816:
+.pushcpu
+.setcpu "65816"
+	sta $05,S
+	pla
+	sta $03,S
+	plx
+	plp
+	rts
+.popcpu
 
 secrts:
 	sec
 	rts
 
 apitbl:
-	.word secrts-1 ; slot 0 is reserved
+	.word secrts-1                     ; API slot 0 is reserved
 	.word clear_status-1               ; API 1
 	.word extapi_getlfs-1              ; API 2
 	.word mouse_sprite_offset-1        ; API 3
@@ -63,3 +78,5 @@ apitbl:
 	.word memory_decompress_internal-1 ; API 15
 	.word default_palette-1            ; API 16
 	.word has_machine_property-1       ; API 17
+	.word kbdbuf_get-1                 ; API 18
+	.word kbdbuf_clear-1               ; API 19
