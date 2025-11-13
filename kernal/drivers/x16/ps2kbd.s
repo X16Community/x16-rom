@@ -31,7 +31,7 @@
 .import memory_decompress_internal ; [lzsa]
 
 .export kbd_config, kbd_scan, receive_scancode_resume, keymap, ps2kbd_typematic
-.export kbd_leds
+.export kbd_leds, kbd_swap
 .export tpmflg, tpmcache, ledstate, leds_pending
 
 .import extapi
@@ -121,18 +121,28 @@ kbd_scan:
 	KVARS_END
 	rts
 
+kbd_swap:
+	KVARS_START_TRASH_A_NZ
+	lda curkbd
+	pha
+	lda prevkbd
+	jsr _kbd_config
+	pla
+	bcs @end ; _kbd_config failed
+	cmp curkbd
+	beq @end
+	sta prevkbd
+@end:
+	KVARS_END_TRASH_A_NZ
+	rts
+
 ;
 ; set keyboard layout .a
 ;  $ff: reload current layout (PETSCII vs. ISO might have changed)
-;  $fe: swap to previous layout
 ;
 _kbd_config:
 	stz dk_scan ; clear dead key
 
-	cmp #$fe
-	bne :+
-	lda prevkbd
-:
 	cmp #$ff
 	bne :+
 	lda curkbd
@@ -146,12 +156,7 @@ _kbd_config:
 	sta fetvec
 
 ; get keymap
-	plx
-	cpx curkbd
-	beq :+
-	lda curkbd
-	sta prevkbd
-:	txa
+	pla
 	sta curkbd
 	asl
 	asl
@@ -274,18 +279,23 @@ _keymap:
 	sty ckbtab+1
 	stx ckbtab
 	ldy #0
-@l2:	lda (ckbtab),y
+@l2:
+	lda (ckbtab),y
 	cmp kbdnam,y
 	beq @ok
 	pla             ;next
 	inc
 	bra @l1
-@ok:	iny
+@ok:
+	iny
 	cmp #0
 	bne @l2
 	pla             ;found
 	pla
-	plp
+	cmp curkbd
+	beq :+
+	sta prevkbd
+:	plp
 	clc
 	rts
 

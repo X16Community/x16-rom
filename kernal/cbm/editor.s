@@ -75,7 +75,8 @@ MODIFIER_SHIFT = 1
 .export color
 
 ; keyboard driver
-.import kbd_config, kbd_scan, kbdbuf_clear, kbdbuf_put, kbdbuf_get, kbd_remove, kbdbuf_get_modifiers, kbdbuf_get_stop
+.import kbd_config, kbd_scan, kbdbuf_clear, kbdbuf_put, kbdbuf_get, kbd_remove
+.import kbd_swap, kbdbuf_get_modifiers, kbdbuf_get_stop
 
 ; beep driver
 .import beep
@@ -953,8 +954,7 @@ bell
 swlay
 	cmp #$0b        ; (k)eyboard layout swap
 	bne outhre
-	lda #$fe
-	jsr kbd_config
+	jsr kbd_swap
 	jmp loop2
 
 ;shifted keys
