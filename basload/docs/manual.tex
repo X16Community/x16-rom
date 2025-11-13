@@ -320,29 +320,35 @@
         named PETSCII control characters, such as arrow up or
         down.
 
-        The available named control characters are listed in
-        Appendix A.
+        The control codes are all typed within curly brackets. There
+        is a list of the control codes in Appendix A. 
 
         The controlcodes option takes effect from the line
         where it is encountered and remains in force until
-        changed. It is possible to set and change the
+        changed. It is possible to change the
         option multiple times in the source code.
 
         The default value is 0 (off).
 
-        The named control characters are only available
+        The named control codes are only available
         within a string.
 
-        If you want to put a left curly bracket or a 
+        If you want to type a left curly bracket or a 
         backslash in a string, you need to escape each of them with 
         a backslash while this option is active.
 
+        While the option is active it is also possible
+        to type in characters by their HEX code. The HEX code is
+        prefixed by "\textbackslash X". For instance, "\textbackslash Xff" outputs the PI character
+        in PETSCII upper case mode.
+    
         Examples:
 
     \begin{verbatim}
     #CONTROLCODES 1
     PRINT "{CLEAR}Hello, world": REM {CLEAR}->PETSCII $93
     PRINT "\{CLEAR} clears the screen": REM {CLEAR} unconverted
+    PRINT "The cirumference of a cirle is 2 * \Xff * r"
     \end{verbatim}
 
     \subsection{Option: \#SYMFILE "@:filename"}
@@ -446,6 +452,47 @@
     PRINT PI
          \end{verbatim}
 
+    \subsection{Option: \#SOURCELINES 0 $|$ 1}
+        When enabled this option appends a REM statement to the end of each line of the
+        transpiled code, indicating the corresponding line in the source file. 
+        The option is useful for debugging. It is possible to toggle the option on or off multiple times 
+        in the source code.
+
+        Values:
+        \begin{itemize}
+            \item 0 = Option disabled
+            \item 1 = Option enabled
+        \end{itemize}
+
+        Format of appended REM statement:
+        \begin{itemize}
+            \item For lines from the main source file: REM \#nn, where nn is the line number.
+            \item For included files: REM \#nn-mm, where nn is the line in the main source file
+            where the \#INCLUDE statement is found, and mm is the line in the included file.
+        \end{itemize}
+
+        Example:
+        \begin{verbatim}
+    main.bas:
+      #SOURCEFILES 1
+      #INCLUDE "INC.BAS"
+      PRINT MSG$
+
+    inc.bas:
+      MSG$="HELLO, WORLD!"
+    
+    Transpiled code:
+      MSG$="HELLO, WORLD!":REM #2-1
+      PRINT MSG$:REM #3
+         \end{verbatim}
+    
+        Here, REM \#2-1 indicates the code originated from line 2 in main.bas (the \#INCLUDE)
+        and line 1 in inc.bas.
+
+        The REM statement is truncated with an asterisk (*) if the line would otherwise
+        exceed its maximum length. The statement is omitted if there is no space at all
+        for it within the maximum length of a line.
+
 \section{Running BASLOAD}
 
     \subsection{From BASIC}
@@ -473,7 +520,7 @@
 
         \begin{longtable}[l]{l l p{6cm}}
             \textbf{Register} & \textbf{Address} & \textbf{Description} \\
-	        \hline \\
+            \hline \\
             R0L & \$02            & File name length \\
             R0H & \$03            & Device number \\
             ---  & \$00:BF00--BFFF & File name buffer \\
@@ -483,7 +530,7 @@
 
         \begin{longtable}[l]{l l p{6cm}}
             \textbf{Register} & \textbf{Address} & \textbf{Description} \\
-	        \hline \\
+            \hline \\
             R1L      & \$04       & Return code \\
             R1H..R2H & \$05--07   & Source line number where error occured \\
             R3       & \$08--09   & Pointer to source file name where error occured (always bank 1) \\
