@@ -72,10 +72,14 @@ kbtmp:  .res 1           ;    meant for exclusive use in kbd_scan
 
 .segment "KVARSB0"
 
-tpmflg:	.res 1           ;    Set typematic rate/delay flag
+tpmflg:
+	.res 1           ;    Set typematic rate/delay flag
 ledstate:
 	.res 1
-curkbd:	.res 1           ;    current keyboard layout index
+curkbd:
+	.res 1           ;    current keyboard layout index
+prevkbd:
+	.res 1           ;    previous keyboard layout index
 dk_shift:
 	.res 1
 dk_scan:
@@ -120,10 +124,15 @@ kbd_scan:
 ;
 ; set keyboard layout .a
 ;  $ff: reload current layout (PETSCII vs. ISO might have changed)
+;  $fe: swap to previous layout
 ;
 _kbd_config:
 	stz dk_scan ; clear dead key
 
+	cmp #$fe
+	bne :+
+	lda prevkbd
+:
 	cmp #$ff
 	bne :+
 	lda curkbd
@@ -137,7 +146,12 @@ _kbd_config:
 	sta fetvec
 
 ; get keymap
-	pla
+	plx
+	cpx curkbd
+	beq :+
+	lda curkbd
+	sta prevkbd
+:	txa
 	sta curkbd
 	asl
 	asl

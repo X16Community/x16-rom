@@ -719,10 +719,8 @@ prt
 
 @prt1:	pha
 	sta data
-	txa
-	pha
-	tya
-	pha
+	phx
+	phy
 	lda #0
 	sta crsw
 	ldy pntr
@@ -945,11 +943,18 @@ isosto	sta mode
 
 bell
 	cmp #$07        ;bell?
-	bne outhre      ;branch if not
+	bne swlay       ;branch if not
 	ldx #<1181      ; freq
 	ldy #>1181
 	lda #4          ; duration
 	jsr beep
+	jmp loop2
+
+swlay
+	cmp #$0b        ; (k)eyboard layout swap
+	bne outhre
+	lda #$fe
+	jsr kbd_config
 	jmp loop2
 
 ;shifted keys
