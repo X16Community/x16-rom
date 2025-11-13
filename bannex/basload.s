@@ -2,7 +2,7 @@
 .include "banks.inc"
 
 .export basload
-.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa, chkcom, chrgot, chrget, getbyt
+.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa, chrgot, chrget, getbyt
 
 .segment "ANNEX"
 
