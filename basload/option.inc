@@ -48,6 +48,7 @@
 ;                   0b: #IFNDEF
 ;                   0c: #ENDIF
 ;                   0d: #TOKEN
+;                   0e: #SOURCELINES
 ;                   fa:          endif without if
 ;                   fb:          Too many nested if statements
 ;                   fc:          Duplicate symbol
@@ -85,8 +86,9 @@ get_option:
     cmp #3
     beq include
     cmp #4
-    beq autonum
-    cmp #5
+    bne :+
+    jmp autonum
+:   cmp #5
     bne :+ 
     jmp controlcodes
 :   cmp #6
@@ -111,8 +113,11 @@ get_option:
     bne :+
     jmp endif
 :   cmp #13
-    bne unknown
+    bne :+
     jmp token
+:   cmp #14
+    bne unknown
+    jmp sourcelines
 
 unknown:
     lda #0
@@ -494,6 +499,24 @@ token:
 :   lda #$fc
     rts
 
+sourcelines:
+    ldx index1
+    jsr option_get_int
+    bcc :+
+    jmp invalid
+:   stx tmp
+    ora tmp
+    tya
+    ora tmp
+    beq :+
+    lda #1
+    sta line_option_sourcelines
+    lda option_index
+    rts
+:   stz line_option_sourcelines
+    lda option_index
+    rts
+
 invalid:
     lda #$fe
     rts
@@ -518,6 +541,15 @@ invalid:
 ;                   3: #INCLUDE
 ;                   4: #AUTONUM
 ;                   5: #CONTROLCODES
+;                   6: #SYMFILE
+;                   7: #SAVEAS
+;                   8: #MAXCOLUMN
+;                   9: #DEFINE
+;                  10: #IFDEF
+;                  11: #IFNDEF
+;                  12: #ENDIF
+;                  13: #TOKEN
+;                  14: #SOURCELINES
 ;Error........: None
 .proc option_find
     ; Save input & init vars
@@ -588,6 +620,7 @@ options_tbl:
     .byt "IFNDEF", 0
     .byt "ENDIF", 0
     .byt "TOKEN", 0
+    .byt "SOURCELINES", 0
     .byt 0
 
 .segment "VARS"
@@ -635,7 +668,52 @@ options_tbl:
     bra :-
 
     ; Convert string to 24 bit int
-:   lda #0
+:   ldx index1
+    lda file_buf,x
+    cmp #'$'
+    bne decimal
+
+    ; Hex notation
+    stz val ; Clear value
+    stz val+1
+    sta val+2
+    inc index1 ; skip leading $ sign
+    cpy index1
+    beq err
+    ldx #3 ; Output byte counter
+
+hex:
+    dey ; Set index to previous char (low nibble)
+    cpy index1 ; Check if at start of number
+    bcc :+
+    lda file_buf,y ; Get char from buffer
+    jsr nibble ; Convert hex char to digital value
+    sta val-1,x ; Store in output register
+    dey ; Set index to previous char (high nibble)
+    cpy index1 ; Check if at start of number
+    bcc :+
+    lda file_buf,y ; Get char from buffer
+    jsr nibble ; Convert hex char to digital value
+    asl ; Shift value to high nibble
+    asl
+    asl
+    asl
+    ora val-1,x ; Add high nibble to output register
+    sta val-1,x
+    cpx #0 ; Abort if output too long
+    beq err
+    dex ; Decrement output counter
+    bne hex ; Start over
+
+:   ldx val+2 ; Return hex value
+    ldy val+1
+    lda val
+    clc
+    rts
+
+    ; Decimal notation
+decimal:   
+    lda #0
     sta file_buf,y
     clc
     lda #<file_buf
@@ -647,14 +725,43 @@ options_tbl:
     jsr util_str_to_bcd
     bcs err
     jsr util_bcd_to_bin
-    clc
+    clc ; Return decimal value
     rts
 
 err:
+    sec ; Return with error code
+    rts
+
+nibble:
+    ; Converts one hex char to a digital value (a nibble)
+    ; Input: A=hex char
+    ; Output: A=number
+    cmp #'0'
+    bcc err2
+    cmp #'9'+1
+    bcs :+
+    sec
+    sbc #48
+    clc
+    rts
+:   cmp #'A'
+    bcc err2
+    cmp #'F'+1
+    bcs err2
+    sec
+    sbc #55
+    clc
+    rts
+
+err2:
+    pla ; Clear internal call from stack
+    pla
+    sec ; Return with error code
     rts
 
 .segment "VARS"
     index1: .res 1
+    val: .res 3
 .CODE
 .endproc
 

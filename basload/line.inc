@@ -12,6 +12,7 @@ LINE_SYMBOL = 12
 LINE_DATA = 14
 LINE_CURLY = 16
 LINE_BACKSLASH = 18
+LINE_CHARCODE = 20
 
 ; Variables
 .ZEROPAGE
@@ -23,6 +24,7 @@ LINE_BACKSLASH = 18
     line_option_rem: .res 1
     line_autonum: .res 1
     line_option_controlcodes: .res 1
+    line_option_sourcelines: .res 1
     line_pass: .res 1
     mem_top: .res 2
 .CODE
@@ -79,7 +81,7 @@ LINE_BACKSLASH = 18
     ; Set default options
     stz line_option_rem ; Remove REms
     stz line_option_controlcodes
-
+    stz line_option_sourcelines
     rts
 .endproc
 
@@ -447,11 +449,13 @@ loop:
     ; Get next char from file buffer
     ldx index_src
     lda file_buf,x
-    bne switch_state
+    beq :+
+    jmp switch_state
 
-    ldx state
+:   ldx state
     cpx #LINE_SYMBOL
-    beq switch_state
+    bne eol
+    jmp switch_state
 
 eol:
     ; Rewind destination line number if nothing was outputted to BASIC memory
@@ -465,10 +469,84 @@ eol:
     lda line_dstlin+1
     sbc #0
     sta line_dstlin+1
-    bra exit
+    jmp exit
 
+:   ; Insert source line number, if option selected
+    lda line_option_sourcelines
+    beq eol_mark
+
+    cpy #247              ; Check if at least the shortest possible line number will fit
+    bcs eol_mark            ; It will not, skip this line
+
+    lda #':'                ; Insert colon
+    sta (line_code),y
+    inc index_dst
+    iny
+
+    lda #$8f                ; Insert REM token
+    sta (line_code),y
+    inc index_dst
+    iny
+
+    lda #' '                ; Insert blank space
+    sta (line_code),y
+    inc index_dst
+    iny
+
+    ldx #2                  ; Get source line number(s)
+    stx option_start        ; Reusing variable as file index
+source_lines_loop:
+    cpx #2
+    bne :+
+    lda #'#'                ; Insert hash tag
+    bra :++
+:   lda #'-'                ; Insert minus sign
+:   sta (line_code),y
+    inc index_dst
+
+    lda file_srclin_M-2,x
+    tay
+    lda file_srclin_H-2,x
+    pha
+    lda file_srclin_L-2,x
+    tax
+    pla
+
+    jsr util_bin_to_bcd     ; Convert to BCD format
+    lda #1
+    jsr util_bcd_to_str     ; Convert to string
+    stx TEMP1
+    sty TEMP1+1
+
+    ldy index_dst           ; Output source line number to destination
+:   lda (TEMP1)
+    beq :+
+    sta (line_code),y
+    inc index_dst
+    iny
+    cpy #251
+    bcs source_lines_full
+    inc TEMP1
+    bne :-
+    inc TEMP1+1
+    bra :-
+
+:   inc option_start          ; File index
+    ldx option_start
+    cpx file_line_from
+    bcc source_lines_loop
+    beq source_lines_loop
+    bra eol_mark
+
+source_lines_full:
+    lda #'*'
+    sta (line_code),y
+    iny
+    inc index_dst
+    
     ; Update BASIC memory: Set end of line marker
-:   lda #0
+eol_mark:
+    lda #0
     sta (line_code),y
     inc index_dst
 
@@ -655,6 +733,12 @@ ishex:
     stx symbol_start
     jmp next
 
+    ; Convert PETSCII 126 (PI) outside strings to PETSCII 255 (PI token)
+:   cmp #126
+    bne :+
+    lda #255
+    jmp copy
+
     ; BASIC operators, eg. +, -, *, / - Tokenized as commands
 :   ldx index_src
     ldy index_src
@@ -690,23 +774,24 @@ string:
     stx state
     jmp copy
 
-    ; Check if backslash => change state and discard char
-:   cmp #$5c ; Backslash
-    bne :+
-    lda #LINE_BACKSLASH
-    sta state
-    jmp next
-
     ; Save char on stack
 :   pha
 
     ; Check if controlcode option is active
     ldx line_option_controlcodes
-    beq :+ ; no
+    beq string_cont    ; no
+
+    ; Check if backslash => change state and discard char
+    cmp #$5c ; Backslash
+    bne :+
+    lda #LINE_BACKSLASH
+    sta state
+    pla
+    jmp next
 
     ; Check if left curly bracket "{" => start of control code
-    cmp #123 ; Left curly bracket
-    bne :+ ; no
+:   cmp #123 ; Left curly bracket
+    bne string_cont ; no
 
     ; We are at start of a control code, set state and discard char
     pla
@@ -717,7 +802,8 @@ string:
     jmp next
 
     ; Default behavior, copy char to output
-:   pla
+string_cont:
+    pla
     jmp copy
 
 hexnum:
@@ -1048,23 +1134,38 @@ instoken:
     jmp next
 
 data:
-    tax
+    ; Parser for DATA statement values
+    tax ; backup char in .X
+    cmp #34 ; Is it a double quote?
+    bne data2 ; No
+    inc quotes_count ; Increment quote counter
+    bra data4 ; Output quote char
 
-    cmp #34 ; Double quote?
-    bne :+
-    inc quotes_count
-    bra :++
-
-:   lda quotes_count
+data2:   
+    lda quotes_count ; Is the char in a string?
     and #1
-    bne :+
+    bne data4 ; Yes, copy to output as is
 
-    cpx #':'
-    bne :+
-    stz state
+    cpx #':' ; Is it end of statement?
+    bne data3 ; No
+    stz state ; Yes, reset state
+    bra data4 ; and copy colon to output
 
-:   txa
+data3:
+    cpx #32 ; Is it a space (outside string)?
+    beq data5 ; Yes, suppress
+    cpx #9 ; Is it a tab (outside string)?
+    beq data5 ; Yes, suppress
+    cpx #160 ; Is it shift+space (outside string)?
+    beq data5 ; Yes, suppress
+    
+data4:
+    ; Copy char to output
+    txa
     jmp copy
+
+data5:
+    jmp next ; Suppress char and go to next
 
 curly:
     ; Check if right curly bracket "}" marking the end of a control code
@@ -1096,6 +1197,60 @@ curly_err:
     rts
 
 backslash:
+    cmp #34 ; Double quote?
+    bne :+
+
+    ; Double qoute, close string
+    ldx #LINE_DEFAULT_ELEMENT
+    stx state
+    jmp copy
+
+:   cmp #'X' ; Start of PETSCII/ASCII character as hex code?
+    beq :+
+    cmp #'x'
+    bne :++
+:   ldx #LINE_CHARCODE
+    stx state
+    jmp next
+
+    ; Not double quote, emit char
+:   ldx #LINE_STRING
+    stx state
+    jmp copy
+
+charcode:
+    and #223 ; Convert case, also affects digits
+    sec
+    sbc #16
+    bcc charcode_invalid
+    cmp #10
+    bcc :+
+    sbc #39
+    bcc charcode_invalid
+    cmp #16
+    bcs charcode_invalid
+
+:   cpx #LINE_CHARCODE
+    bne :+
+
+    ; First char
+    asl
+    asl
+    asl
+    asl
+    sta backslash_char
+    inc state
+    inc state
+    jmp next
+
+:   ; Second char
+    ora backslash_char
+    ldx #LINE_STRING
+    stx state
+    jmp copy
+
+charcode_invalid:
+    lda #'?'
     ldx #LINE_STRING
     stx state
     jmp copy
@@ -1112,7 +1267,7 @@ next:
     jmp loop
 
 jump_table:
-    .word default, remark, string, hexnum, binnum, decnum, symbol, data, curly, backslash
+    .word default, remark, string, hexnum, binnum, decnum, symbol, data, curly, backslash, charcode, charcode
 
 .segment "VARS"
     state: .res 1
@@ -1125,5 +1280,6 @@ jump_table:
     quotes_count: .res 1
     option_start: .res 1
     curly_start_index: .res 1
+    backslash_char: .res 1
 .CODE
 .endproc

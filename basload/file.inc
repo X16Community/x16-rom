@@ -34,6 +34,7 @@
     file_main_len: .res 1       ;Length of file name
     file_cur_num: .res 1        ;Current file number (2..11)
     file_lastchar: .res 1       ;Holds last char, needed for CRLF detection
+    file_lastchars: .res 10     ;Holds last char for each of the 10 possible open files
     file_line_from: .res 1      ;Holds file number used by last invocation of file_readln
     file_srclin_L: .res 10      ;Source line counter bits 0..7 for file numbers 2-11
     file_srclin_M: .res 10      ;Source line counter bits 8..15 for file numbers 2-11
@@ -79,9 +80,8 @@ loop:
     ldx #SYMFILE_NUMBER
     bridge_call
 
-    ; Clear values
+    ; Clear error
     stz file_err
-    stz file_lastchar
     rts
 .endproc
 
@@ -157,13 +157,18 @@ loop:
     beq :+
     rts
 
-    ; File successfully opened, clear source line, and store file name in table
+    ; Clear source line
 :   ldx file_cur_num
     lda #0
     sta file_srclin_L-2,x
     sta file_srclin_M-2,x
     sta file_srclin_H-2,x
 
+    ; Clear last char
+    sta file_lastchars-2,x
+    sta file_lastchar
+
+    ; Store file name in table
     lda file_cur_num
     dea
     dea
@@ -229,7 +234,7 @@ err:
     ldx file_cur_num
     bridge_call
 
-    ;Clear symfile flag
+    ; Clear symfile flag
     stz symfile_file_printed_flag
     rts
 
@@ -261,10 +266,14 @@ err:
     stx file_line_from
 
     inc file_srclin_L-2,x
-    bne loop
+    bne :+
     inc file_srclin_M-2,x
-    bne loop
+    bne :+
     inc file_srclin_H-2,x
+
+    ; Set last char read from current file
+:   lda file_lastchars-2,x
+    sta file_lastchar
 
 loop:
     ;Read char from file
@@ -369,6 +378,10 @@ eof:
     rts
 
 eol:
+    ldx file_cur_num        ;Set last char for current file
+    lda file_lastchar
+    sta file_lastchars-2,x
+
     lda #0                  ;Set NULL at end of line
     ldx index
     sta file_buf,x
@@ -540,8 +553,8 @@ err:
     stz RAM_SEL
     ldy #0
 :   lda (TEMP1),y
-    beq :+
     sta $bf00,y
+    beq :+
     iny
     bra :-
 
