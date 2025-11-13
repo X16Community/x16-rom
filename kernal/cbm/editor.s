@@ -75,7 +75,8 @@ MODIFIER_SHIFT = 1
 .export color
 
 ; keyboard driver
-.import kbd_config, kbd_scan, kbdbuf_clear, kbdbuf_put, kbdbuf_get, kbd_remove, kbdbuf_get_modifiers, kbdbuf_get_stop
+.import kbd_config, kbd_scan, kbdbuf_clear, kbdbuf_put, kbdbuf_get, kbd_remove
+.import kbd_swap, kbdbuf_get_modifiers, kbdbuf_get_stop
 
 ; beep driver
 .import beep
@@ -719,10 +720,8 @@ prt
 
 @prt1:	pha
 	sta data
-	txa
-	pha
-	tya
-	pha
+	phx
+	phy
 	lda #0
 	sta crsw
 	ldy pntr
@@ -945,11 +944,17 @@ isosto	sta mode
 
 bell
 	cmp #$07        ;bell?
-	bne outhre      ;branch if not
+	bne swlay       ;branch if not
 	ldx #<1181      ; freq
 	ldy #>1181
 	lda #4          ; duration
 	jsr beep
+	jmp loop2
+
+swlay
+	cmp #$0b        ; (k)eyboard layout swap
+	bne outhre
+	jsr kbd_swap
 	jmp loop2
 
 ;shifted keys
