@@ -2,7 +2,7 @@
 .include "banks.inc"
 
 .export basload
-.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa
+.import bajsrfar, frmevl, valtyp, fcerr, frefac, index1, basic_fa, chkcom, chrgot, chrget, getbyt
 
 .segment "ANNEX"
 
@@ -36,11 +36,28 @@ prepare:
 	iny
 	bra :-
 
-	; Set current device, if basic_fa < 8 then use default device 8
+:	; Check comma after file name
+	jsr chrgot
+	cmp #','
+	bne :+
+
+	; Comma found, get device # from command
+	jsr chrget ; skip comma
+	jsr getbyt
+	txa
+	cmp #0 ; keyboard
+	beq device_error
+	cmp #3 ; screen
+	beq device_error
+	bra :++
+
+	; Use current device, or #8 if basic_fa < 8
 :	lda basic_fa
 	cmp #8
 	bcs :+
 	lda #8
+
+	; Set device #
 :  	sta $03
 
 	; Print "LOADING..."
@@ -79,6 +96,17 @@ response:
 
 exit:
 	rts
+
+device_error:
+	ldx #0
+:	lda derrmsg,x
+	beq exit
+	jsr bsout
+	inx
+	bra :-
+
+derrmsg:
+	.byt 13, "ERROR: ILLEGAL DEVICE NUMBER",0
 
 msg_loading:
 	.byt "LOADING...",0
