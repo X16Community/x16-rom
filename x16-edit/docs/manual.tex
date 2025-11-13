@@ -358,6 +358,23 @@ The Commander X16 was devised by David Murray a.k.a. the
         the toolbox is active, the open text text file is run through BASLOAD. 
         BASLOAD loads and tokenizes a BASIC program stored in a plain text file so that it can run on the X16. 
         The text file needs to saved to disk before the function is used.
+    
+    \subsection{Custom key scancode handlers}
+        The X16 Kernal allows custom key scancode handlers by changing the vector
+        at \$032e-032f. A scancode handler gets the raw IBM key number read from
+        the System Management Controller (SMC). The handler can intercept and change
+        the scancode before it is processed by the Kernal's keyboard functions.
+
+        The editor itself uses a scancode handler to keep track of modifier key status. The
+        handler also consumes all Ctrl key events. By default, the editor's scancode
+        handler returns to the Kernal when done, disabling any custom scancode handler that
+        was set up before starting the editor.
+
+        You can enable a custom scancode handler by pressing Ctrl+semicolon (;). The editor's
+        scancode handler is called first, and the custom scancode handler is linked in
+        thereafter. The chain of scancode handlers must eventually return to the Kernal for
+        the keyboard to work. This is not within the editor's control after you enable 
+        custom scancode handlers.
 
     \subsection{User-configurable key bindings}
         The shortcut key bindings in X16 Edit are user-configurable.
@@ -488,6 +505,7 @@ The Commander X16 was devised by David Murray a.k.a. the
         1..9 & ---   & Set tab stop width \\
         ENTER & ---  & Set line break encoding \\
         F    & ---   & Programming toolbox \\
+        ;    & ---   & Custom scancode handler on/off \\
     \end{longtable}
 
 \newpage
