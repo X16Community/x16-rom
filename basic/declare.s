@@ -1,6 +1,6 @@
 romloc	=$c000          ;x16 basic rom
 lofbuf	=$ff            ;$FF the low fac buffer. copyable
-buflen	=89             ;vic buffer
+buflen	=81             ;vic-20 and C64 buffer was 89, but our memory map isn't large enough
 bufpag	=2
 buf	=512
 .assert buf = 512, error, "cc65 depends on BASIC_BUF = $200, change with caution"
