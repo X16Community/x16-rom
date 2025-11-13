@@ -19,7 +19,7 @@
 .import has_machine_property
 .import kbdbuf_get
 .import kbdbuf_clear
-.import extapi_blink_disable
+.import extapi_blink_enable
 
 .export extapi
 
@@ -81,4 +81,4 @@ apitbl:
 	.word has_machine_property-1       ; API 17
 	.word kbdbuf_get-1                 ; API 18
 	.word kbdbuf_clear-1               ; API 19
-	.word extapi_blink_disable-1       ; API 20
+	.word extapi_blink_enable-1        ; API 20

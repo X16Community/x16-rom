@@ -51,7 +51,7 @@ MODIFIER_SHIFT = 1
 
 .export defcb
 
-.export extapi_blink_disable
+.export extapi_blink_enable
 
 .import tpmcache, tpmflg
 
@@ -1342,7 +1342,7 @@ defcb: ; default basin callback vector
 	sec
 	rts
 
-extapi_blink_disable:
+extapi_blink_enable:
 	txa
 	bra cursor_set_blink
 clear_cursor:
