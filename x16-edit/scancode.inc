@@ -31,6 +31,9 @@
 ;Error returns.......: None
 .if target_mem=target_ram
 .proc scancode_init
+    lda #$60 ; opcode for rts
+    sta scancode_handler_exit_cmd
+
     lda $032e
     sta scancode_default_handler
     lda $032f
@@ -44,13 +47,15 @@
     lda #>scancode_handler
     sta $032f
     cli
-    
     rts
 .endproc
 .endif
 
 .if target_mem=target_rom
 .proc scancode_init
+    lda #$60 ; opcode for rts   
+    sta scancode_handler_exit_cmd
+    
     lda $032e
     sta scancode_default_handler
     lda $032f
@@ -103,7 +108,7 @@
     ldy APP_MOD
     cpy #23
     bne :+
-    rts
+    bra exit
     
     ;Save input so we can restore value later
 :   pha
@@ -120,7 +125,7 @@ loop:
 
 nomatch:
     pla                 ; Retore keycode from stack and exit
-    rts
+    bra exit
 
 match:
     lda bitmask-1,y
@@ -151,11 +156,14 @@ keyup:
 
     ; Move keycode from X to A and exit
     txa
-    rts
+    bra exit
 
 consume:
     lda #0
+
+exit:
     rts
+    .byt 0,0    ; scancode_default_handler address
 
 keycodes:
     .byt KEYCODE_LSHIFT
@@ -176,9 +184,16 @@ bitmask:
 .endproc
 
 .segment "VARS"
-    scancode_default_handler: .res 2
     scancode_modifiers: .res 1
 .CODE
+
+.if target_mem=target_ram
+    scancode_handler_exit_cmd = scancode_handler::exit
+.else
+    scancode_handler_exit_cmd = bridge_code + bridge_scancode_exit_cmd - bridge_kernal
+.endif
+
+scancode_default_handler = scancode_handler_exit_cmd+1
 
 ;Modifier key bitmask
 KBD_MODIFIER_SHIFT = 1 ; C64:  Shift

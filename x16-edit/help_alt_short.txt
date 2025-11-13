@@ -1,0 +1,18 @@
+P/F1=Help    H=Replace
+W/F2=Exit    G=Goto line
+S/F3=Save    A=Auto indent
+J/F4=Justify R=Word wrap
+O/F5=Open    E=Charset
+F/F6=Search  I=DOS cmd
+U/F7=PgUp    D=Set device
+Y/F8=PgDn    K=Text color
+T   =Toolbox Q=Quote mode
+N   =New     B=Backgr color
+X   =Cut     M=Mem free
+K   =Del Ln  C=Copy
+1..9=Tab w   V=Paste
+RET =Ln brk enc
+
+X16 Edit, (c) Stefan Jakobsson,
+released under BSD 2-Clause
+License.

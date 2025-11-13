@@ -44,7 +44,7 @@
 ;The only way to know whether the Ctrl key key is pressed is 
 ;to check the value of scancode_modifiers.
 
-keyboard_shortcut_count = 26
+keyboard_shortcut_count = 27
 
 ;******************************************************************************
 ;Function name.......: keyboard_init
@@ -142,7 +142,7 @@ keyval:                                 ;List of default shortcut keys
     .byt $55, $19, $57, $53, $4c
     .byt $41, $5a, $45, $49, $44
     .byt $54, $42, $4d, $46, $0d
-    .byt $51
+    .byt $51, $3b
 .else
 keyval:
     .byt $50, $57, $53, $4f, $4e
@@ -150,7 +150,7 @@ keyval:
     .byt $56, $4c, $46, $48, $47
     .byt $41, $52, $45, $49, $44
     .byt $4b, $42, $4d, $00, $0d 
-    .byt $51
+    .byt $51, $3b
 .endif
 
 config:
@@ -295,10 +295,12 @@ ctrl:
     jmp cmd_set_tab_width
 
     ;Convert lower case letters to upper case
-:   and #%11011111
+:   cmp #$41
+    bcc :+
+    and #%11011111
 
     ;Look for matches in key value table
-    ldx #keyboard_shortcut_count
+:   ldx #keyboard_shortcut_count
 :   cmp keyboard_ctrl_keyval-1,x
     beq ctrl_match
     dex
@@ -1584,6 +1586,7 @@ keyboard_ctrl_jmptbl:
     .word keyboard_line_brk_enc
 
     .word cmd_quote_mode
+    .word cmd_chain_scancode_handlers
 
 .segment "VARS"
     keyboard_tabwidth:          .res 1              ;1 byte

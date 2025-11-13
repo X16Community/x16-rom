@@ -2694,6 +2694,41 @@ msg:
     .byt "quote mode",0
 .endproc
 
+;******************************************************************************
+;Function name.......: cmd_chain_scancode_handlers
+;Purpose.............: Toggles chained scancode handlers on/off
+;Preparatory routines: None
+;Input...............: Nothing
+;Returns.............: Nothing
+;Error returns.......: None
+.proc cmd_chain_scancode_handlers
+    lda #2
+    sta APP_MOD
+
+    lda #$60 ; opcode for rts
+    cmp scancode_handler_exit_cmd
+    beq on
+
+off:
+    sta scancode_handler_exit_cmd
+    ldx #<msg_off
+    ldy #>msg_off
+    bra print_msg
+
+on: lda #$4c ; opcode for jmp absolute
+    sta scancode_handler_exit_cmd
+    ldx #<msg_on
+    ldy #>msg_on
+    
+print_msg:
+    jmp screen_print_status
+
+msg_on:
+    .byt "custom scancode handler enabled", 0
+msg_off:
+    .byt "custom scancode handler disabled", 0
+.endproc
+
 .segment "VARS"
     cmd_auto_indent_status: .res 1
     cmd_wordwrap_mode:      .res 1       

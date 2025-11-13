@@ -100,9 +100,11 @@ bridge_scancode:
 
     pla
     plp
-    rts             ;Size: 27 bytes
+bridge_scancode_exit_cmd:
+    rts
+    .byt 0,9        ;Size: 29 bytes
 
-bridge_end:         ;Total size: 68 bytes
+bridge_end:         ;Total size: 70 bytes
 
 .segment "VARS"
     bridge_temp:    .res 1

@@ -11,8 +11,8 @@ N   =New     B=Backgr color
 K   =Cut     M=Mem free
 DEL =Del Ln  C=Copy
 1..9=Tab w   U=Uncut/paste
-RET =Ln brk enc
+RET =Ln brk  ;=ScnCode Hndlr
 
-X16 Edit, (c) Stefan Jakobsson,
-released under BSD 2-Clause
+(c) Stefan Jakobsson 2020-25
+Released under BSD 2-Clause
 License.

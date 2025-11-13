@@ -2,34 +2,34 @@ Hold down Ctrl and press a shortcut key. Alternatively press
 and release ESC and then a shortcut key. Some commands also 
 available via a function key.
  
-^G  (F1)  Display built-in help screen
-^X  (F2)  Exit program
-^O  (F3)  Write text buffer to file
-^R  (F5)  Open and read file into text buffer
+^P  (F1)  Display built-in help screen
+^W  (F2)  Exit program
+^S  (F3)  Save buffer to file
+^O  (F5)  Open and read file into text buffer
 ^N        Create new text buffer
 ^J  (F4)  Justify text buffer
-^Y  (F7)  PageUp
-^V  (F8)  PageDown
-^K        Cut line or selection to clipboard
+^U  (F7)  PageUp
+^Y  (F8)  PageDown
+^X        Cut line or selection to clipboard
 ^C        Copy line or selection to clipboard
-^U        Uncut (paste) all content from clipboard
-^DEL      Delete current line, no copy to clipboard
-^W  (F6)  Search and find text (case sensitive)
-^S        Search and replace a string (case sensitive)
-^L        Go to line number
+^V        Paste all content from clipboard
+^L        Delete current line, no copy to clipboard
+^F  (F6)  Search and find text (case sensitive)
+^H        Search and replace a string (case sensitive)
+^G        Go to line number
 ^A        Toggle auto indent on/off
-^Z        Toggle word wrap on/off
+^R        Toggle word wrap on/off
 ^E        Change charset
 ^Q        Quote mode
 ^I        Invoke DOS command
 ^D        Set current device number
-^T        Set text color (default white)
+^K        Set text color (default white)
 ^B        Set background color (default blue)
 ^M        Show memory usage (1 block=251 bytes of text)
 ^SPACE    Insert non-breaking space
 ^1..9     Set tab width
 ^RETURN   Set line break encoding
-^F        Programming toolbox (ROM only)
+^T        Programming toolbox (ROM only)
 ^;        Custom scancode handler on/off
 
 
