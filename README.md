@@ -14,10 +14,6 @@ This is the Commander X16 ROM containing BASIC, KERNAL, and DOS. BASIC and KERNA
 	* works on SD cards with FAT32 filesystems.
 	* supports long filenames, timestamps.
 	* supports partitions and subdirectories (CMD-style).
-* CodeX Interactive Assembly Environment
-   * edit assembly code in RAM
-   * save program, and debug information
-   * run and debug assembly programs
 
 
 Releases and Building
@@ -34,7 +30,7 @@ Each [release of the X16 emulator][emu-releases] includes a compatible build of 
 
 ### Building the ROM
 
-Building this source code requires only [GNU Make], [Python 3.7] (or higher) and the [cc65] assembler. GNU Make is almost invariably available as a system package with any Linux distribution; cc65 less often so. 
+Building this source code requires only [GNU Make], [Python 3.7] (or higher), [lzsa] and the [cc65] assembler. GNU Make is almost invariably available as a system package with any Linux distribution; cc65 less often so. 
 
 - Red Hat/CentOS: `sudo yum install make cc65` 
 - Debian/Ubuntu: `sudo apt-get install make cc65`
@@ -77,6 +73,17 @@ Consult the Nesdev Wiki [Installing CC65][nd-cc65] page for some hints, includin
 
 ### Building/Installing lzsa
 
+#### Packages
+
+##### Linux
+No major distro offers packages for `lzsa`, so the source build is likely your best option -- see below.
+
+##### Windows
+The releases page for the lzsa GitHub repo offers Windows binaries: https://github.com/emmanuel-marty/lzsa/releases
+
+##### MacOS
+There is a Homebrew formula: `brew install lzsa`.
+
 #### Linux Builds from Source
 
 The `lzsa` compression utility is used for some resources packaged into the ROM, and is available [on Github](https://github.com/emmanuel-marty/lzsa); clone and build it with:
@@ -86,9 +93,10 @@ The `lzsa` compression utility is used for some resources packaged into the ROM,
 
 The `lzsa` utility will be left in the root directory of the repository.  It can be copied into a directory in your path, such as `~/.local/bin`.
 
-#### Building and Packages for Other Systems
+#### Building for Other Systems
 
-The `lzsa` repository contains project files for both Visual Studio 2017 and XCode, which should allow it to be built for Windows and OS X.
+The `lzsa` repository contains project files for both Visual Studio 2017 and XCode, which should allow it to be built for Windows and MacOS.
+
 
 Credits
 -------
@@ -815,6 +823,7 @@ This is the first release of x16-rom by the X16Community team
 <!-------------------------------------------------------------------->
 [GNU Make]: https://www.gnu.org/software/make/
 [Python 3.7]: https://www.python.org/downloads/release/python-370/
+[lzsa]: https://github.com/emmanuel-marty/lzsa
 [cc65]: https://cc65.github.io/
 [emu-releases]: https://github.com/X16community/x16-emulator/releases
 [nd-cc65]: https://wiki.nesdev.com/w/index.php/Installing_CC65
