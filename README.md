@@ -76,12 +76,15 @@ Consult the Nesdev Wiki [Installing CC65][nd-cc65] page for some hints, includin
 #### Packages
 
 ##### Linux
-No major distro offers packages for `lzsa`, so the source build is likely your best option -- see below.
+
+Arch Linux hosts an `lzsa` package in the [AUR](https://aur.archlinux.org/packages/lzsa).
+
+Most other Linux distros don't offer packages for `lzsa`, so the source build is likely your best option -- see below.
 
 ##### Windows
 The releases page for the lzsa GitHub repo offers Windows binaries: https://github.com/emmanuel-marty/lzsa/releases
 
-##### MacOS
+##### macOS
 There is a Homebrew formula: `brew install lzsa`.
 
 #### Linux Builds from Source
@@ -95,7 +98,7 @@ The `lzsa` utility will be left in the root directory of the repository.  It can
 
 #### Building for Other Systems
 
-The `lzsa` repository contains project files for both Visual Studio 2017 and XCode, which should allow it to be built for Windows and MacOS.
+The `lzsa` repository contains project files for both Visual Studio 2017-2026 and XCode, which should allow it to be built for Windows and macOS.
 
 
 Credits
