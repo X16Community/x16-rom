@@ -17,6 +17,7 @@
 .export screen_set_char
 .export screen_set_char_color
 .export screen_get_char_color
+.export screen_get_color_cont
 .export screen_set_position
 .export screen_get_position
 .export screen_copy_line
@@ -516,6 +517,7 @@ screen_set_char_color:
 ;---------------------------------------------------------------
 screen_get_char_color:
 	jsr screen_get_char
+screen_get_color_cont:
 	ldx VERA_DATA0     ;get color
 	rts
 
