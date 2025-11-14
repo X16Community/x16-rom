@@ -62,6 +62,7 @@ MODIFIER_SHIFT = 1
 .import screen_set_char
 .import screen_set_char_color
 .import screen_get_char_color
+.import screen_get_color_cont
 .import screen_set_position
 .import screen_get_position
 .import screen_copy_line
@@ -1303,13 +1304,13 @@ cursor_blink:
 	lda #20         ;reset blink counter
 	sta blnct
 	ldy pntr        ;cursor position
+	ldx gdcol
+	jsr screen_get_char
 	lsr blnon       ;carry set if original char
-	php
-	jsr screen_get_char_color
-	inc blnon       ;set to 1
-	plp
 	bcs @1          ;branch if not needed
+	inc blnon       ;set to 1
 	sta gdbln       ;save original char
+	jsr screen_get_color_cont
 	stx gdcol       ;save original color
 	ldx color       ;blink in this color
 @1	bit mode
