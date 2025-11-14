@@ -24,12 +24,14 @@ POST_IO_PORT		= $9FFF
 ; CCCCCCC = code
 
 POST_FAULT                = $80
+POST_SYS_GENERIC          = $00
 POST_SYS_VERA             = $10
 POST_SYS_VIA              = $20
 POST_SYS_MEM              = $30
 POST_CHECK_VIA            = (POST_SYS_VIA | $00)
 POST_CHECK_ZP             = (POST_SYS_MEM | $00)
 POST_CHECK_STACK          = (POST_SYS_MEM | $01)
+POST_DONE                 = (POST_SYS_GENERIC | $01)
 
 ; POST codes for critical faults that prevent further operation
 POST_FAULT_CRIT_ZP        = (POST_FAULT | POST_CHECK_ZP)      ; = $B0
@@ -106,6 +108,7 @@ continue_original:
 	beq :+
 
 	; VIA not present, jump to critical fault handler
+	POST POST_FAULT_CRIT_VIA
 	ldy #POST_FAULT_CRIT_VIA
 	jmp diag_fault_critical
 
@@ -120,6 +123,7 @@ continue_original:
 	cmp #$55
 	beq :+
 
+	POST POST_FAULT_CRIT_ZP
 	ldy #POST_FAULT_CRIT_ZP
 	jmp diag_fault_critical ; No ZP
 
@@ -141,9 +145,11 @@ continue_original:
 	bne :+
 	dex
 	bne :-
+	POST POST_DONE
 	jmp fail_safe_okay
 
-:	ldy #POST_FAULT_CRIT_STACK
+:	POST POST_FAULT_CRIT_STACK
+	ldy #POST_FAULT_CRIT_STACK
 	jmp diag_fault_critical ; No stack
 
 ; If we get here, VIA and memory should be working well enough to check
@@ -1217,7 +1223,7 @@ diag_fault_wait_vera:
 
 	; Catastrophic error - VERA not responding
 	POST POST_FAULT_VERA_NOT_READY
-	jmp diag_fault_critical
+	jmp catastrophic_error
 
 ; VERA ready
 vera_init_ramless:
