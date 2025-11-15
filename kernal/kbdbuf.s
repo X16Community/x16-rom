@@ -34,8 +34,11 @@ kbdbuf_clear:
 
 kbdbuf_peek:
 	KVARS_START
+	php
+	sei
 	lda keyd
 	ldx ndx
+	plp
 	KVARS_END
 	rts
 
