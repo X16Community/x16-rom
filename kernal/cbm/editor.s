@@ -1359,9 +1359,9 @@ cursor_set_blink:
 	beq @1 ; rts
 	lda gdbln
 	ldy pntr
-	jsr screen_set_char
-	lda #0
-	sta blnon
+	ldx gdcol
+	jsr screen_set_char_color
+	stz blnon
 @1:	rts
 
 iso_cursor_char:
