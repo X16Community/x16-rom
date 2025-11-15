@@ -34,8 +34,12 @@ kbdbuf_clear:
 
 kbdbuf_peek:
 	KVARS_START
-	lda keyd
-	ldx ndx
+	php ; Disable IRQ
+	sei
+	lda keyd ; Get key
+	ldx ndx ; Get buffer count
+	plp ; Restore IRQ
+	cpx #0 ; If ndx=0 then Z=1 else Z=0
 	KVARS_END
 	rts
 
