@@ -63,12 +63,15 @@ kbdbuf_get:
 kbdbuf_put:
 	KVARS_START
 	stx stkey
+	php
+	sei
 	ldx ndx    ; length of keyboard buffer
 	cpx #KBDBUF_SIZE
 	bcs :+     ; full, ignore
 	sta keyd,x ; store
 	inc ndx
-:	ldx stkey
+:	plp
+	ldx stkey
 	pha
 	cmp #3 ; stop
 	bne @1
