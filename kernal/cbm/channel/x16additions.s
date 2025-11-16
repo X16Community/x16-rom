@@ -24,7 +24,7 @@ extapi_getlfs:
 ;   fnadr+fnlen: filename pointer (via setnam)
 ;   fa: device (via setlfs)
 ; outputs
-;   returns m=0, x=0
+;   returns m=1, x=1
 ;   if error, c=1 and .A has error type
 ;   normal load, c=0, .A=0, r0L-r1L=next address
 ;   r1H is zeroed
@@ -38,7 +38,6 @@ hbload:
 	bcs @1
 	lda #ERROR_MACHINE_PROPERTY
 	sec
-	rep #$30 ; affects only the return
 	rts
 @1:
 	stz r1H
@@ -54,7 +53,6 @@ hbload:
 	jsr nload
 	stx r0L
 	sty r0H
-	rep #$30        ;mx=0 to exit extapi16
 	rts
 @2:
 	jsr luking      ;tell user looking
@@ -142,7 +140,7 @@ hbl_end:
 	jsr prnto24
 
 	lda #0
-	rep #$31          ;mx=0, clc, affects only the return
+	clc
 	rts
 
 hbl_verify_byte:      ;verify
