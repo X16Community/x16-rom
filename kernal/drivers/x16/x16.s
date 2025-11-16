@@ -278,6 +278,8 @@ detect_machine_properties:
 	lsr machine_properties
 	lsr machine_properties
 
+	stz last_far_bank ; initialize to zero
+
 	; Count the number of usable C816 far banks.
 	; For now, we assume none of them has a mirror
 	; in another data bank, but this may change
