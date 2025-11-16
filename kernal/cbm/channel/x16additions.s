@@ -24,7 +24,7 @@ extapi_getlfs:
 ;   fnadr+fnlen: filename pointer (via setnam)
 ;   fa: device (via setlfs)
 ; outputs
-;   returns m=1, x=1
+;   returns m=0, x=0
 ;   if error, c=1 and .A has error type
 ;   normal load, c=0, .A=0, r0L-r1L=next address
 ;   r1H is zeroed

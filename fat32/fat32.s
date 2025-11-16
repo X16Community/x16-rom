@@ -3206,7 +3206,8 @@ fat32_read_long_done:
 ;                      source address via original write routine
 ; mx=1, e=0          : 65C816 native mode required.
 ;
-; On return fat32_size reflects the number of bytes actually written
+; On return fat32_size reflects the number of bytes it didn't write out
+; that were requested.
 ;
 ; * c=0: failure; sets errno
 ;

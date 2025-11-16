@@ -322,7 +322,7 @@ file_read_block_long:
 ;                 =0: up to 65536
 ;       c         =0: regular save from memory
 ;                 =1: stream from single address (e.g. VERA_data0)
-;                     (only has an effect if the bank byte (r1L) 0)
+;                     (only has an effect if the bank byte (r1L) = 0)
 ; Out:  r2        number of bytes written
 ;       c         =1: error
 ;---------------------------------------------------------------
