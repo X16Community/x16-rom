@@ -3,46 +3,47 @@
 .import chkopn
 .import chkcls
 .import chrget
-.import frmadr
+.import givayf0
+.import frmnum
+.import ayint
 
-.importzp poker, fac
+.importzp fac
 
 .export mod
 
 dividend = fac
 divisor = fac+2
-divsign = poker
+divsign = fac+4
 
 .proc mod: near
 	jsr chrget
 	jsr chkopn
-	; Save contents of poker
-	lda poker
-	pha
-	lda poker+1
-	pha
 	; Get dividend and save on stack
-	jsr frmadr
-	phy
+	jsr frmnum
+	jsr ayint
+	lda fac+3
+	pha
+	lda fac+4
 	pha
 	jsr chkcom
 	; Get Divisor and save it in the floating point accumulator
-	jsr frmadr
+	jsr frmnum
+	jsr ayint
+	lda fac+3
+	ldy fac+4
+	; Borrow floating point accumulator for calculations
 	sty divisor
 	sta divisor+1
-	jsr chkcls
-	; Pull dividend from stack and save in floating point accumulator
-	pla
-	sta dividend+1
 	pla
 	sta dividend
+	pla
+	sta dividend+1
 
+	jsr chkcls
+	; Calculate remainder by simple subtraction loop
 	jsr mod_calculate
 
-	pla
-	sta poker+1
-	pla
-	sta poker
+	; Load result into A and Y to be returned
 	lda dividend+1
 	ldy dividend
 	jmp givayf0
