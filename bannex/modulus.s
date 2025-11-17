@@ -6,6 +6,7 @@
 .import givayf0
 .import frmnum
 .import ayint
+.import error
 
 .importzp fac
 
@@ -14,6 +15,8 @@
 dividend = fac
 divisor = fac+2
 divsign = fac+4
+
+errdvo = 20	; Divide by zero error message
 
 .proc mod: near
 	jsr chrget
@@ -109,7 +112,6 @@ restore_sign:
 	inc dividend+1
 end:	rts
 div_by_zero:
-	stz dividend
-	stz dividend+1
-	rts
+	ldx #errdvo
+	jmp error
 .endproc
