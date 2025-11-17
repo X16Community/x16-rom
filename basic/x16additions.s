@@ -972,6 +972,10 @@ tattr:
 	bannex_call bannex_tattr
 	rts
 
+mod:
+	bannex_call bannex_mod
+	rts
+
 ;******************************************************************
 ;
 ; EDIT [<string filename>]

@@ -20,3 +20,4 @@ bannex_pause            = $C033
 bannex_tdata	        = $C036
 bannex_tattr            = $C039
 bannex_hbload           = $C03C
+bannex_mod              = $C03F
