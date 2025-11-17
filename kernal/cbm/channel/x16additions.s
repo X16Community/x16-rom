@@ -38,7 +38,6 @@ hbload:
 	bcs @1
 	lda #ERROR_MACHINE_PROPERTY
 	sec
-	rep #$30 ; affects only the return
 	rts
 @1:
 	stz r1H
@@ -54,7 +53,6 @@ hbload:
 	jsr nload
 	stx r0L
 	sty r0H
-	rep #$30        ;mx=0 to exit extapi16
 	rts
 @2:
 	jsr luking      ;tell user looking
@@ -142,7 +140,7 @@ hbl_end:
 	jsr prnto24
 
 	lda #0
-	rep #$31          ;mx=0, clc, affects only the return
+	clc
 	rts
 
 hbl_verify_byte:      ;verify

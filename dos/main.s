@@ -513,7 +513,7 @@ dos_untlk:
 ;---------------------------------------------------------------
 ; BLOCK-WISE RECEIVE (LONG, 65C816)
 ;
-; In:   r0L-r1L   pointer to destination
+; In:   r0L-r1L   24-bit pointer to destination
 ;       r2        number of bytes to read
 ;                 =0: 65536 bytes
 ; Out:  r2        number of bytes read
@@ -549,11 +549,10 @@ dos_xmacptr:
 ;---------------------------------------------------------------
 ; BLOCK-WISE SEND (LONG, 65C816)
 ;
-; In:   .X   source data bank
-;       r0   pointer to source
-;       r1   number of bytes to write
+; In:   r0L-r1L   24-bit pointer to source
+;       r2   number of bytes to write
 ;            =0: 65536 bytes
-; Out:  r1  number of bytes written
+; Out:  r2  number of bytes written
 ;       c    =1: unsupported
 ;       (EOI flag in ieee_status)
 ;
