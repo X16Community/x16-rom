@@ -63,6 +63,9 @@ errmc=40
 .import basic_sngflt
 .export sngflt
 
+.import basic_givayf0
+.export givayf0
+
 ayint:
 	jsr bajsrfar
 	.word basic_ayint
@@ -182,3 +185,10 @@ sngflt:
 	.word basic_sngflt
 	.byte BANK_BASIC
 	rts
+
+givayf0:
+	jsr bajsrfar
+	.word basic_givayf0
+	.byte BANK_BASIC
+	rts
+	
