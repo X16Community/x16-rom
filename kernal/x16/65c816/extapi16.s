@@ -48,7 +48,7 @@ apitbl:
 	.word stack_leave_kernal_stack-1   ; API 4 (x=0, returns with m=0,x=0)
 	.word xmacptr-1                    ; API 5 (x=0 or x=1, returns with m=0,x=0)
 	.word xmciout-1                    ; API 6 (x=0 or x=1, returns with m=0,x=0)
-	.word hbload-1                     ; API 7 (x=0 or x=1, returns with m=0,x=0)
+	.word hbload-1                     ; API 7 (x=0 or x=1, returns with m=1,x=1)
 	.word get_last_far_bank-1          ; API 8 (x=0 or x=1, returns with m=0,x=0)
 
 
