@@ -173,7 +173,8 @@ BANNEX_SOURCES= \
 	bannex/x16edit.s \
 	bannex/sprite.s \
 	bannex/basload.s \
-	bannex/hbload.s
+	bannex/hbload.s \
+	bannex/modulus.s
 
 DIAG_SOURCES = \
 	diag/diag.s
@@ -458,7 +459,7 @@ $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym andmsk basic_fa chrget chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ ayint chkcls chkopn chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt plsvbin nsnerr6 sngflt buf` \
+	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ ayint chkcls chkopn chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt plsvbin nsnerr6 sngflt buf givayf0` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym llen mode nlines tblx`
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
