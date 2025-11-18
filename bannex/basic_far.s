@@ -191,4 +191,3 @@ givayf0:
 	.word basic_givayf0
 	.byte BANK_BASIC
 	rts
-	
