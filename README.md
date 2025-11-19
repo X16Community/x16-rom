@@ -108,6 +108,75 @@ See [LICENSE.md](LICENSE.md)
 
 Release Notes
 -------------
+### Release 49 ("Pyrite")
+
+For hardware compatibilty, the following firmware versions are supported by this ROM release:
+
+* VERA:
+	* Recommended: 48.0.1
+	* Also supported: 0.3.1, 0.3.2, 47.0.2
+	* Functional but with known problems: 0.3.3
+	* Unsupported: 0.1.1 or older
+* SMC:
+	* Recommended: 48.0.0, 47.2.3
+	* Also supported: 43.0.0 and higher
+	* Unsupported: 42.0.0 or older
+
+Changelog:
+
+* BUILD
+	* Better support for building on Windows in instances when Python's default encoding is not UTF-8 [stefan-b-jakobsson]
+	* Fixed the `OLD` command not re-initializing pointers to array and string variable memory.
+	* Some updates to support varying versions of cc65 after they renamed the `65c02` target to `w65c02`, and created a new `65c02` target without `STP` and `WAI`.
+	* Some listings fixes for the emulator [gaekwad]
+* KERNAL
+	* New [POST routine](https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%20Appendix%20E%20-%20Diagnostic%20Bank.md#post) will now do rudimentary tests of RAM and VIA#1 and attempt to display indication of any problems found instead of booting.  It will also send POST progress codes to I/O address $9FFF under certain conditions. [jburks]
+	* Cursor blinking in the Editor now properly swaps between the active cursor color and the existing character color.
+	* New PETSCII control code $0B/11/Ctrl+K swaps the active keyboard layout to the previously selected one.  This was added mainly to support switching between `JA-JP` and a Western layout.
+	* `extapi` has several new calls
+		* `memory_decompress_from_func` - a version of `memory_decompress` that calls a callback function per byte of input [adiee5]
+		* `default_palette` - gets a pointer to, or applies the default color palette
+		* `has_machine_property` - allows the caller to check for various machine environment flags
+		* `kbdbuf_get` - fetches a character from the keyboard buffer, bypassing channel I/O
+		* `kbdbuf_clear` - immediately empties the keyboard buffer
+		* `blink_enable` - enables the blinking text cursor outside of `BASIN`'s use of it
+	* `extapi` no longer requires the stack to be at $01xx on 65C816 machines.
+	* `CHKIN` no longer hangs after opening a file with an empty filename on a device that does not exist [stefan-b-jakobsson]
+	* Fixed the END key not properly handling lines which have a character in the final column of a row [stefan-b-jakobsson]
+	* Fixed `memory_crc` calculating the wrong value for blocks whose lengths are not a multiple of 256 bytes [stople]
+	* Improve `entropy_get` by including the VERA scanline as a source of entropy [irmen]
+	* Fixed `LOAD` loading extra bytes under certain conditions when it ends near memory location `$9D00`
+	* Fixed a logic bug involving `LOAD` to VRAM from IEC devices near VRAM location `$19D00`
+	* Allow bypassing booting a cartridge by holding the Shift key at startup.
+	* The `STASH` call can now write to ROM space, supporting expansion/cartridge RAM, and allowing the BASIC `POKE` command to reach it. [Fulgen301]
+	* Added code which avoids a lockup when attempting to set the keyboard LEDs with no keyboard attached
+	* `extapi16` has several new calls
+		* `xmacptr` - 24-bit aware extended implementation of `MACPTR`
+		* `xmciout` - 24-bit aware extended implementation of `MCIOUT`
+		* `hbload` - 24-bit aware extended implementation of headerless LOAD
+		* `get_last_far_bank` - Returns last useful far bank for 24-bit addressing
+	* Now warns the user at boot if the write-enable jumper for the ROM is closed [stefan-b-jakobsson]
+* DOS
+	* Added a new channel 15 command "FL<n>" _a.k.a. FATLBA_ for CMDR-DOS which returns the LBA of a file's current position.
+	* Added support for XMACPTR and XMCIOUT calls (blockwise read and write for 24-bit addressing on the 65C816)
+	* Fixed a missed RAM bank restore when attempting to access the SD card when it's not present [stople, irmen]
+* FAT32
+	* Fixed bug involving blockwise reads (MACPTR) from files > 2GiB
+	* Avoid erroneous empty LFN entry when filename length is a multiple of 13 [stople]
+	* New blockwise read and write functions for 24-bit far addressing (65C816)
+	* Fixed a severe bug causing corruption of the root directory of the SD card when opening an existsing 0-byte file and then appending to it.
+* KEYMAP
+	* Added katakana layout at `JA-JP`. This layout functions somewhat like an IME, where the consonant keys act as dead keys. This pairs with the katakana character set added prior to the last release. [adiee5]
+* BASIC
+	* Added `MOD()` function, supporting signed 16-bit operands. [JimmyDansbo]
+	* `BASLOAD` statement now supports an optional device number [stefan-b-jakobsson]
+	* Fixed BASIC buffer overflowing and corrupting KERNAL RAM state when attmpting to input lines > 80 characters in screen modes which don't divide 80 evenly.
+	* Fixed the `π` constant to be more precise [markjreed]
+	* Add a `:` after the injected `RUN` command for the DOS wedge `^` command [irmen]
+* UTILITIES
+	* Stefan B. Jakobsson's X16-Edit has been updated.
+	* Stefan B. Jakobsson's BASLOAD has been updated.
+
 ### Release 48 ("Cadmium")
 
 For hardware compatibilty, the following firmware versions are supported by this ROM release:
