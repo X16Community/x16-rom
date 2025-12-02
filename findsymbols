@@ -15,12 +15,12 @@ usage () {
 
 #Validate input
 if [ $# -lt 2 ]; then
-	usage
+	usage >&2
 fi
 
 if [[ ! -f $1 ]]; then
-	echo "File not found"
-	usage
+	echo >&2 "File not found: $1"
+	usage >&2
 fi
 
 #Get symbol names from command line parameters
