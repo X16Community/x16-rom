@@ -368,14 +368,14 @@ $(BUILD_DIR)/%.cfg: %.cfgtpl
 	$(CC) -E $< -o $@
 
 # TODO: Need a way to control lst file generation through a configuration variable.
-$(BUILD_DIR)/%.o: %.s
+$(BUILD_DIR)/%.o: %.s $(GIT_SIGNATURE)
 	@mkdir -p $$(dirname $@)
 	$(AS) $(ASFLAGS) -l $(BUILD_DIR)/$*.lst $< -o $@
 
 
 # TODO: Need a way to control relist generation; don't try to do it if lst files haven't been generated!
 # Bank 0 : KERNAL
-$(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-x16.cfg
+$(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-x16.cfg ${BUILD_DIR}/charset.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/kernal-x16.cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARPET_LOAD__ __CHARPET2_LOAD__ __CHARLAE_LOAD__ __CHARLAE2_LOAD__` \
@@ -396,7 +396,7 @@ $(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/dos.map $(BUILD_DIR)/dos
 
 # Bank 3 : FAT32
-$(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
+$(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg ${BUILD_DIR}/dos.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym bank_save fat32_bufptr fat32_lfn_bufptr fat32_ptr fat32_ptr2 krn_ptr1` \
@@ -404,13 +404,13 @@ $(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC
-$(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg
+$(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg ${BUILD_DIR}/kernal.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode wheel`
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
 
 # Bank 5 : MONITOR
-$(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-x16.cfg
+$(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-x16.cfg ${BUILD_DIR}/basic.sym ${BUILD_DIR}/kernal.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode dbgbrk` \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ linnum tempst forpnt`
@@ -428,7 +428,7 @@ $(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/diag.map $(BUILD_DIR)/diag
 
 # Bank 8 : Graphics
-$(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
+$(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg ${BUILD_DIR}/kernal.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym kvswitch_tmp1 kvswitch_tmp2` \
@@ -455,7 +455,7 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/util.map $(BUILD_DIR)/util
 
 # Bank C : BASIC Annex
-$(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
+$(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg ${BUILD_DIR}/basic.sym ${BUILD_DIR}/kernal.sym
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
 	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym andmsk basic_fa chrget chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
@@ -464,19 +464,23 @@ $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 # Bank D-E: X16 Edit
-$(BUILD_DIR)/x16edit-rom.bin: $(X16EDIT_DEPS)
+$(BUILD_DIR)/x16edit-rom.bin: $(X16EDIT_DEPS) x16-edit/build/x16edit-rom.bin
 	@mkdir -p $$(dirname $@)
-	(cd x16-edit && make clean rom)
 	cp x16-edit/build/x16edit-rom.bin $(BUILD_DIR)/x16edit-rom.bin
 	./scripts/trace_info.py 13 x16-edit/conf/x16edit-rom.cfg x16-edit/build/x16edit-rom.lst  $(BUILD_DIR)/x16edit-rom_D.rlst $(BUILD_DIR)/x16edit_D_labels.h
 	./scripts/trace_info.py 14 x16-edit/conf/x16edit-rom.cfg x16-edit/build/x16edit-rom.lst  $(BUILD_DIR)/x16edit-rom_E.rlst $(BUILD_DIR)/x16edit_E_labels.h
 
+x16-edit/build/x16edit-rom.bin:
+	(cd x16-edit && make clean rom)
+
 # Bank F: BASLOAD
-$(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS)
+$(BUILD_DIR)/basload-rom.bin: $(BASLOAD_DEPS) basload/build/basload-rom.bin
 	@mkdir -p $$(dirname $@)
-	(cd basload && make clean && make)
 	cp basload/build/basload-rom.bin $(BUILD_DIR)/basload-rom.bin
 	./scripts/trace_info.py 15 basload/conf/basload-rom.cfg basload/build/basload-rom.lst $(BUILD_DIR)/basload-rom.rlst $(BUILD_DIR)/basload_labels.h
+
+basload/build/basload-rom.bin:
+	(cd basload && make clean && make)
 
 $(BUILD_DIR)/rom_labels.h: $(BANK_BINS)
 	./scripts/symbolize.sh 0 build/x16/kernal.sym   > $@
