@@ -330,6 +330,17 @@ ROM_LABELS=$(BUILD_DIR)/rom_labels.h
 ROM_LST=$(BUILD_DIR)/rom_lst.h
 GIT_SIGNATURE=$(BUILD_DIR)/../signature.bin
 
+# Wrapper for findsymbols that escapes the output and guards against non-zero exit codes
+define findsymbols
+$(strip \
+	$(subst $,\$,$(shell ${BUILD_DIR}/../../findsymbols $(1) $(2))) \
+	$(if \
+		$(filter 0,$(firstword $(.SHELLSTATUS) 0)),, \
+		$(error findsymbols failed with exit code $(.SHELLSTATUS)) \
+	)
+)
+endef
+
 all: $(BUILD_DIR)/rom.bin $(ROM_LABELS) $(ROM_LST)
 
 $(BUILD_DIR)/rom.bin: $(BANK_BINS)
@@ -378,9 +389,9 @@ $(BUILD_DIR)/%.o: %.s
 $(BUILD_DIR)/kernal.bin: $(GIT_SIGNATURE) $(KERNAL_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/kernal-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/kernal-x16.cfg $(KERNAL_OBJS) -o $@ -m $(BUILD_DIR)/kernal.map -Ln $(BUILD_DIR)/kernal.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARPET_LOAD__ __CHARPET2_LOAD__ __CHARLAE_LOAD__ __CHARLAE2_LOAD__` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARKAT_LOAD__ __CHARISO_LOAD__ __CHARISO2_LOAD__ __CHARCYR_LOAD__` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/charset.sym __CHARCYR2_LOAD__ __CHARANSI_LOAD__`
+	$(call findsymbols,${BUILD_DIR}/charset.sym,__CHARPET_LOAD__ __CHARPET2_LOAD__ __CHARLAE_LOAD__ __CHARLAE2_LOAD__) \
+	$(call findsymbols,${BUILD_DIR}/charset.sym,__CHARKAT_LOAD__ __CHARISO_LOAD__ __CHARISO2_LOAD__ __CHARCYR_LOAD__) \
+	$(call findsymbols,${BUILD_DIR}/charset.sym,__CHARCYR2_LOAD__ __CHARANSI_LOAD__)
 	./scripts/relist.py $(BUILD_DIR)/kernal.map $(BUILD_DIR)/kernal
 	./scripts/rom_verify_first_byte.py $@
 
@@ -399,21 +410,22 @@ $(BUILD_DIR)/dos.bin: $(DOS_OBJS) $(DOS_DEPS) $(CFG_DIR)/dos-x16.cfg
 $(BUILD_DIR)/fat32.bin: $(FAT32_OBJS) $(FAT32_DEPS) $(CFG_DIR)/fat32-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/fat32-x16.cfg $(FAT32_OBJS) -o $@ -m $(BUILD_DIR)/fat32.map -Ln $(BUILD_DIR)/fat32.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym bank_save fat32_bufptr fat32_lfn_bufptr fat32_ptr fat32_ptr2 krn_ptr1` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/dos.sym fat32_dirent fat32_errno fat32_readonly fat32_size skip_mask`
+	$(call findsymbols,${BUILD_DIR}/dos.sym,bank_save fat32_bufptr fat32_lfn_bufptr fat32_ptr fat32_ptr2 krn_ptr1) \
+	$(call findsymbols,${BUILD_DIR}/dos.sym,fat32_dirent fat32_errno fat32_readonly fat32_size skip_mask)
 	./scripts/relist.py $(BUILD_DIR)/fat32.map $(BUILD_DIR)/fat32
 
 # Bank 4 : BASIC
 $(BUILD_DIR)/basic.bin: $(GIT_SIGNATURE) $(BASIC_OBJS) $(BASIC_DEPS) $(CFG_DIR)/basic-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym shflag mode wheel`
+	$(LD) -C $(CFG_DIR)/basic-x16.cfg $(BASIC_OBJS) -o $@ -m $(BUILD_DIR)/basic.map -Ln $(BUILD_DIR)/basic.sym $(call findsymbols,${BUILD_DIR}/kernal.sym,shflag mode wheel)
 	./scripts/relist.py $(BUILD_DIR)/basic.map $(BUILD_DIR)/basic
 
 # Bank 5 : MONITOR
 $(BUILD_DIR)/monitor.bin: $(MONITOR_OBJS) $(MONITOR_DEPS) $(CFG_DIR)/monitor-x16.cfg
 	@mkdir -p $$(dirname $@)
-	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym `${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym mode dbgbrk` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ linnum tempst forpnt`
+	$(LD) -C $(CFG_DIR)/monitor-x16.cfg $(MONITOR_OBJS) -o $@ -m $(BUILD_DIR)/monitor.map -Ln $(BUILD_DIR)/monitor.sym \
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,mode dbgbrk) \
+	$(call findsymbols,${BUILD_DIR}/basic.sym,-p basic_ linnum tempst forpnt)
 	./scripts/relist.py $(BUILD_DIR)/monitor.map $(BUILD_DIR)/monitor
 
 # Bank 6 : CHARSET
@@ -431,10 +443,10 @@ $(BUILD_DIR)/diag.bin: $(DIAG_OBJS) $(DIAG_DEPS) $(CFG_DIR)/diag-x16.cfg
 $(BUILD_DIR)/graph.bin: $(GRAPH_OBJS) $(KERNAL_DEPS) $(CFG_DIR)/graph.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/graph.cfg $(GRAPH_OBJS) -o $@ -m $(BUILD_DIR)/graph.map -Ln $(BUILD_DIR)/graph.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym kvswitch_tmp1 kvswitch_tmp2` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym ptr_fg` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym -p k_ kbdbuf_get sprite_set_image sprite_set_position` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym curIndexTable baselineOffset curSetWidth curHeight cardDataPntr currentMode windowTop windowBottom leftMargin rightMargin fontTemp1 fontTemp2 PrvCharWidth FontTVar1 FontTVar2 FontTVar3 FontTVar4`
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,kvswitch_tmp1 kvswitch_tmp2) \
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,ptr_fg) \
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,-p k_ kbdbuf_get sprite_set_image sprite_set_position) \
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,curIndexTable baselineOffset curSetWidth curHeight cardDataPntr currentMode windowTop windowBottom leftMargin rightMargin fontTemp1 fontTemp2 PrvCharWidth FontTVar1 FontTVar2 FontTVar3 FontTVar4)
 
 # Bank 9 : DEMO
 $(BUILD_DIR)/demo.bin: $(DEMO_OBJS) $(DEMO_DEPS) $(CFG_DIR)/demo-x16.cfg
@@ -458,9 +470,9 @@ $(BUILD_DIR)/util.bin: $(UTIL_OBJS) $(UTIL_DEPS) $(CFG_DIR)/util-x16.cfg
 $(BUILD_DIR)/bannex.bin: $(BANNEX_OBJS) $(BANNEX_DEPS) $(CFG_DIR)/bannex-x16.cfg
 	@mkdir -p $$(dirname $@)
 	$(LD) -C $(CFG_DIR)/bannex-x16.cfg $(BANNEX_OBJS) -o $@ -m $(BUILD_DIR)/bannex.map -Ln $(BUILD_DIR)/bannex.sym \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym andmsk basic_fa chrget chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/basic.sym -p basic_ ayint chkcls chkopn chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt plsvbin nsnerr6 sngflt buf givayf0` \
-	`${BUILD_DIR}/../../findsymbols ${BUILD_DIR}/kernal.sym llen mode nlines tblx`
+	$(call findsymbols,${BUILD_DIR}/basic.sym,andmsk basic_fa chrget chrgot crambank curlin eormsk fac facho facmo index index1 index2 lp_dopause lp_screenpause poker rencur reninc rennew renold rentmp rentmp2 txtptr txttab valtyp vartab verck) \
+	$(call findsymbols,${BUILD_DIR}/basic.sym,-p basic_ ayint chkcls chkopn chkcom cld10 crdo erexit error frefac frmadr frmevl frmnum getadr getbyt linprt plsvbin nsnerr6 sngflt buf givayf0) \
+	$(call findsymbols,${BUILD_DIR}/kernal.sym,llen mode nlines tblx)
 	./scripts/relist.py $(BUILD_DIR)/bannex.map $(BUILD_DIR)/bannex
 
 # Bank D-E: X16 Edit
