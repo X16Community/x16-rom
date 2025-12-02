@@ -372,6 +372,10 @@ $(BUILD_DIR)/%.o: %.s $(GIT_SIGNATURE)
 	@mkdir -p $$(dirname $@)
 	$(AS) $(ASFLAGS) -l $(BUILD_DIR)/$*.lst $< -o $@
 
+$(BUILD_DIR)/basic.sym: $(BUILD_DIR)/basic.bin
+$(BUILD_DIR)/charset.sym: $(BUILD_DIR)/charset.bin
+$(BUILD_DIR)/dos.sym: $(BUILD_DIR)/dos.bin
+$(BUILD_DIR)/kernal.sym: $(BUILD_DIR)/kernal.bin
 
 # TODO: Need a way to control relist generation; don't try to do it if lst files haven't been generated!
 # Bank 0 : KERNAL
