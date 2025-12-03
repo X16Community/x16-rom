@@ -44,7 +44,7 @@ jobs:
           make all
       - name: Run Unit Tests
         run: |
-          export PATH="$(pwd)/x16-emulator:$PATH"
+          export PATH="$(pwd)/x16-emulator/build:$PATH"
           make test
       - name: Archive Build Result
         run: |
