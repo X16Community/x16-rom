@@ -161,6 +161,7 @@ fail_safe_okay:
 	beq diag_start  ; poweron has been done with a long-press
 	jmp continue_original
 diag_start:
+	sei             ; Disable interrupts when starting via JMPTBL
 	jmp basemem_test
 basemem_ret:
 	ldx #$FF        ; Set stack pointer

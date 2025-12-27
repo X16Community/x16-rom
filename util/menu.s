@@ -321,7 +321,6 @@ do_diag:
 	jmp show_menu
 @enter:	cmp #13
 	bne @getchoice
-	sei
 	jsr ujsrfar
 	.word $C000
 	.byte BANK_DIAG
