@@ -364,6 +364,8 @@ basload_update:
 	rm -rf basloadtmp
 
 clean:
+	(cd basload && make clean)
+	(cd x16-edit && make clean)
 	rm -f $(GIT_SIGNATURE)
 	rm -rf $(BUILD_DIR)
 
