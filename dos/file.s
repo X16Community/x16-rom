@@ -87,6 +87,7 @@ file_open:
 	bcs @alloc_ok
 
 	jsr convert_errno_status
+	jsr set_status
 	sec
 	rts
 
