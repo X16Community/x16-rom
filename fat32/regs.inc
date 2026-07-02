@@ -26,7 +26,7 @@ mtime_seconds .byte
 
 ; Maximum number of open files
 ; Optionally, fat32_alloc_context / fat32_free_context can be used to manage contexts
-FAT32_CONTEXTS = 4
+FAT32_CONTEXTS = 8
 
 ; Maximum number of partitions
 FAT32_VOLUMES = 4
