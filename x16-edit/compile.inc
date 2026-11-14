@@ -116,6 +116,7 @@ found:
 
     ;Copy file name
     stz BNK_SEL
+    ldx file_cur_filename_len
 :   lda file_cur_filename-1,x
     sta $bf00-1,x
     dex
